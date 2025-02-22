@@ -1,0 +1,24 @@
+FROM node:23-alpine AS builder
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm i -f
+
+COPY . .
+RUN npm run build
+
+FROM node:23-alpine AS runner
+
+WORKDIR /app
+
+COPY --from=builder /app .
+
+RUN chmod +x /app/scripts/entrypoint.sh
+
+
+EXPOSE 3000
+
+CMD ["./scripts/entrypoint.sh"]
+
+

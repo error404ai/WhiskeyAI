@@ -1,0 +1,6 @@
+{
+  "printWidth": 500,
+  "singleAttributePerLine": false,
+  "arrowParens": "always",
+  "plugins": ["prettier-plugin-tailwindcss"]
+}

@@ -1,0 +1,57 @@
+services:
+  ext-web:
+    container_name: ext-web-next
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    ports:
+      - "3000:3000"
+      - "9229:9229"
+    command: ["sh", "-c", "npm i -f && npm run dev"]
+    networks:
+      - default
+    depends_on:
+      - db
+
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - default
+  minio:
+    image: minio/minio:latest
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - default
+
+  adminer:
+    image: adminer
+    ports:
+      - "8080:8080"
+    networks:
+      - default
+
+networks:
+  default:
+    driver: bridge
+
+volumes:
+  pgdata:
+  minio_data:
