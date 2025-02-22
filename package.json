@@ -64,7 +64,6 @@
     "react-dom": "19.0.0",
     "react-hook-form": "^7.54.2",
     "react-loading-skeleton": "^3.5.0",
-    "react-markdown": "^9.0.3",
     "react-redux": "^9.2.0",
     "recharts": "^2.15.1",
     "remark-gfm": "^4.0.1",
