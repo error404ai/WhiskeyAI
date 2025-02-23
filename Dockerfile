@@ -7,10 +7,6 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY . .
 
-RUN rm -rf node_modules
-RUN npm i -f
-RUN npm run build
-RUN npm run db:push
 
 
 EXPOSE 3000
