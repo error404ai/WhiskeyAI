@@ -22,12 +22,12 @@ jobs:
 
       - name: Test SSH Connection
         run: |
-          ssh -v -o StrictHostKeyChecking=no root@157.173.219.53 exit
+          ssh -v -o StrictHostKeyChecking=no root@45.90.220.95 exit
 
       # Step 3: Deploy to VPS
       - name: Deploy to VPS
         run: |
-          ssh -o StrictHostKeyChecking=no root@157.173.219.53 << 'EOF'
+          ssh -o StrictHostKeyChecking=no root@45.90.220.95 << 'EOF'
             set -e
             docker system prune -a --volumes=false --force
             cd /var/www/bid-chrome-ext
