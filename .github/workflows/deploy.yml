@@ -32,7 +32,7 @@ jobs:
             docker system prune -a --volumes=false --force
             cd /var/www/bid-chrome-ext
             git pull origin production
-            cd /var/www/bid-chrome-ext/ext-web
+            cd /var/www/WhiskeyAI
             docker-compose down
             # docker-compose -f docker-compose-prod.yml build --no-cache
             docker builder prune -f
