@@ -23,7 +23,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Twitter AI Bot",
+  title: "Whiskey AI Bot",
   description: "A chrome extension for freelancers",
 };
 
