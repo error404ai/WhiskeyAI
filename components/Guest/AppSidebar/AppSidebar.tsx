@@ -1,6 +1,6 @@
 "use client";
 
-import { Bot, BrainCircuit, Calendar, ChevronUp, ClipboardList, Home, Settings, User2 } from "lucide-react";
+import { ChevronUp, Home, Settings, User2 } from "lucide-react";
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
@@ -17,29 +17,14 @@ const items = [
     icon: Home,
   },
   {
-    title: "User Info",
-    url: "/user-info",
-    icon: ClipboardList,
+    title: "Agent",
+    url: "/agent",
+    icon: User2,
   },
   {
     title: "Profile",
     url: "/profile",
     icon: User2,
-  },
-  {
-    title: "Bids",
-    url: "#",
-    icon: Calendar,
-  },
-  {
-    title: "Generate",
-    url: "/generate",
-    icon: Bot,
-  },
-  {
-    title: "Training",
-    url: "/training",
-    icon: BrainCircuit,
   },
   {
     title: "Settings",
