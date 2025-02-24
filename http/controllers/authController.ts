@@ -12,7 +12,7 @@ export const login = async ({ publicKey, signature, message }: { publicKey: stri
       message,
     });
   } catch {
-    return new ZodError([{ code: "custom", message: "Login Failed. Please check your credentials", path: ["email"] }]).toString();
+    return new ZodError([{ code: "custom", message: "Login Failed. Please check your credentials", path: ["credentials"] }]).toString();
   }
 };
 
