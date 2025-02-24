@@ -7,8 +7,8 @@ type LogoProps = {
 const Logo: React.FC<LogoProps> = () => {
   return (
     <div>
-      <Link href="/" className="flex items-center gap-2 font-bold [view-transition-name:logo]">
-        WhiskeyAI
+      <Link href="/" className="flex items-center gap-2 font-bold italic text-white [view-transition-name:logo]">
+        whiskey.io
       </Link>
     </div>
   );
