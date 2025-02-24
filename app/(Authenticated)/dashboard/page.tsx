@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { DateRangePicker } from "@/components/DatePicker/DateRangePicker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
