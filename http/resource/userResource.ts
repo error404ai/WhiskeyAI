@@ -4,13 +4,9 @@ import { UploadService } from "../services/uploadService";
 export type UserResourceType = {
   id: string;
   customer_id: string;
-  name: string;
+  name: string | null;
   email: string;
   avatar: string;
-  date_of_birth: string | null;
-  phone: string | null;
-  street_address: string | null;
-  country: string | null;
   emailVerified: Date | null;
 };
 
@@ -40,12 +36,8 @@ class UserResource {
       id: String(this.user.id),
       customer_id: this.user.customer_id,
       name: this.user.name,
-      email: this.user.email,
+      email: this.user.email ?? "",
       avatar: this.getAvatarUrl(),
-      date_of_birth: this.user.date_of_birth,
-      phone: this.user.phone,
-      street_address: this.user.street_address,
-      country: this.user.country,
       emailVerified: this.user.emailVerified ? new Date(this.user.emailVerified) : null,
     };
   }
