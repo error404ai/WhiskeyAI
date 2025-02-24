@@ -1,6 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
 import { DateRangePicker } from "@/components/DatePicker/DateRangePicker";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -17,7 +16,6 @@ export default function DashboardPage() {
             <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
             <div className="flex items-center space-x-2">
               <DateRangePicker />
-              <Button>Download</Button>
             </div>
           </div>
           <Tabs defaultValue="overview" className="space-y-4">
