@@ -1,6 +1,5 @@
 "use server";
 
-import { passwordUpdateSchema } from "@/db/zodSchema/passwordUpdateSchema";
 import { profileBasicInfoSchema } from "@/db/zodSchema/profileUpdateSchema";
 import UserService from "@/http/services/userService";
 import { UserResourceType } from "../resource/userResource";
@@ -22,16 +21,16 @@ export const getAuthUser = async (): Promise<UserResourceType | null> => {
   if (!authUser) {
     return null;
   }
-  return authUser.toJSON();
+  return authUser;
 };
 
-export const updatePassword = async (data: unknown): Promise<boolean | string> => {
-  const parsedData = passwordUpdateSchema.parse(data);
-  const customerId = (await AuthService.getAuthUser())?.toJSON().customer_id;
+// export const updatePassword = async (data: unknown): Promise<boolean | string> => {
+//   const parsedData = passwordUpdateSchema.parse(data);
+//   const customerId = (await AuthService.getAuthUser())?.customer_id;
 
-  if (!customerId) return false;
-  return await UserService.updatePassword(customerId, parsedData);
-};
+//   if (!customerId) return false;
+//   return await UserService.updatePassword(customerId, parsedData);
+// };
 
 export const deleteUserAccount = async (userId: number): Promise<string> => {
   try {

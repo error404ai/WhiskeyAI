@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { passwordUpdateSchema } from "@/db/zodSchema/passwordUpdateSchema";
-import * as ProfileController from "@/http/controllers/profileController";
 import { setFormErrors } from "@/utils/setFormErrors";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CircleCheck } from "lucide-react";
@@ -21,8 +20,9 @@ const PasswordUpdateForm = () => {
   });
 
   const onSubmit = async (data: z.infer<typeof passwordUpdateSchema>) => {
+    console.log(data);
     try {
-      const res = await ProfileController.updatePassword(data);
+      const res = true;
       const isError = setFormErrors(res, methods.setError);
       if (!isError) {
         setStatus("success");

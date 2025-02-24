@@ -49,7 +49,7 @@ const LoginButton = () => {
 
   return (
     <Button onClick={handleLogin} className="rounded-lg bg-white font-semibold text-black shadow-md transition hover:bg-gray-300">
-      Login {publicKey}
+      Login
     </Button>
   );
 };
