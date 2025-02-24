@@ -13,8 +13,11 @@ const Header = () => {
         <div className="flex items-center gap-12">
           <Logo />
           <div className="flex gap-10">
-            <Link href="#" className="text-lg font-medium text-gray-800 hover:text-blue-500 transition-colors">
-              Home
+            <Link href="/agent" className="text-lg font-medium text-gray-800 hover:text-blue-500 transition-colors">
+              Agent
+            </Link>
+            <Link href="/faq" className="text-lg font-medium text-gray-800 hover:text-blue-500 transition-colors">
+              FAQ
             </Link>
           </div>
         </div>
