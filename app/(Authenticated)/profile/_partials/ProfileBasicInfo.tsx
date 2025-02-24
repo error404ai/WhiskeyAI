@@ -72,10 +72,6 @@ const ProfileBasicInfo = () => {
     methods.setValue("name", user?.name ?? "");
     methods.setValue("avatar", user?.avatar ?? "");
     methods.setValue("email", user?.email ?? "");
-    methods.setValue("phone", user?.phone ?? "");
-    methods.setValue("country", user?.country ?? "");
-    methods.setValue("street_address", user?.street_address ?? "");
-    methods.setValue("date_of_birth", user?.date_of_birth ?? "");
   }, [user, methods]);
 
   console.log("user is", user);
