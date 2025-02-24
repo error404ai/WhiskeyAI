@@ -1,8 +1,10 @@
+import bs58 from "bs58";
 import { Jwt } from "jsonwebtoken";
 import NextAuth, { DefaultSession } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import * as nacl from "tweetnacl";
 import { UserResourceType } from "./http/resource/userResource";
-import AuthService from "./http/services/authService";
+import UserService from "./http/services/userService";
 
 declare module "next-auth" {
   interface Session {
@@ -49,14 +51,37 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
       credentials: {
-        email: {},
-        password: {},
+        publicKey: { label: "Public Key", type: "text" },
+        signature: { label: "Signature", type: "text" },
+        message: { label: "Message", type: "text" },
       },
       authorize: async (credentials) => {
-        const user = await AuthService.verifyUserPasswordHash(credentials?.email as string, credentials?.password as string);
+        // Cast the credentials to the correct type
+        const { publicKey, signature, message } = credentials as { publicKey: string; signature: string; message: string };
+
+        if (!publicKey || !signature || !message) {
+          throw new Error("Missing credentials");
+        }
+
+        console.log("public key is", publicKey);
+
+        // Decode signature
+        const decodedSignature = bs58.decode(signature);
+
+        // Verify signature using Solana's nacl library
+        const isValid = nacl.sign.detached.verify(new TextEncoder().encode(message), decodedSignature, bs58.decode(publicKey));
+
+        if (!isValid) {
+          throw new Error("Invalid Signature");
+        }
+
+        let user = await UserService.findUserByPublicKey(publicKey);
+        if (!user) {
+          user = await UserService.createUserByPublicKey(publicKey);
+        }
 
         if (!user) {
-          return null;
+          throw new Error("Failed to login");
         }
 
         return user;
