@@ -1,0 +1,40 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up SSH
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_DEPLOY_KEY }}
+
+      - name: Test SSH Connection
+        run: |
+          ssh -v -o StrictHostKeyChecking=no root@45.90.220.95 exit
+
+      # Step 3: Deploy to VPS
+      - name: Deploy to VPS
+        run: |
+          ssh -o StrictHostKeyChecking=no root@45.90.220.95 << 'EOF'
+            set -e
+            docker system prune -a --volumes=false --force
+            cd /var/www/WhiskeyAI
+            git pull origin production
+            cd /var/www/WhiskeyAI
+            docker-compose down
+            # docker-compose -f docker-compose-prod.yml build --no-cache
+            docker builder prune -f
+            docker-compose -f docker-compose-prod.yml up --build -d
+          EOF
