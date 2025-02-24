@@ -8,7 +8,7 @@ const layout: React.FC<Props> = ({ children }) => {
   return (
     <div className="flex min-h-screen flex-col justify-between">
       <div>
-        <Header />
+        {/* <Header /> */}
         {children}
       </div>
       <Footer />
