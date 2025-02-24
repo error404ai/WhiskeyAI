@@ -20,9 +20,9 @@ services:
   db:
     image: pgvector/pgvector:pg17
     environment:
-      POSTGRES_USER: thewhiskey
-      POSTGRES_PASSWORD: aiTOrtGEACkbIlOgymphYSTiblegre
-      POSTGRES_DB: thewhiskey
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
