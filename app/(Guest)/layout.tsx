@@ -1,3 +1,4 @@
+import { Navbar } from "@/components/Guest/Common/navbar";
 import Footer from "@/components/Guest/Footer/Footer";
 import Header from "@/components/Guest/Header/Header";
 
@@ -8,7 +9,8 @@ const layout: React.FC<Props> = ({ children }) => {
   return (
     <div className="flex min-h-screen flex-col justify-between">
       <div>
-        <Header />
+        {/* <Header /> */}
+        <Navbar />
         {children}
       </div>
       <Footer />
