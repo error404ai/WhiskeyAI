@@ -3,8 +3,21 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Plus, RefreshCw, Trash2 } from "lucide-react";
+import { Copy, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { useState } from "react";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input";
+import { Label } from "@radix-ui/react-dropdown-menu";
+import { DialogClose } from "@radix-ui/react-dialog";
+
 
 interface Agent {
   id: string;
@@ -48,10 +61,62 @@ export default function YourAgentsSection() {
               <RefreshCw className="h-4 w-4" />
               <span className="sr-only">Refresh</span>
             </Button>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Create New Agent
-            </Button>
+
+            <Dialog>
+              <DialogTrigger>
+                <Button> <Plus className="mr-2 h-4 w-4" /> Create New Agent</Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Create New Agent</DialogTitle>
+                 
+                </DialogHeader>
+                <div className="flex items-center space-x-2">
+                  <div className="grid flex-1 gap-2">
+                    <Label className="">
+                      Agent Name
+                    </Label>
+                    <Input
+                      id="link"
+                      placeholder="e.g. whiskeyAI"
+                      defaultValue=""
+                      readOnly
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="grid flex-1 gap-2">
+                    <Label className="">
+                      Ticker Symbol
+                    </Label>
+                    <Input
+                      id="link"
+                      placeholder="e.g. $whiskeyAI"
+                      defaultValue=""
+                      readOnly
+                    />
+                  </div>
+                </div>
+
+                <div className="p-4 bg-blue-50 rounded-xl">
+                  <p>Configure your agent's behavior and personality anytime by clicking the Configure button. You can launch the token when you're ready from the configuration page.</p>
+                </div>
+                <DialogFooter className="flex justify-between">
+
+                  <DialogClose asChild>
+                    <Button type="button" variant="secondary">
+                      Close
+                    </Button>
+                  </DialogClose>
+                  <Button type="button">
+                    Create Agent
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+
+
           </div>
         </div>
 
