@@ -8,11 +8,11 @@ type LogoProps = {
   iconOnly?: boolean;
 };
 const Logo: React.FC<LogoProps> = () => {
-  const { open } = useSidebar();
+  const context = useSidebar();
   return (
     <Link href="/" className="flex items-center space-x-2">
       <Bot className="h-6 w-6" />
-      <span className={cn("inline-block font-bold italic", { hidden: !open })}>WhiskeyAI</span>
+      <span className={cn("inline-block font-bold italic", { hidden: !context.open })}>WhiskeyAI</span>
     </Link>
   );
 };
