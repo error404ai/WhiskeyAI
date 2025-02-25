@@ -18,7 +18,7 @@ declare global {
   }
 }
 
-const ConnectButton = () => {
+const ConnectButton = ({ ...props }) => {
   const handleLogin = async () => {
     let publicKey = null;
     if (window.solana) {
@@ -41,7 +41,11 @@ const ConnectButton = () => {
     window.location.href = url;
   };
 
-  return <Button onClick={handleLogin}>Connect</Button>;
+  return (
+    <Button onClick={handleLogin} {...props}>
+      Connect
+    </Button>
+  );
 };
 
 export default ConnectButton;
