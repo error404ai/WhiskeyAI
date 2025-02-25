@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { passwordUpdateSchema } from "@/db/zodSchema/passwordUpdateSchema";
-import { setFormErrors } from "@/utils/setFormErrors";
+import { setFormErrors } from "@/lib/setFormErrors";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CircleCheck } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
