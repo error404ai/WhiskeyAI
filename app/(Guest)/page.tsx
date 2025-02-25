@@ -1,5 +1,4 @@
 "use client";
-import { Navbar } from "@/components/Guest/Common/navbar";
 import CTASection from "../../components/Guest/Common/CTASection";
 import FaqSection from "../../components/Guest/Common/FaqSection";
 import HomeFeatureSection from "../../components/Guest/Common/HomeFeatureSection";
@@ -20,6 +19,5 @@ export default function Home() {
         <CTASection />
       </div>
     </>
-
   );
 }

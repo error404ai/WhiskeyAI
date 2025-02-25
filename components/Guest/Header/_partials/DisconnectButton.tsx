@@ -4,7 +4,7 @@ import { logout } from "@/http/controllers/authController";
 import { LogOut } from "lucide-react";
 import { useState } from "react";
 
-const LogoutButton = () => {
+const DisconnectButton = () => {
   const [loading, setLoading] = useState(false);
   const handleLogout = async () => {
     setLoading(true);
@@ -13,9 +13,9 @@ const LogoutButton = () => {
   };
   return (
     <Button loading={loading} variant="destructive" onClick={handleLogout}>
-      <LogOut /> Logout
+      <LogOut /> Disconnect
     </Button>
   );
 };
 
-export default LogoutButton;
+export default DisconnectButton;
