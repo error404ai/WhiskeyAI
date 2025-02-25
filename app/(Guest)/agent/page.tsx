@@ -1,8 +1,6 @@
 "use client";
 
 import YourAgentsSection from "@/components/Guest/Common/YourAgentsSection";
-import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
 
 export default function AgentPage() {
   return (
