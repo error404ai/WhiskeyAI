@@ -3,9 +3,10 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import LoggedIn from "@/components/wrappers/LoggedIn";
 import LoggedOut from "@/components/wrappers/LoggedOut";
 import { cn } from "@/lib/utils";
-import { Bot, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
+import Logo from "../Common/Logo";
 import ConnectButton from "./_partials/ConnectButton";
 import DisconnectButton from "./_partials/DisconnectButton";
 import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from "./_partials/navigation-menu";
@@ -17,11 +18,7 @@ export function GuestHeader() {
     <header className={cn("sticky top-0 z-50 w-full transition-all", "bg-background/80 border-b backdrop-blur-sm")}>
       <nav className="container flex h-16 items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-6 md:gap-8 lg:gap-10">
-          <Link href="/" className="flex items-center space-x-2">
-            <Bot className="h-6 w-6" />
-            <span className="inline-block font-bold italic">whiskeyAI</span>
-          </Link>
-
+          <Logo />
           {/* Desktop Navigation */}
           <div className="hidden md:flex">
             <NavigationMenu>
