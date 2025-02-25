@@ -17,8 +17,8 @@ const items = [
     icon: Home,
   },
   {
-    title: "Agent",
-    url: "/agent",
+    title: "My Agent",
+    url: "/my-agent",
     icon: User2,
   },
   {
