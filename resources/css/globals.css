@@ -179,3 +179,13 @@
 ::view-transition-group(*) {
   animation-duration: 0.5s;
 }
+@media (min-width: 699px) {
+  button[aria-haspopup="dialog"] {
+    display: none !important;
+  }
+}
+
+input:focus {
+  background-color: unset !important;
+  /* color: red !important; */
+}

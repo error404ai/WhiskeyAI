@@ -18,16 +18,7 @@ declare global {
   }
 }
 
-const LoginButton = () => {
-  // const [publicKey, setPublicKey] = useState<string | null>(null);
-
-  // useEffect(() => {
-  //   if (window.solana) {
-  //     window.solana.connect().then(({ publicKey }) => {
-  //       setPublicKey(publicKey.toBase58());
-  //     });
-  //   }
-  // }, []);
+const ConnectButton = () => {
   const handleLogin = async () => {
     let publicKey = null;
     if (window.solana) {
@@ -50,11 +41,7 @@ const LoginButton = () => {
     window.location.href = url;
   };
 
-  return (
-    <Button onClick={handleLogin} className="rounded-lg bg-white font-semibold text-black shadow-md transition hover:bg-gray-300">
-      Login
-    </Button>
-  );
+  return <Button onClick={handleLogin}>Connect</Button>;
 };
 
-export default LoginButton;
+export default ConnectButton;
