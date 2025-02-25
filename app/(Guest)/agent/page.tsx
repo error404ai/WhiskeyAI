@@ -1,12 +1,11 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import YourAgentsSection from "@/components/Guest/Common/YourAgentsSection";
 
 export default function AgentPage() {
   return (
     <div>
-      <div className="container">
+      {/* <div className="container">
         <div className="bg-background relative overflow-hidden">
           <div className="bg-grid-slate-200/20 absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,black_70%,transparent_100%)]" />
           <section className="relative container mx-auto px-4 py-12 sm:px-6 md:py-24 lg:px-8">
@@ -25,7 +24,9 @@ export default function AgentPage() {
             </div>
           </section>
         </div>
-      </div>
+      </div> */}
+
+      <YourAgentsSection />
 
       <div className="text-white">
         {/* Call-to-Action Section */}
