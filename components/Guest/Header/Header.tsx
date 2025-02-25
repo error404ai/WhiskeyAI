@@ -4,8 +4,8 @@ import LoggedOut from "@/components/wrappers/LoggedOut";
 import { Home } from "lucide-react";
 import { Link } from "next-view-transitions";
 import Logo from "../Common/Logo";
-import LoginButton from "./_partials/LoginButton";
-import LogoutButton from "./_partials/LogoutButton";
+import LoginButton from "./_partials/ConnectButton";
+import LogoutButton from "./_partials/DisconnectButton";
 
 const Header = () => {
   return (
