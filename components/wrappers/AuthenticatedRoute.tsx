@@ -9,7 +9,7 @@ const AuthenticatedRoute: React.FC<Props> = async ({ children }) => {
   const session = await auth();
   const intended = (await headers()).get("request_url");
   if (!session) {
-    const url = new URL(process.env.AUTH_URL + "/login");
+    const url = new URL(process.env.AUTH_URL + "/");
     if (intended) {
       url.searchParams.set("intended", intended);
     }

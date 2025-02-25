@@ -5,14 +5,16 @@ import { signIn, signOut } from "../../auth";
 
 export const login = async ({ publicKey, signature, message }: { publicKey: string; signature: string; message: string }): Promise<string> => {
   try {
-    return await signIn("credentials", {
+    await signIn("credentials", {
       redirect: false,
       publicKey,
       signature,
       message,
     });
-  } catch {
-    return new ZodError([{ code: "custom", message: "Login Failed. Please check your credentials", path: ["credentials"] }]).toString();
+    return "/dashboard";
+  } catch (error) {
+    console.log(error);
+    return new ZodError([{ code: "custom", message: "Something went wrong", path: ["credentials"] }]).toString();
   }
 };
 
