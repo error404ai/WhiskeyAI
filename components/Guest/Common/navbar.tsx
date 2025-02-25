@@ -139,7 +139,7 @@ export function Navbar() {
                         <Link href="/login">Sign In</Link>
                     </Button> */}
                     <Button>
-                        <Link href="/signup">Login</Link>
+                        <Link href="/connect">Connect</Link>
                     </Button>
 
 
@@ -186,7 +186,7 @@ export function Navbar() {
                                     <Link href="/login">Sign In</Link>
                                 </Button> */}
                                 <Button>
-                                    <Link href="/signup">Login</Link>
+                                    <Link href="/connect">Connect</Link>
                                 </Button>
                             </div>
                         </div>
