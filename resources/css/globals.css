@@ -184,3 +184,8 @@
     display: none !important;
   }
 }
+
+input:focus {
+  background-color: unset !important;
+  /* color: red !important; */
+}
