@@ -1,9 +1,12 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { twitterTest } from "@/http/controllers/agent/twitterAgentController";
+import { signIn } from "next-auth/react";
 
 const TwitterTest = () => {
-  return <Button onClick={twitterTest}>Hit Twitter</Button>;
+  const handleConnectTwitter = () => {
+    signIn("twitter").catch((error) => console.log(error));
+  };
+  return <Button onClick={handleConnectTwitter}>Connect Twitter</Button>;
 };
 
 export default TwitterTest;
