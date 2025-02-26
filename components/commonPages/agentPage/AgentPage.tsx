@@ -1,3 +1,4 @@
+import ConnectButton from "@/components/Guest/Header/_partials/ConnectButton";
 import LoggedIn from "@/components/wrappers/LoggedIn";
 import LoggedOut from "@/components/wrappers/LoggedOut";
 import YourAgentsSection from "./_partials/YourAgentsSection";
@@ -14,7 +15,7 @@ const AgentPage = () => {
           <section className="bg-gray-900 py-20 text-center">
             <h2 className="text-3xl font-bold">No Agents Yet</h2>
             <p className="mt-4 text-lg text-gray-400">Connect your wallet to create AI agents and start automating today.</p>
-            <button className="mt-6 rounded-lg bg-white px-6 py-3 font-semibold text-black shadow-md transition hover:bg-gray-300">Connect</button>
+            <ConnectButton variant="secondary" className="mt-6 rounded-lg bg-white px-6 py-3 font-semibold text-black shadow-md transition hover:bg-gray-300" />
           </section>
 
           {/* Features Section */}
