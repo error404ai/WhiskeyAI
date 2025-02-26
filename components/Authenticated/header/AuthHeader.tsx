@@ -41,7 +41,7 @@ const AuthHeader = () => {
             </BreadcrumbItem>
             <BreadcrumbSeparator className="hidden md:block" />
             <BreadcrumbItem>
-              <BreadcrumbPage>{path.replace("/", "").charAt(0).toUpperCase() + path.replace("/", "").slice(1)}</BreadcrumbPage>
+              <BreadcrumbPage>{path.replace("/", "").replace(/-/g, " ").charAt(0).toUpperCase() + path.replace("/", "").replace(/-/g, " ").slice(1)}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>

@@ -1,11 +1,12 @@
 import AgentPage from "@/components/commonPages/agentPage/AgentPage";
-import AuthenticatedRoute from "@/components/wrappers/AuthenticatedRoute";
+import TwitterTest from "./_partials/TwitterTest";
 
 const page = () => {
   return (
-    <AuthenticatedRoute>
+    <>
+      <TwitterTest />
       <AgentPage />
-    </AuthenticatedRoute>
+    </>
   );
 };
 
