@@ -189,3 +189,7 @@ input:focus {
   background-color: unset !important;
   /* color: red !important; */
 }
+
+button[aria-haspopup="dialog"] {
+  display: block !important;
+}

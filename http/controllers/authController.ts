@@ -1,9 +1,8 @@
 "use server";
 import { redirect } from "next/navigation";
-import { ZodError } from "zod";
 import { signIn, signOut } from "../../auth";
 
-export const login = async ({ publicKey, signature, message }: { publicKey: string; signature: string; message: string }): Promise<string> => {
+export const login = async ({ publicKey, signature, message }: { publicKey: string; signature: string; message: string }): Promise<boolean | string> => {
   try {
     await signIn("credentials", {
       redirect: false,
@@ -11,10 +10,10 @@ export const login = async ({ publicKey, signature, message }: { publicKey: stri
       signature,
       message,
     });
-    return "/dashboard";
+    return true;
   } catch (error) {
     console.log(error);
-    return new ZodError([{ code: "custom", message: "Something went wrong", path: ["credentials"] }]).toString();
+    return String(error);
   }
 };
 
