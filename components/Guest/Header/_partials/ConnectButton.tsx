@@ -18,7 +18,7 @@ declare global {
   }
 }
 
-const ConnectButton = () => {
+const ConnectButton = ({ ...props }) => {
   const handleLogin = async () => {
     let publicKey = null;
     if (window.solana) {
@@ -33,15 +33,25 @@ const ConnectButton = () => {
     const message = "Sign this message to authenticate with NextAuth";
     const encodedMessage = new TextEncoder().encode(message);
     const signedMessage = await window.solana.signMessage(encodedMessage, "utf8");
-    const url = await AuthController.login({
+    const res = await AuthController.login({
       publicKey,
       signature: bs58.encode(signedMessage.signature),
       message,
     });
-    window.location.href = url;
+
+    if (typeof res === "boolean" && !res) {
+      console.log(res);
+      return;
+    }
+
+    window.location.href = "/dashboard";
   };
 
-  return <Button onClick={handleLogin}>Connect</Button>;
+  return (
+    <Button onClick={handleLogin} {...props}>
+      Connect
+    </Button>
+  );
 };
 
 export default ConnectButton;
