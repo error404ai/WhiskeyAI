@@ -33,12 +33,18 @@ const ConnectButton = ({ ...props }) => {
     const message = "Sign this message to authenticate with NextAuth";
     const encodedMessage = new TextEncoder().encode(message);
     const signedMessage = await window.solana.signMessage(encodedMessage, "utf8");
-    const url = await AuthController.login({
+    const res = await AuthController.login({
       publicKey,
       signature: bs58.encode(signedMessage.signature),
       message,
     });
-    window.location.href = url;
+
+    if (typeof res === "boolean" && !res) {
+      console.log(res);
+      return;
+    }
+
+    window.location.href = "/dashboard";
   };
 
   return (

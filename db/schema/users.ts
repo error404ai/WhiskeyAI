@@ -10,7 +10,7 @@ export const usersTable = pgTable("users", {
   publicKey: varchar({ length: 255 }).notNull(),
   name: varchar({ length: 255 }),
   avatar: varchar({ length: 255 }),
-  email: varchar({ length: 255 }).unique(),
+  email: varchar({ length: 255 }),
   roleId: integer()
     .default(1)
     .notNull()
