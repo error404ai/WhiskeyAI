@@ -1,5 +1,3 @@
-export { usersRelations, usersTable } from "./users";
+export { usersRelations, usersTable } from "./usersTable";
 
-export { rolesRelations, rolesTable } from "./roles";
-
-
+export { rolesRelations, rolesTable } from "./rolesTable";
