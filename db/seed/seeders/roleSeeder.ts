@@ -1,5 +1,5 @@
 import { db } from "@/db/db";
-import { rolesTable } from "../../schema/roles";
+import { rolesTable } from "../../schema/rolesTable";
 import { Seeder } from "../SeederInterface";
 
 export class RoleSeeder implements Seeder {

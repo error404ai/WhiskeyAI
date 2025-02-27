@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronUp, Home, Settings, User2 } from "lucide-react";
+import { ChevronUp, Home, User2 } from "lucide-react";
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
@@ -20,16 +20,6 @@ const items = [
     title: "My Agent",
     url: "/my-agent",
     icon: User2,
-  },
-  {
-    title: "Profile",
-    url: "/profile",
-    icon: User2,
-  },
-  {
-    title: "Settings",
-    url: "#",
-    icon: Settings,
   },
 ];
 
