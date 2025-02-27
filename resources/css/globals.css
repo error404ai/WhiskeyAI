@@ -193,3 +193,7 @@ input:focus {
 button[aria-haspopup="dialog"] {
   display: block !important;
 }
+
+textarea:focus {
+  background-color: white !important;
+}
