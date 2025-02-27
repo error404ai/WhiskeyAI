@@ -31,6 +31,16 @@ function LaunchStep() {
         },
     })
 
+    const [tokenForm, setTokenForm] = useState({
+        launchType: "no_token",
+        name: "",
+        ticker: "",
+        description: "",
+        buyAmount: "",
+        contractAddress: "",
+        image: null as File | null,
+    })
+
     const tabs: { id: TabType; label: string }[] = [
         { id: "simulation", label: "Simulate" },
         { id: "memory", label: "Memory" },
@@ -207,7 +217,91 @@ function LaunchStep() {
                                 </div>
                             </div>
                         </div>
+                        <div className="space-y-4 rounded-xl border p-4 mt-4">
+                            <div className="space-y-2">
+                                <Label>Launch Type</Label>
+                                <div className="flex gap-2">
+                                    <select
+                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                        value={tokenForm.launchType}
+                                        onChange={(e) => setTokenForm({ ...tokenForm, launchType: e.target.value })}
+                                    >
+                                        <option value="no_token">no_token</option>
+                                        <option value="new_token">new_token</option>
+                                        <option value="existing_token">existing_token</option>
+                                    </select>
+                                </div>
+                            </div>
 
+                            {(tokenForm.launchType === "new_token" || tokenForm.launchType === "existing_token") && (
+                                <div className="space-y-4">
+                                    {tokenForm.launchType === "existing_token" && (
+                                        <div className="space-y-2">
+                                            <Label>Token Contract Address</Label>
+                                            <Input
+                                                placeholder="Enter contract address"
+                                                value={tokenForm.contractAddress}
+                                                onChange={(e) => setTokenForm({ ...tokenForm, contractAddress: e.target.value })}
+                                            />
+                                        </div>
+                                    )}
+
+                                    <div className="space-y-2">
+                                        <Label>Token Name</Label>
+                                        <Input
+                                            placeholder="Enter token name"
+                                            value={tokenForm.name}
+                                            onChange={(e) => setTokenForm({ ...tokenForm, name: e.target.value })}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Token Ticker</Label>
+                                        <Input
+                                            placeholder="Enter token ticker"
+                                            value={tokenForm.ticker}
+                                            onChange={(e) => setTokenForm({ ...tokenForm, ticker: e.target.value })}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Description</Label>
+                                        <Textarea
+                                            placeholder="Enter token description"
+                                            value={tokenForm.description}
+                                            onChange={(e) => setTokenForm({ ...tokenForm, description: e.target.value })}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Buy Amount</Label>
+                                        <Input
+                                            type="number"
+                                            placeholder="Enter buy amount"
+                                            value={tokenForm.buyAmount}
+                                            onChange={(e) => setTokenForm({ ...tokenForm, buyAmount: e.target.value })}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Token Image</Label>
+                                        <Input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => setTokenForm({ ...tokenForm, image: e.target.files?.[0] || null })}
+                                        />
+                                    </div>
+
+
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex items-center mt-2">
+                            <input type="checkbox" id="confirm" className="mr-2" />
+                            <label htmlFor="confirm" className="text-sm text-muted-foreground">
+                                List your agent on vvaifu.fun | Costs 751 $VVAIFU
+                            </label>
+                        </div>
 
                         {/* {activeTab === "connect" && (
                         <div className="space-y-6">
@@ -263,35 +357,6 @@ function LaunchStep() {
                                     value={formData.voice.apiKey}
                                     onChange={(e) => setFormData({ ...formData, voice: { ...formData.voice, apiKey: e.target.value } })}
                                 />
-                            </div>
-                        </div>
-                    )} */}
-
-                        {/* {activeTab === "launch" && (
-                        <div className="space-y-4">
-                            <div>
-                                <Label>Launch Configuration</Label>
-                                <Select
-                                    value={formData.launch.configuration}
-                                    onValueChange={(value) =>
-                                        setFormData({ ...formData, launch: { ...formData.launch, configuration: value } })
-                                    }
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="No Team" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="personal">Personal</SelectItem>
-                                        <SelectItem value="team">Team</SelectItem>
-                                        <SelectItem value="enterprise">Enterprise</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <div className="flex items-center mt-2">
-                                    <input type="checkbox" id="confirm" className="mr-2" />
-                                    <label htmlFor="confirm" className="text-sm text-muted-foreground">
-                                        I will take care and verify my Config ID is SAFE4All
-                                    </label>
-                                </div>
                             </div>
                         </div>
                     )} */}

@@ -130,112 +130,91 @@ function FunctionsStep() {
                                         </div>
                                     </Card>
                                 </DialogTrigger>
-                                <DialogContent className="sm:max-w-[800px]">
+                                <DialogContent className="sm:max-w-[700px] lg:max-w-[900px] max-h-[80vh] overflow-y-auto">
                                     <DialogHeader>
                                         <DialogTitle>Custom Function</DialogTitle>
                                     </DialogHeader>
-                                    <div className="mt-4 grid grid-cols-[2fr,1fr] gap-4">
-                                        <div className="space-y-4">
-                                            <Tabs defaultValue="basic" className="w-full">
-                                                <TabsList className="mb-4">
-                                                    <TabsTrigger value="basic">Basic</TabsTrigger>
-                                                    <TabsTrigger value="request">Request</TabsTrigger>
-                                                    <TabsTrigger value="response">Response</TabsTrigger>
-                                                </TabsList>
-                                                <TabsContent value="basic">
-                                                    <div className="space-y-4">
-                                                        <div className="space-y-2">
-                                                            <Label>
-                                                                Function Name<span className="text-red-500">*</span>
-                                                            </Label>
-                                                            <Input
-                                                                placeholder="enter_function_name"
-                                                                value={newFunction.name}
-                                                                onChange={(e) => setNewFunction({ ...newFunction, name: e.target.value })}
-                                                            />
-                                                            <p className="text-xs text-muted-foreground">
-                                                                Use snake_case for function names (e.g. send_message)
-                                                            </p>
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <Label>
-                                                                Description<span className="text-red-500">*</span>
-                                                            </Label>
-                                                            <Textarea
-                                                                placeholder="Ex: Call this function when a user asks you to tell them a joke about a specific topic"
-                                                                value={newFunction.description}
-                                                                onChange={(e) => setNewFunction({ ...newFunction, description: e.target.value })}
-                                                            />
-                                                            <p className="text-xs text-muted-foreground">
-                                                                This is what your agent uses to interpret when it should call the function. Aim for 1-2
-                                                                sentences describing when it should call the function and be descriptive.
-                                                            </p>
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <Label>Usage Hints</Label>
-                                                            <Textarea
-                                                                placeholder="Any constraints or best practices?"
-                                                                value={newFunction.usageHints}
-                                                                onChange={(e) => setNewFunction({ ...newFunction, usageHints: e.target.value })}
-                                                            />
-                                                        </div>
+
+                                    <Tabs defaultValue="basic" className="w-full">
+                                        <TabsList className="sticky top-0 bg-white z-10 p-2">
+                                            <TabsTrigger value="basic">Basic</TabsTrigger>
+                                            <TabsTrigger value="request">Request</TabsTrigger>
+                                            <TabsTrigger value="response">Response</TabsTrigger>
+                                        </TabsList>
+
+                                        <div className="p-4 space-y-4">
+                                            <TabsContent value="basic">
+                                                <div className="space-y-4">
+                                                    <div className="space-y-2">
+                                                        <Label>Function Name<span className="text-red-500">*</span></Label>
+                                                        <Input
+                                                            placeholder="enter_function_name"
+                                                            value={newFunction.name}
+                                                            onChange={(e) => setNewFunction({ ...newFunction, name: e.target.value })}
+                                                        />
+                                                        <p className="text-xs text-muted-foreground">Use snake_case (e.g. send_message)</p>
                                                     </div>
-                                                </TabsContent>
-                                                <TabsContent value="request">
-                                                    <div className="text-center text-muted-foreground py-8">
-                                                        Request configuration coming soon
+
+                                                    <div className="space-y-2">
+                                                        <Label>Description<span className="text-red-500">*</span></Label>
+                                                        <Textarea
+                                                            placeholder="Ex: Call this function when a user asks for a joke..."
+                                                            value={newFunction.description}
+                                                            onChange={(e) => setNewFunction({ ...newFunction, description: e.target.value })}
+                                                        />
                                                     </div>
-                                                </TabsContent>
-                                                <TabsContent value="response">
-                                                    <div className="text-center text-muted-foreground py-8">
-                                                        Response configuration coming soon
+
+                                                    <div className="space-y-2">
+                                                        <Label>Usage Hints</Label>
+                                                        <Textarea
+                                                            placeholder="Any constraints or best practices?"
+                                                            value={newFunction.usageHints}
+                                                            onChange={(e) => setNewFunction({ ...newFunction, usageHints: e.target.value })}
+                                                        />
                                                     </div>
-                                                </TabsContent>
-                                            </Tabs>
+                                                </div>
+                                            </TabsContent>
+
+                                            <TabsContent value="request">
+                                                <div className="text-center text-muted-foreground py-8">Request configuration coming soon</div>
+                                            </TabsContent>
+
+                                            <TabsContent value="response">
+                                                <div className="text-center text-muted-foreground py-8">Response configuration coming soon</div>
+                                            </TabsContent>
 
                                             <div className="mt-4">
                                                 <h4 className="text-sm font-medium mb-2">Function Arguments</h4>
-                                                <p className="text-sm text-muted-foreground mb-4">
-                                                    Define the inputs required for this function
-                                                </p>
                                                 <Button variant="outline" className="w-full">
                                                     <Plus className="h-4 w-4 mr-2" />
-                                                    Add Your First Argument
+                                                    Add Argument
                                                 </Button>
                                             </div>
                                         </div>
 
-                                        <div className="border-l pl-4">
-                                            <div className="space-y-4">
-                                                <div className="flex items-center justify-between">
-                                                    <h4 className="text-sm font-medium">Preview</h4>
-                                                    <Button variant="link" className="text-xs">
-                                                        Show Response
-                                                    </Button>
-                                                </div>
-                                                <div className="rounded-md bg-zinc-900 p-4">
-                                                    <pre className="text-xs text-white">
-                                                        {JSON.stringify(
-                                                            {
-                                                                name: newFunction.name || "",
-                                                                description: newFunction.description || "",
-                                                                hint: newFunction.usageHints || "",
-                                                                arguments: [],
-                                                                type: "Agent",
-                                                            },
-                                                            null,
-                                                            2,
-                                                        )}
-                                                    </pre>
-                                                </div>
-                                                <Button variant="outline" className="w-full">
-                                                    Test Endpoint
-                                                </Button>
-                                                <Button className="w-full">Save Function</Button>
+                                        <div className="border-t p-4 space-y-4 bg-white sticky bottom-0">
+                                            <h4 className="text-sm font-medium">Preview</h4>
+                                            <div className="rounded-md bg-zinc-900 p-4 overflow-x-auto">
+                                                <pre className="text-xs text-white">
+                                                    {JSON.stringify(
+                                                        {
+                                                            name: newFunction.name || "",
+                                                            description: newFunction.description || "",
+                                                            hint: newFunction.usageHints || "",
+                                                            arguments: [],
+                                                            type: "Agent",
+                                                        },
+                                                        null,
+                                                        2,
+                                                    )}
+                                                </pre>
                                             </div>
+                                            <Button variant="outline" className="w-full">Test Endpoint</Button>
+                                            <Button className="w-full">Save Function</Button>
                                         </div>
-                                    </div>
+                                    </Tabs>
                                 </DialogContent>
+
                             </Dialog>
                         </div>
                     </TabsContent>
