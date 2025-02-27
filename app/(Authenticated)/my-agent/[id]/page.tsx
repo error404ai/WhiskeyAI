@@ -1,76 +1,62 @@
-"use client"
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-import { useState } from "react"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Plus, X } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import {
-  Info,
-  Share2,
-  Zap,
-  Wrench,
-  Rocket,
-  Bot,
-  Newspaper,
-  Twitter,
-  MessageSquare,
-  Send,
-  Trash2,
-  Settings2,
-} from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import FunctionsStep from "../../_partials/FunctionsStep"
-import LaunchStep from "../../_partials/LaunchStep"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { Bot, Info, MessageSquare, Newspaper, Plus, Rocket, Send, Settings2, Share2, Trash2, Twitter, Wrench, X, Zap } from "lucide-react";
+import { useState } from "react";
+import FunctionsStep from "./_partials/FunctionsStep";
+import LaunchStep from "./_partials/LaunchStep";
 
 interface FormData {
   information: {
-    description: string
-    goal: string
-  }
+    description: string;
+    goal: string;
+  };
   platform: {
-    name: string
-    type: string
-    visibility: string
-  }
+    name: string;
+    type: string;
+    visibility: string;
+  };
   triggers: {
-    webhookUrl: string
-    notifications: boolean
-  }
+    webhookUrl: string;
+    notifications: boolean;
+  };
   functions: {
-    customEndpoints: string
-    apiKey: string
-  }
+    customEndpoints: string;
+    apiKey: string;
+  };
   launch: {
-    environment: string
-    version: string
-  }
+    environment: string;
+    version: string;
+  };
 }
 
 interface Platform {
-  id: string
-  name: string
-  icon: any
-  description: string
-  enabled: boolean
+  id: string;
+  name: string;
+  icon: any;
+  description: string;
+  enabled: boolean;
 }
 
 interface Trigger {
-  id: string
-  name: string
-  description: string
-  interval: number
-  type: "basic" | "function"
+  id: string;
+  name: string;
+  description: string;
+  interval: number;
+  type: "basic" | "function";
 }
 
 export default function AgentConfigPage() {
-  const [currentStep, setCurrentStep] = useState(0)
+  const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<FormData>({
     information: {
       description: "",
@@ -93,9 +79,10 @@ export default function AgentConfigPage() {
       environment: "development",
       version: "1.0.0",
     },
-  })
-  const [platforms, setPlatforms] = useState<Platform[]>([])
-  const [showPlatformDialog, setShowPlatformDialog] = useState(false)
+  });
+  const [platforms, setPlatforms] = useState<Platform[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [showPlatformDialog, setShowPlatformDialog] = useState(false);
   const [triggers, setTriggers] = useState<Trigger[]>([
     {
       id: "1",
@@ -111,7 +98,7 @@ export default function AgentConfigPage() {
       interval: 5,
       type: "basic",
     },
-  ])
+  ]);
 
   const configSteps = [
     {
@@ -144,8 +131,9 @@ export default function AgentConfigPage() {
       description: "Deploy your agent",
       active: currentStep === 4,
     },
-  ]
+  ];
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const availablePlatforms = [
     {
       id: "twitter",
@@ -165,44 +153,37 @@ export default function AgentConfigPage() {
       icon: Send,
       description: "A messaging app with bot capabilities.",
     },
-  ]
+  ];
 
   const addPlatform = (platform: Omit<Platform, "enabled">) => {
-    setPlatforms([...platforms, { ...platform, enabled: true }])
-    setShowPlatformDialog(false)
-  }
+    setPlatforms([...platforms, { ...platform, enabled: true }]);
+    setShowPlatformDialog(false);
+  };
 
   const removePlatform = (platformId: string) => {
-    setPlatforms(platforms.filter((p) => p.id !== platformId))
-  }
+    setPlatforms(platforms.filter((p) => p.id !== platformId));
+  };
 
   const togglePlatform = (platformId: string) => {
-    setPlatforms(platforms.map((p) => (p.id === platformId ? { ...p, enabled: !p.enabled } : p)))
-  }
+    setPlatforms(platforms.map((p) => (p.id === platformId ? { ...p, enabled: !p.enabled } : p)));
+  };
 
   const renderStepContent = () => {
     switch (currentStep) {
       case 0:
-        return <InformationStep formData={formData.information} setFormData={setFormData} />
+        return <InformationStep formData={formData.information} setFormData={setFormData} />;
       case 1:
-        return (
-          <PlatformStep
-            platforms={platforms}
-            onAddPlatform={addPlatform}
-            onRemovePlatform={removePlatform}
-            onTogglePlatform={togglePlatform}
-          />
-        )
+        return <PlatformStep platforms={platforms} onAddPlatform={addPlatform} onRemovePlatform={removePlatform} onTogglePlatform={togglePlatform} />;
       case 2:
-        return <TriggersStep triggers={triggers} setTriggers={setTriggers} />
+        return <TriggersStep triggers={triggers} setTriggers={setTriggers} />;
       case 3:
-        return <FunctionsStep formData={formData.functions} setFormData={setFormData} />
+        return <FunctionsStep />;
       case 4:
-        return <LaunchStep formData={formData.launch} setFormData={setFormData} />
+        return <LaunchStep />;
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -223,21 +204,16 @@ export default function AgentConfigPage() {
             <p className="text-muted-foreground mb-4 text-sm">Configure your agent&apos;s behavior and capabilities</p>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
               {configSteps.map((step, index) => {
-                const Icon = step.icon
+                const Icon = step.icon;
                 return (
-                  <Card
-                    key={index}
-                    onClick={() => setCurrentStep(index)}
-                    className={`cursor-pointer p-4 transition-colors ${step.active ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-                      }`}
-                  >
+                  <Card key={index} onClick={() => setCurrentStep(index)} className={`cursor-pointer p-4 transition-colors ${step.active ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>
                     <div className="space-y-2">
                       <Icon className="h-5 w-5" />
                       <h3 className="font-medium">{step.title}</h3>
                       <p className="text-sm opacity-90">{step.description}</p>
                     </div>
                   </Card>
-                )
+                );
               })}
             </div>
           </div>
@@ -247,7 +223,7 @@ export default function AgentConfigPage() {
         {renderStepContent()}
       </div>
     </div>
-  )
+  );
 }
 
 function InformationStep({ formData, setFormData }: any) {
@@ -280,10 +256,7 @@ function InformationStep({ formData, setFormData }: any) {
                       </Button>
                     </div>
                   </div>
-                  <p className="text-muted-foreground mb-2 text-xs">
-                    Outline your agent&apos;s personality by detailing aspects like tweeting habits, demeanor, and
-                    communication style
-                  </p>
+                  <p className="text-muted-foreground mb-2 text-xs">Outline your agent&apos;s personality by detailing aspects like tweeting habits, demeanor, and communication style</p>
                   <Input
                     placeholder="Enter agent description"
                     value={formData.description}
@@ -307,10 +280,7 @@ function InformationStep({ formData, setFormData }: any) {
                       </Button>
                     </div>
                   </div>
-                  <p className="text-muted-foreground mb-2 text-xs">
-                    Specify the primary objective or core function of the agent. This guides the ai planner in task
-                    generation.
-                  </p>
+                  <p className="text-muted-foreground mb-2 text-xs">Specify the primary objective or core function of the agent. This guides the ai planner in task generation.</p>
                   <Input
                     placeholder="Enter agent goal"
                     value={formData.goal}
@@ -333,20 +303,10 @@ function InformationStep({ formData, setFormData }: any) {
         </Tabs>
       </div>
     </div>
-  )
+  );
 }
 
-function PlatformStep({
-  platforms,
-  onAddPlatform,
-  onRemovePlatform,
-  onTogglePlatform,
-}: {
-  platforms: Platform[]
-  onAddPlatform: (platform: Omit<Platform, "enabled">) => void
-  onRemovePlatform: (platformId: string) => void
-  onTogglePlatform: (platformId: string) => void
-}) {
+function PlatformStep({ platforms, onAddPlatform, onRemovePlatform, onTogglePlatform }: { platforms: Platform[]; onAddPlatform: (platform: Omit<Platform, "enabled">) => void; onRemovePlatform: (platformId: string) => void; onTogglePlatform: (platformId: string) => void }) {
   const availablePlatforms = [
     {
       id: "twitter",
@@ -366,7 +326,7 @@ function PlatformStep({
       icon: Send,
       description: "A messaging app with bot capabilities.",
     },
-  ]
+  ];
 
   return (
     <div className="bg-card text-card-foreground rounded-xl border p-4 shadow-sm">
@@ -379,12 +339,12 @@ function PlatformStep({
             <Card key={platform.id} className="p-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="rounded-lg bg-muted p-2">
+                  <div className="bg-muted rounded-lg p-2">
                     <platform.icon className="h-6 w-6" />
                   </div>
                   <div>
                     <h3 className="font-medium">{platform.name}</h3>
-                    <p className="text-sm text-muted-foreground">{platform.description}</p>
+                    <p className="text-muted-foreground text-sm">{platform.description}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -402,7 +362,7 @@ function PlatformStep({
 
           <Dialog>
             <DialogTrigger asChild>
-              <Card className="flex h-[104px] cursor-pointer items-center justify-center border-dashed p-4 hover:bg-muted/50">
+              <Card className="hover:bg-muted/50 flex h-[104px] cursor-pointer items-center justify-center border-dashed p-4">
                 <div className="flex flex-col items-center space-y-2 text-center">
                   <Plus className="h-6 w-6" />
                   <span className="text-sm font-medium">Add Platform</span>
@@ -417,18 +377,14 @@ function PlatformStep({
                 {availablePlatforms
                   .filter((p) => !platforms.find((existing) => existing.id === p.id))
                   .map((platform) => (
-                    <Card
-                      key={platform.id}
-                      className="cursor-pointer p-4 hover:bg-muted/50"
-                      onClick={() => onAddPlatform(platform)}
-                    >
+                    <Card key={platform.id} className="hover:bg-muted/50 cursor-pointer p-4" onClick={() => onAddPlatform(platform)}>
                       <div className="flex items-center space-x-4">
-                        <div className="rounded-lg bg-muted p-2">
+                        <div className="bg-muted rounded-lg p-2">
                           <platform.icon className="h-6 w-6" />
                         </div>
                         <div>
                           <h3 className="font-medium">{platform.name}</h3>
-                          <p className="text-sm text-muted-foreground">{platform.description}</p>
+                          <p className="text-muted-foreground text-sm">{platform.description}</p>
                         </div>
                       </div>
                     </Card>
@@ -439,23 +395,17 @@ function PlatformStep({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-function TriggersStep({
-  triggers,
-  setTriggers,
-}: {
-  triggers: Trigger[]
-  setTriggers: (triggers: Trigger[]) => void
-}) {
-  const [showTriggerDialog, setShowTriggerDialog] = useState(false)
+function TriggersStep({ triggers, setTriggers }: { triggers: Trigger[]; setTriggers: (triggers: Trigger[]) => void }) {
+  const [showTriggerDialog, setShowTriggerDialog] = useState(false);
   const [newTrigger, setNewTrigger] = useState<Omit<Trigger, "id">>({
     name: "",
     description: "",
     interval: 5,
     type: "basic",
-  })
+  });
 
   const handleAddTrigger = () => {
     if (newTrigger.name && newTrigger.description) {
@@ -465,20 +415,20 @@ function TriggersStep({
           id: Math.random().toString(36).substr(2, 9),
           ...newTrigger,
         },
-      ])
-      setShowTriggerDialog(false)
+      ]);
+      setShowTriggerDialog(false);
       setNewTrigger({
         name: "",
         description: "",
         interval: 5,
         type: "basic",
-      })
+      });
     }
-  }
+  };
 
   const removeTrigger = (triggerId: string) => {
-    setTriggers(triggers.filter((t) => t.id !== triggerId))
-  }
+    setTriggers(triggers.filter((t) => t.id !== triggerId));
+  };
 
   return (
     <div className="bg-card text-card-foreground rounded-xl border p-4 shadow-sm">
@@ -488,14 +438,9 @@ function TriggersStep({
 
         <div className="flex flex-wrap gap-2">
           {triggers.map((trigger) => (
-            <Badge key={trigger.id} variant="secondary" className="pl-2 pr-1 py-1 flex items-center gap-1">
+            <Badge key={trigger.id} variant="secondary" className="flex items-center gap-1 py-1 pr-1 pl-2">
               {trigger.name}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-4 w-4 p-0 hover:bg-transparent"
-                onClick={() => removeTrigger(trigger.id)}
-              >
+              <Button variant="ghost" size="icon" className="h-4 w-4 p-0 hover:bg-transparent" onClick={() => removeTrigger(trigger.id)}>
                 <X className="h-3 w-3" />
               </Button>
             </Badge>
@@ -504,7 +449,7 @@ function TriggersStep({
 
         <Dialog open={showTriggerDialog} onOpenChange={setShowTriggerDialog}>
           <DialogTrigger asChild>
-            <Card className="flex h-[104px] cursor-pointer items-center justify-center border-dashed p-4 hover:bg-muted/50">
+            <Card className="hover:bg-muted/50 flex h-[104px] cursor-pointer items-center justify-center border-dashed p-4">
               <div className="flex flex-col items-center space-y-2 text-center">
                 <Plus className="h-6 w-6" />
                 <span className="text-sm font-medium">Add Trigger</span>
@@ -531,38 +476,19 @@ function TriggersStep({
                       <Label>
                         Trigger Name<span className="text-red-500">*</span>
                       </Label>
-                      <Input
-                        placeholder="Enter Trigger Name"
-                        value={newTrigger.name}
-                        onChange={(e) => setNewTrigger({ ...newTrigger, name: e.target.value })}
-                      />
+                      <Input placeholder="Enter Trigger Name" value={newTrigger.name} onChange={(e) => setNewTrigger({ ...newTrigger, name: e.target.value })} />
                     </div>
                     <div className="space-y-2">
                       <Label>
                         Trigger Description<span className="text-red-500">*</span>
                       </Label>
-                      <Textarea
-                        placeholder="What does this trigger do?"
-                        value={newTrigger.description}
-                        onChange={(e) => setNewTrigger({ ...newTrigger, description: e.target.value })}
-                      />
+                      <Textarea placeholder="What does this trigger do?" value={newTrigger.description} onChange={(e) => setNewTrigger({ ...newTrigger, description: e.target.value })} />
                     </div>
                     <div className="space-y-2">
                       <Label>How Often Should The Trigger Run?</Label>
                       <div className="flex gap-2">
-                        <Input
-                          type="number"
-                          min="1"
-                          value={newTrigger.interval}
-                          onChange={(e) =>
-                            setNewTrigger({ ...newTrigger, interval: Number.parseInt(e.target.value) || 5 })
-                          }
-                          className="w-24"
-                        />
-                        <select
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                          defaultValue="minutes"
-                        >
+                        <Input type="number" min="1" value={newTrigger.interval} onChange={(e) => setNewTrigger({ ...newTrigger, interval: Number.parseInt(e.target.value) || 5 })} className="w-24" />
+                        <select className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50" defaultValue="minutes">
                           <option value="minutes">minutes</option>
                           <option value="hours">hours</option>
                           <option value="days">days</option>
@@ -572,10 +498,10 @@ function TriggersStep({
                   </div>
                 </TabsContent>
                 <TabsContent value="function">
-                  <div className="text-center text-muted-foreground py-8">Function configuration coming soon</div>
+                  <div className="text-muted-foreground py-8 text-center">Function configuration coming soon</div>
                 </TabsContent>
               </Tabs>
-              <div className="flex justify-end gap-2 mt-6">
+              <div className="mt-6 flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setShowTriggerDialog(false)}>
                   Close
                 </Button>
@@ -586,13 +512,13 @@ function TriggersStep({
         </Dialog>
       </div>
     </div>
-  )
+  );
 }
 
 <>
-<FunctionsStep />
-<LaunchStep />
-</>
+  <FunctionsStep />
+  <LaunchStep />
+</>;
 
 // function FunctionsStep({ formData, setFormData }: any) {
 //   return (
@@ -644,9 +570,11 @@ function TriggersStep({
 //   )
 // }
 
-{/* <>
+{
+  /* <>
 <LaunchStep />
-</> */}
+</> */
+}
 
 // function LaunchStep({ formData, setFormData }: any) {
 //   return (
@@ -704,4 +632,3 @@ function TriggersStep({
 //     </div>
 //   )
 // }
-
