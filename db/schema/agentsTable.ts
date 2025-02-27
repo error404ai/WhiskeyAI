@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { integer, json, pgTable, varchar } from "drizzle-orm/pg-core";
+import { integer, json, pgTable, uuid, varchar } from "drizzle-orm/pg-core";
 import { agentTriggersTable } from "./agentTriggersTable";
 import { usersTable } from "./usersTable";
 
@@ -23,6 +23,7 @@ type Trigger = {
 
 export const agentsTable = pgTable("agents", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  uuid: uuid().notNull().defaultRandom().unique(),
   user_id: integer()
     .notNull()
     .references(() => usersTable.id),
