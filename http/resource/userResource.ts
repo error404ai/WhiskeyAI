@@ -1,4 +1,4 @@
-import { UserType } from "@/db/schema/users";
+import { UserType } from "@/db/schema/usersTable";
 import { UploadService } from "../services/uploadService";
 
 export type UserResourceType = {
