@@ -1,5 +1,5 @@
 import { db } from "@/db/db";
-import { usersTable } from "@/db/schema/users";
+import { usersTable } from "@/db/schema/usersTable";
 import { Seeder } from "../SeederInterface";
 
 export class UserSeeder implements Seeder {

@@ -1,6 +1,6 @@
 import { relations } from "drizzle-orm";
 import { date, integer, pgTable, varchar } from "drizzle-orm/pg-core";
-import { rolesTable } from "./roles";
+import { rolesTable } from "./rolesTable";
 
 export const usersTable = pgTable("users", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
