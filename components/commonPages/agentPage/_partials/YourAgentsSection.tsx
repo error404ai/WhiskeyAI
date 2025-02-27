@@ -116,7 +116,7 @@ export default function YourAgentsSection() {
                 </div>
               </div>
               <div className="mt-12 mb-2">
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full" link="/my-agent/jopijlkdg">
                   Configure
                 </Button>
               </div>
