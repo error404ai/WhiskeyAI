@@ -3,7 +3,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import LoggedIn from "@/components/wrappers/LoggedIn";
 import LoggedOut from "@/components/wrappers/LoggedOut";
 import { cn } from "@/lib/utils";
-import { Menu } from "lucide-react";
+import { LayoutPanelTop, Menu } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 import Logo from "../Common/Logo";
@@ -45,8 +45,16 @@ export function GuestHeader() {
           </div>
         </LoggedOut>
         <LoggedIn>
-          <div className="hidden items-center gap-4 md:flex">
-            <DisconnectButton />
+          <div className="flex items-center gap-4">
+            <div className="hidden items-center gap-4 md:flex">
+              <Button link="/dashboard">
+                <LayoutPanelTop />
+                Dashboard
+              </Button>
+            </div>
+            <div className="hidden items-center gap-4 md:flex">
+              <DisconnectButton />
+            </div>
           </div>
         </LoggedIn>
 

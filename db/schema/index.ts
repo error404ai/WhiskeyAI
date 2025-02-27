@@ -1,5 +1,5 @@
-export { usersRelations, usersTable } from "./users";
-
-export { rolesRelations, rolesTable } from "./roles";
-
-
+export * from "./agentPlatformsTable";
+export * from "./agentsTable";
+export * from "./agentTriggersTable";
+export * from "./rolesTable";
+export * from "./usersTable";
