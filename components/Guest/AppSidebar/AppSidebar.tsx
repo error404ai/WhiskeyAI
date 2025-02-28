@@ -1,10 +1,8 @@
 "use client";
 
-import { ChevronUp, Home, User2 } from "lucide-react";
+import { Home, User2 } from "lucide-react";
 
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
-import { logout } from "@/http/controllers/authController";
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
 import Logo from "../Common/Logo";
@@ -34,7 +32,7 @@ export default function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Chrome Extension</SidebarGroupLabel>
+          {/* <SidebarGroupLabel>Chrome Extension</SidebarGroupLabel> */}
 
           <SidebarGroupContent>
             <SidebarMenu>
@@ -52,7 +50,7 @@ export default function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
+      {/* <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
@@ -63,20 +61,14 @@ export default function AppSidebar() {
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" className="w-(--radix-popper-anchor-width)">
-                <DropdownMenuItem className="cursor-pointer">
-                  <span>Account</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
-                  <span>Billing</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer" onClick={logout}>
-                  <span>Logout</span>
-                </DropdownMenuItem>
+                <div className="hidden items-center gap-4 md:flex bg-[#ef4444] p-2 rounded-lg w-full">
+                  <DisconnectButton />
+                </div>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
-      </SidebarFooter>
+      </SidebarFooter> */}
     </Sidebar>
   );
 }
