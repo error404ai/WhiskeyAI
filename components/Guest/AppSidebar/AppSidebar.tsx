@@ -2,12 +2,12 @@
 
 import { ChevronUp, Home, User2 } from "lucide-react";
 
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
-import { logout } from "@/http/controllers/authController";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
 import Logo from "../Common/Logo";
+import DisconnectButton from "../Header/_partials/DisconnectButton";
 
 // Menu items.
 const items = [
@@ -34,7 +34,7 @@ export default function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Chrome Extension</SidebarGroupLabel>
+          {/* <SidebarGroupLabel>Chrome Extension</SidebarGroupLabel> */}
 
           <SidebarGroupContent>
             <SidebarMenu>
@@ -63,15 +63,20 @@ export default function AppSidebar() {
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" className="w-(--radix-popper-anchor-width)">
-                <DropdownMenuItem className="cursor-pointer">
+                <div className="hidden items-center gap-4 md:flex bg-[#ef4444] p-2 rounded-lg w-full">
+                  <DisconnectButton />
+                </div>
+
+
+                {/* <DropdownMenuItem className="cursor-pointer">
                   <span>Account</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer">
                   <span>Billing</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer" onClick={logout}>
+                </DropdownMenuItem> */}
+                {/* <DropdownMenuItem className="cursor-pointer" onClick={logout}>
                   <span>Logout</span>
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>

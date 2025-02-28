@@ -24,7 +24,7 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: "Whiskey AI Bot",
-  description: "A chrome extension for freelancers",
+  description: "An AI Agent Bot",
 };
 
 export default function RootLayout({
