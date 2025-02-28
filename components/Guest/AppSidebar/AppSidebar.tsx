@@ -1,13 +1,11 @@
 "use client";
 
-import { ChevronUp, Home, User2 } from "lucide-react";
+import { Home, User2 } from "lucide-react";
 
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
 import Logo from "../Common/Logo";
-import DisconnectButton from "../Header/_partials/DisconnectButton";
 
 // Menu items.
 const items = [
@@ -52,7 +50,7 @@ export default function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
+      {/* <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
@@ -66,22 +64,11 @@ export default function AppSidebar() {
                 <div className="hidden items-center gap-4 md:flex bg-[#ef4444] p-2 rounded-lg w-full">
                   <DisconnectButton />
                 </div>
-
-
-                {/* <DropdownMenuItem className="cursor-pointer">
-                  <span>Account</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
-                  <span>Billing</span>
-                </DropdownMenuItem> */}
-                {/* <DropdownMenuItem className="cursor-pointer" onClick={logout}>
-                  <span>Logout</span>
-                </DropdownMenuItem> */}
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
-      </SidebarFooter>
+      </SidebarFooter> */}
     </Sidebar>
   );
 }

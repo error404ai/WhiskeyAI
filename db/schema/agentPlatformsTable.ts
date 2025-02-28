@@ -4,7 +4,7 @@ import { agentsTable } from "./agentsTable";
 
 export const agentPlatformsTable = pgTable("agentPlatforms", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  agent_id: integer()
+  agentId: integer()
     .notNull()
     .references(() => agentsTable.id),
   platform_name: varchar({ length: 50 }).notNull(),
@@ -13,7 +13,7 @@ export const agentPlatformsTable = pgTable("agentPlatforms", {
 
 export const agentPlatformsRelations = relations(agentPlatformsTable, ({ one }) => ({
   agent: one(agentsTable, {
-    fields: [agentPlatformsTable.agent_id],
+    fields: [agentPlatformsTable.agentId],
     references: [agentsTable.id],
   }),
 }));
