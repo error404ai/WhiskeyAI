@@ -24,19 +24,19 @@ type Trigger = {
 export const agentsTable = pgTable("agents", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   uuid: uuid().notNull().defaultRandom().unique(),
-  user_id: integer()
+  userId: integer()
     .notNull()
     .references(() => usersTable.id),
   name: varchar({ length: 255 }).notNull(),
-  tickerSymbol: varchar({ length: 255 }).notNull(),
-  information: json().$type<Information>().notNull(),
-  triggers: json().$type<Trigger[]>().notNull(),
-  status: varchar({ length: 255 }).notNull().$type<"running" | "paused">(),
+  tickerSymbol: varchar({ length: 255 }),
+  information: json().$type<Information>(),
+  triggers: json().$type<Trigger[]>(),
+  status: varchar({ length: 255 }).notNull().$type<"running" | "paused" | "initial">(),
 });
 
 export const agentsRelations = relations(agentsTable, ({ one, many }) => ({
   user: one(usersTable, {
-    fields: [agentsTable.user_id],
+    fields: [agentsTable.userId],
     references: [usersTable.id],
   }),
   triggers: many(agentTriggersTable),

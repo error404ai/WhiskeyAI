@@ -44,7 +44,8 @@ const ConnectButton = ({ ...props }) => {
       return;
     }
 
-    window.location.href = "/dashboard";
+    window.location.href = "/my-agent";
+    // window.location.href = "/dashboard";
   };
 
   return (
