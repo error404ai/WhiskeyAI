@@ -1,28 +1,23 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
-import DisconnectButton from "@/components/Guest/Header/_partials/DisconnectButton";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem,  DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import * as AuthController from "@/http/controllers/authController";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
-import { MouseEventHandler, useEffect, useState } from "react";
-import Skeleton from "react-loading-skeleton";
+import { useEffect } from "react";
 
 const AuthHeader = () => {
   const { data: session, update } = useSession();
   const path = usePathname();
-  const { isMobile } = useSidebar();
-  const [status, setStatus] = useState<StatusType>("initial");
-  const handleLogout: MouseEventHandler<HTMLDivElement> = async (e) => {
-    e.preventDefault();
-    setStatus("loading");
-    await AuthController.logout();
-    setStatus("success");
-  };
+  // const { isMobile } = useSidebar();
+  // const [status, setStatus] = useState<StatusType>("initial");
+  // const handleLogout: MouseEventHandler<HTMLDivElement> = async (e) => {
+  //   e.preventDefault();
+  //   setStatus("loading");
+  //   await AuthController.logout();
+  //   setStatus("success");
+  // };
 
   useEffect(() => {
     if (!session) {
@@ -46,7 +41,7 @@ const AuthHeader = () => {
           </BreadcrumbList>
         </Breadcrumb>
       </div>
-      <div className="flex items-center gap-4">
+      {/* <div className="flex items-center gap-4">
         {!isMobile && <span className="text-sm font-medium">{session?.user.name}</span>}
         <DropdownMenu>
           <DropdownMenuTrigger>
@@ -61,11 +56,7 @@ const AuthHeader = () => {
             </>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {/* <DropdownMenuItem className="cursor-pointer">
-              <User className="mr-2 h-4 w-4" />
-              <span>Profile</span>
-            </DropdownMenuItem> */}
-            {/* <DropdownMenuSeparator /> */}
+       
             <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
               {status === "loading" && (
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor" className="mx-auto animate-spin">
@@ -74,8 +65,7 @@ const AuthHeader = () => {
               )}
               {status !== "loading" && (
                 <>
-                  {/* <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span> */}
+      
                   <div className="hidden items-center gap-4 md:flex bg-[#ef4444] p-2 rounded-lg w-full">
                     <DisconnectButton />
                   </div>
@@ -84,7 +74,7 @@ const AuthHeader = () => {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
+      </div> */}
     </header>
   );
 };
