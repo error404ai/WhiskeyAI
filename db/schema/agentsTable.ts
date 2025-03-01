@@ -3,7 +3,7 @@ import { integer, json, pgTable, uuid, varchar } from "drizzle-orm/pg-core";
 import { agentTriggersTable } from "./agentTriggersTable";
 import { usersTable } from "./usersTable";
 
-type Information = {
+export type Information = {
   description?: string;
   goal?: string;
 };
