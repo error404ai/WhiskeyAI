@@ -2,29 +2,34 @@ import { AgentPlatform, AgentTrigger, Information } from "@/db/schema";
 import { createSlice } from "@reduxjs/toolkit";
 export interface AgentForm {
   information: Information;
-  agentPlatform: AgentPlatform;
-  agentTrigger: AgentTrigger;
+  agentPlatforms: AgentPlatform[];
+  agentTriggers: AgentTrigger[];
   launch: {
     environment: string;
     version: string;
   };
 }
 
-const initialState: AgentForm = {};
+const initialState: AgentForm = {
+  information: {},
+  agentPlatforms: [],
+  agentTriggers: [],
+  launch: {
+    environment: "",
+    version: "",
+  },
+};
 
 export const authState = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    setAuthToken: (state, action) => {
-      state.token = action.payload;
-    },
-    removeAuthToken: (state) => {
-      state.token = undefined;
-    },
+    // setAuthToken: (state, action) => {
+    //   state.token = action.payload;
+    // },
   },
 });
 
-export const { setAuthToken, removeAuthToken } = authState.actions;
+export const {} = authState.actions;
 
 export default authState.reducer;
