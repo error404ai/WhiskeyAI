@@ -22,6 +22,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, user, session, account }) {
       console.log("account is", account);
+      if (account?.provider === "twitter") return token;
       if (user) {
         token.user = user;
       }
