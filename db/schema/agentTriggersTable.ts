@@ -9,8 +9,8 @@ export const agentTriggersTable = pgTable("agentTriggers", {
     .references(() => agentsTable.id),
   name: varchar({ length: 255 }).notNull(),
   description: varchar({ length: 255 }).notNull(),
-  triggerTime: integer().notNull(),
-  runEvery: varchar({ length: 255 }).notNull(),
+  interval: integer().notNull(),
+  runEvery: varchar({ length: 255 }).notNull().$type<"minutes" | "hours">(),
   functionName: varchar({ length: 255 }).notNull(),
   informationSource: varchar({ length: 255 }).notNull(),
 });
@@ -21,3 +21,5 @@ export const agentTriggersRelations = relations(agentTriggersTable, ({ one }) =>
     references: [agentsTable.id],
   }),
 }));
+
+export type AgentTrigger = typeof agentTriggersTable.$inferSelect;

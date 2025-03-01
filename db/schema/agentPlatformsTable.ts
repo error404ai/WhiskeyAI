@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { integer, jsonb, pgTable, varchar } from "drizzle-orm/pg-core";
+import { boolean, integer, jsonb, pgTable, varchar } from "drizzle-orm/pg-core";
 import { agentsTable } from "./agentsTable";
 
 export const agentPlatformsTable = pgTable("agentPlatforms", {
@@ -7,8 +7,12 @@ export const agentPlatformsTable = pgTable("agentPlatforms", {
   agentId: integer()
     .notNull()
     .references(() => agentsTable.id),
-  platform_name: varchar({ length: 50 }).notNull(),
+  name: varchar({ length: 50 }).notNull(),
+  type: varchar({ length: 50 }).$type<"twitter" | "discord" | "telegram">().notNull(),
+  description: varchar({ length: 255 }),
   credentials: jsonb().notNull(),
+  icon: varchar({ length: 255 }).notNull(),
+  enabled: boolean().notNull().default(false),
 });
 
 export const agentPlatformsRelations = relations(agentPlatformsTable, ({ one }) => ({
@@ -17,3 +21,5 @@ export const agentPlatformsRelations = relations(agentPlatformsTable, ({ one }) 
     references: [agentsTable.id],
   }),
 }));
+
+export type AgentPlatform = typeof agentPlatformsTable.$inferSelect;
