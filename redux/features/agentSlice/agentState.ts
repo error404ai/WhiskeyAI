@@ -11,7 +11,10 @@ export interface AgentForm {
 }
 
 const initialState: AgentForm = {
-  information: {},
+  information: {
+    description: "",
+    goal: "",
+  },
   agentPlatforms: [],
   agentTriggers: [],
   launch: {
@@ -21,15 +24,18 @@ const initialState: AgentForm = {
 };
 
 export const authState = createSlice({
-  name: "auth",
+  name: "agentForm",
   initialState,
   reducers: {
-    // setAuthToken: (state, action) => {
-    //   state.token = action.payload;
-    // },
+    setAgentInformation: (state, action) => {
+      state.information = {
+        ...state.information,
+        ...action.payload,
+      };
+    },
   },
 });
 
-export const {} = authState.actions;
+export const { setAgentInformation } = authState.actions;
 
 export default authState.reducer;

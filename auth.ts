@@ -2,7 +2,6 @@ import bs58 from "bs58";
 import { Jwt } from "jsonwebtoken";
 import NextAuth, { DefaultSession } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import TwitterProvider from "next-auth/providers/twitter";
 import * as nacl from "tweetnacl";
 import { UserResourceType } from "./http/resource/userResource";
 import UserService from "./http/services/userService";
@@ -11,6 +10,7 @@ declare module "next-auth" {
   interface Session {
     user: UserResourceType & DefaultSession["user"];
     token: Jwt;
+    twitterAgentId?: string;
   }
 }
 
@@ -20,23 +20,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     maxAge: 2 * 60 * 60,
   },
   callbacks: {
-    async jwt({ token, user, session, account }) {
-      console.log("account is", account);
-      if (account?.provider === "twitter") return token;
+    async jwt({ token, user, session }) {
       if (user) {
         token.user = user;
       }
       if (session?.user) {
         token.user = session.user;
       }
+
+      if (session?.twitterAgentId) {
+        token.twitterAgentId = session?.twitterAgentId;
+      }
       return token;
     },
     async session({ session, token, user }) {
-      console.log("token is", token);
       if (user) {
         session.user = user as UserResourceType;
       } else {
         session.user = token.user as UserResourceType;
+      }
+
+      if (token.twitterAgentId) {
+        session.twitterAgentId = token.twitterAgentId as string;
       }
       return session;
     },
@@ -91,29 +96,30 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return user;
       },
     }),
-    TwitterProvider({
-      clientId: process.env.TWITTER_CLIENT_ID,
-      clientSecret: process.env.TWITTER_CLIENT_SECRET,
-      authorization: {
-        url: "https://twitter.com/i/oauth2/authorize",
-        params: {
-          scope: "users.read tweet.read tweet.write offline.access",
-        },
-      },
-      account(account) {
-        console.log("account is", account);
-        return account;
-      },
+    // TwitterProvider({
+    //   clientId: process.env.TWITTER_CLIENT_ID,
+    //   clientSecret: process.env.TWITTER_CLIENT_SECRET,
+    //   authorization: {
+    //     url: "https://twitter.com/i/oauth2/authorize",
+    //     params: {
+    //       scope: "users.read tweet.read tweet.write offline.access",
+    //     },
+    //   },
 
-      profile(profile) {
-        console.log("profile is", profile);
-        return {
-          id: profile.id as string,
-          name: profile.name as string,
-          email: profile.email as string,
-          image: profile.image as string,
-        };
-      },
-    }),
+    //   account(account) {
+    //     console.log("account from  provider is", account);
+    //     return account;
+    //   },
+
+    //   profile(profile) {
+    //     console.log("profile is", profile);
+    //     return {
+    //       id: profile.id as string,
+    //       name: profile.name as string,
+    //       email: profile.email as string,
+    //       image: profile.image as string,
+    //     };
+    //   },
+    // }),
   ],
 });
