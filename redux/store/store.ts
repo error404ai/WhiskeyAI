@@ -1,11 +1,13 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { apiSlice } from "../features/api/apiSlice";
+import agentState from "./../features/agentSlice/agentState";
 import { publicApi } from "./../features/publicSlice/publicApi";
 
 export const store = configureStore({
   reducer: {
     [apiSlice.reducerPath]: apiSlice.reducer,
     publicApi: publicApi.reducer,
+    agentState: agentState,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
