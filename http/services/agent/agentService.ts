@@ -6,6 +6,11 @@ import { z } from "zod";
 import AuthService from "../authService";
 
 export class AgentService {
+  static async getAgent(agentUuid: string) {
+    return await db.query.agentsTable.findFirst({
+      where: eq(agentsTable.uuid, agentUuid),
+    });
+  }
   static async createAgent(data: z.infer<typeof agentCreateSchema>): Promise<boolean> {
     const userId = (await AuthService.getAuthUser())?.id;
     if (!userId) throw new Error("User not authenticated");
