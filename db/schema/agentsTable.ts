@@ -26,7 +26,7 @@ export const agentsTable = pgTable("agents", {
   uuid: uuid().notNull().defaultRandom().unique(),
   userId: integer()
     .notNull()
-    .references(() => usersTable.id),
+    .references(() => usersTable.id, { onDelete: "cascade" }),
   name: varchar({ length: 255 }).notNull(),
   tickerSymbol: varchar({ length: 255 }),
   information: json().$type<Information>(),
