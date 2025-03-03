@@ -7,3 +7,5 @@ export const functionsTable = pgTable("functions", {
   parameters: jsonb().notNull(),
   type: varchar({ length: 255 }).notNull().$type<"agent" | "trigger">(),
 });
+
+export type Function = typeof functionsTable.$inferSelect;
