@@ -11,7 +11,7 @@ export class AgentPlatformService {
     });
   }
   static async getAgentPlatformsByAgentId(agentUuid: string): Promise<AgentPlatform[]> {
-    const agentId = (await AgentService.getAgent(agentUuid))?.id;
+    const agentId = (await AgentService.getAgentByUuid(agentUuid))?.id;
     if (!agentId) throw new Error("Agent not found");
     return await db.query.agentPlatformsTable.findMany({
       where: eq(agentPlatformsTable.agentId, agentId),
@@ -26,7 +26,7 @@ export class AgentPlatformService {
   }
 
   static async deleteAgentPlatform(agentUuid: string, platformId: number): Promise<boolean> {
-    const agent = await AgentService.getAgent(agentUuid);
+    const agent = await AgentService.getAgentByUuid(agentUuid);
     const platform = await this.getAgentPlatform(platformId);
     if (platform?.id !== platformId) throw new Error("Platform not found");
     if (platform.agentId !== agent?.id) throw new Error("Platform not found");
