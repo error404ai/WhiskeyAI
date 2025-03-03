@@ -1,11 +1,12 @@
 import { freshDb } from "./freshDb";
+import { FunctionsSeeder } from "./seeders/functionSeeder";
 import { RoleSeeder } from "./seeders/roleSeeder";
 import { UserSeeder } from "./seeders/userSeeder";
 
 const args = process.argv;
 const isFresh = args.includes("--fresh");
 
-const seederClasses = [RoleSeeder, UserSeeder];
+const seederClasses = [RoleSeeder, UserSeeder, FunctionsSeeder];
 const seeders = seederClasses.map((SeederClass) => new SeederClass());
 
 async function runSeeders() {

@@ -41,3 +41,5 @@ export const agentsRelations = relations(agentsTable, ({ one, many }) => ({
   }),
   triggers: many(agentTriggersTable),
 }));
+
+export type Agent = typeof agentsTable.$inferSelect;

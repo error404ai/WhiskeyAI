@@ -11,7 +11,7 @@ export const GET = async (request: Request): Promise<Response> => {
   const stateString = atob(base64StateString);
   const state = JSON.parse(stateString);
 
-  const agent = await AgentService.getAgent(state.agentUuid);
+  const agent = await AgentService.getAgentByUuid(state.agentUuid);
   if (!agent) throw new Error("Agent not found");
   AgentPlatformService.storeAgentPlatform({
     name: "twitter",
