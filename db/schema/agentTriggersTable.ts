@@ -6,7 +6,7 @@ export const agentTriggersTable = pgTable("agentTriggers", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   agentId: integer()
     .notNull()
-    .references(() => agentsTable.id),
+    .references(() => agentsTable.id, { onDelete: "cascade" }),
   name: varchar({ length: 255 }).notNull(),
   description: varchar({ length: 255 }).notNull(),
   interval: integer().notNull(),

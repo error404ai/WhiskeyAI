@@ -53,7 +53,7 @@ export class UploadService {
     const filename = `${id}-${file.name}`;
 
     const arrayBuffer = await file.arrayBuffer();
-    let buffer = Buffer.from(arrayBuffer);
+    let buffer = Buffer.from(arrayBuffer as ArrayBufferLike);
 
     let imageProcessor = sharp(buffer);
 

@@ -11,7 +11,7 @@ export const agentPlatformsTable = pgTable("agentPlatforms", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   agentId: integer()
     .notNull()
-    .references(() => agentsTable.id),
+    .references(() => agentsTable.id, { onDelete: "cascade" }),
   name: varchar({ length: 50 }).notNull(),
   type: varchar({ length: 50 }).$type<"twitter" | "discord" | "telegram">().notNull(),
   description: varchar({ length: 255 }),
