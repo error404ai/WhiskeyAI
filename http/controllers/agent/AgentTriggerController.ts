@@ -13,3 +13,7 @@ export const createAgentTrigger = async (data: z.infer<typeof agentTriggerCreate
 export const getAgentTriggers = async (agentUuid: string) => {
   return await AgentTriggerService.getAgentTriggers(agentUuid);
 };
+
+export const deleteAgentTrigger = async (triggerId: number): Promise<boolean> => {
+  return await AgentTriggerService.deleteAgentTrigger(triggerId);
+};

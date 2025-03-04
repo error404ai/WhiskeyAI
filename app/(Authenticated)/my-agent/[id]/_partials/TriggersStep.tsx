@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,7 @@ import { Clock, Plus, X } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
+import Skeleton from "react-loading-skeleton";
 import { z } from "zod";
 
 const TriggersStep = () => {
@@ -49,9 +50,14 @@ const TriggersStep = () => {
       refetchAgentTriggers();
     }
   };
+  const handleDeleteTrigger = async (triggerId: number) => {
+    const res = await AgentTriggerController.deleteAgentTrigger(triggerId);
+    if (res) {
+      refetchAgentTriggers();
+    }
+  };
   const [showTriggerDialog, setShowTriggerDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
-
   useEffect(() => {
     if (methods.formState.errors.description || methods.formState.errors.name || methods.formState.errors.interval || methods.formState.errors.description) {
       setActiveTab("basic");
@@ -60,21 +66,20 @@ const TriggersStep = () => {
       setActiveTab("function");
     }
   }, [methods.formState.errors]);
-
   return (
     <div className="bg-card text-card-foreground rounded-xl border p-4 shadow-sm">
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Configure Triggers</h2>
         <p className="text-muted-foreground text-sm">Configure the triggers for your agent</p>
-
-        <div className="flex flex-wrap gap-4">
+        {(isAgentTriggerPending || isAgentTriggerRefetching) && <Skeleton count={2} height={70} />}
+        <div className="flex flex-wrap gap-4 pb-6">
           {!isAgentTriggerPending &&
             !isAgentTriggerRefetching &&
             agentTriggers?.map((trigger) => (
               <Card key={trigger.id} className="max-w-[450px] min-w-[300px] transition-shadow duration-300 hover:shadow-lg">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <h3 className="text-lg font-semibold">{trigger.name}</h3>
-                  <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10">
+                  <Button onClick={() => handleDeleteTrigger(trigger.id)} variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10">
                     <X className="h-5 w-5" />
                   </Button>
                 </CardHeader>
@@ -85,11 +90,11 @@ const TriggersStep = () => {
                     Runs every {trigger.interval} {trigger.runEvery}
                   </div>
                 </CardContent>
-                <CardFooter className="justify-end">
+                {/* <CardFooter className="justify-end">
                   <Button variant="outline" size="sm">
                     Edit Trigger
                   </Button>
-                </CardFooter>
+                </CardFooter> */}
               </Card>
             ))}
         </div>
