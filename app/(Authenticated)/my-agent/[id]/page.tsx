@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { Card } from "@/components/ui/card";
+import * as AgentController from "@/http/controllers/agent/AgentController";
+import { useQuery } from "@tanstack/react-query";
 import { Info, Rocket, Share2, Wrench, Zap } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import FunctionsStep from "./_partials/FunctionsStep";
 import InformationStep from "./_partials/InformationStep";
@@ -13,6 +16,18 @@ import TriggersStep from "./_partials/TriggersStep";
 export default function AgentConfigPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const params = useParams();
+  const agentUuid = params.id as string;
+
+  const {
+    isPending,
+    isRefetching,
+    data: agent,
+    refetch,
+  } = useQuery({
+    queryKey: ["getAgentTriggers"],
+    queryFn: () => AgentController.getAgentByUuid(agentUuid),
+  });
 
   const configSteps = [
     {
@@ -99,7 +114,7 @@ export default function AgentConfigPage() {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <h1 className="text-2xl font-bold">
-                Testing <span className="text-muted-foreground text-sm">$BUILD</span>
+                {agent?.name} <span className="text-muted-foreground text-sm">{agent?.tickerSymbol}</span>
               </h1>
             </div>
           </div>
