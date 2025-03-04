@@ -38,4 +38,23 @@ export class AgentTriggerService {
       where: eq(agentTriggersTable.agentId, agent.id),
     });
   }
+
+  static async deleteAgentTrigger(triggerId: number): Promise<boolean> {
+    const authUser = await AuthService.getAuthUser();
+    if (!authUser) throw new Error("User not authenticated");
+    const trigger = await db.query.agentTriggersTable.findFirst({
+      where: eq(agentTriggersTable.id, triggerId),
+      with: {
+        agent: true,
+      },
+    });
+    if (!trigger) throw new Error("Trigger not found");
+    if (Number(authUser.id) !== trigger.agent.userId) throw new Error("User not authenticated");
+    const res = await db.delete(agentTriggersTable).where(eq(agentTriggersTable.id, triggerId));
+    if (res) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }
