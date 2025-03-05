@@ -6,7 +6,7 @@ import * as AgentController from "@/http/controllers/agent/AgentController";
 import { useQuery } from "@tanstack/react-query";
 import { Info, Rocket, Share2, Wrench, Zap } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import FunctionsStep from "./_partials/FunctionsStep";
 import InformationStep from "./_partials/InformationStep";
 import LaunchStep from "./_partials/LaunchStep";
@@ -28,51 +28,41 @@ export default function AgentConfigPage() {
     queryFn: () => AgentController.getAgentByUuid(agentUuid),
   });
 
-  const configSteps = useMemo(
-    () => [
-      {
-        icon: Info,
-        title: "Information",
-        description: "Define agent personality, goals, and news",
-        key: "information",
-      },
-      {
-        icon: Share2,
-        title: "Platform Configuration",
-        description: "Configure your platform settings",
-        key: "platform",
-      },
-      {
-        icon: Zap,
-        title: "Configure Triggers",
-        description: "Set up custom triggers",
-        key: "triggers",
-      },
-      {
-        icon: Wrench,
-        title: "Configure Functions",
-        description: "Set up custom functions for your agent",
-        key: "functions",
-      },
-      {
-        icon: Rocket,
-        title: "Finalize & Launch",
-        description: "Deploy your agent",
-        key: "launch",
-      },
-    ],
-    [],
-  );
+  const configSteps = [
+    {
+      icon: Info,
+      title: "Information",
+      description: "Define agent personality, goals, and news",
+      key: "information",
+    },
+    {
+      icon: Share2,
+      title: "Platform Configuration",
+      description: "Configure your platform settings",
+      key: "platform",
+    },
+    {
+      icon: Zap,
+      title: "Configure Triggers",
+      description: "Set up custom triggers",
+      key: "triggers",
+    },
+    {
+      icon: Wrench,
+      title: "Configure Functions",
+      description: "Set up custom functions for your agent",
+      key: "functions",
+    },
+    {
+      icon: Rocket,
+      title: "Finalize & Launch",
+      description: "Deploy your agent",
+      key: "launch",
+    },
+  ];
 
   const defaultTabKey = "information";
   const [currentTabKey, setCurrentTabKey] = useState(searchParams.get("tab") || defaultTabKey);
-
-  const isValidTabKey = useCallback(
-    (key: string) => {
-      return configSteps.some((step) => step.key === key);
-    },
-    [configSteps],
-  );
 
   const handleTabChange = useCallback(
     (key: string) => {
@@ -89,11 +79,15 @@ export default function AgentConfigPage() {
   );
 
   useEffect(() => {
+    const isValidTabKey = (key: string) => {
+      return configSteps.some((step) => step.key === key);
+    };
     const tabFromUrl = searchParams.get("tab");
     if (tabFromUrl && isValidTabKey(tabFromUrl)) {
       setCurrentTabKey(tabFromUrl);
     }
-  }, [searchParams, isValidTabKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const renderStepContent = () => {
     switch (currentTabKey) {
