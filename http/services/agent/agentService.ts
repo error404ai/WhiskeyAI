@@ -1,6 +1,7 @@
 import { db } from "@/db/db";
 import { agentsTable } from "@/db/schema";
 import { Agent } from "@/db/schema/agentsTable";
+import { agentInformationSchema } from "@/db/zodSchema/agentInformationSchema";
 import { agentCreateSchema } from "@/http/zodSchema/agentCreateSchema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
@@ -24,7 +25,7 @@ export class AgentService {
       name: data.name,
       tickerSymbol: data.tickerSymbol,
       userId: Number(userId),
-      status: "initial",
+      status: "paused",
     });
 
     if (res) {
@@ -45,5 +46,23 @@ export class AgentService {
 
   static async deleteAgent(agentId: number) {
     return await db.delete(agentsTable).where(eq(agentsTable.id, agentId));
+  }
+
+  static async saveAgentInformation(agentUuid: string, data: z.infer<typeof agentInformationSchema>): Promise<boolean> {
+    const agent = await AgentService.getAgentByUuid(agentUuid);
+    const authUser = await AuthService.getAuthUser();
+    if (!agent || !authUser) throw new Error("User not authenticated");
+    if (Number(authUser.id) !== agent.userId) throw new Error("User not authenticated");
+    const res = await db
+      .update(agentsTable)
+      .set({
+        information: data,
+      })
+      .where(eq(agentsTable.uuid, agentUuid));
+    if (res) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }
