@@ -21,6 +21,12 @@ type Trigger = {
   };
 };
 
+export type AgentPlatformList = {
+  name: string;
+  description: string;
+  enabled: boolean;
+};
+
 export const agentsTable = pgTable("agents", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   uuid: uuid().notNull().defaultRandom().unique(),
@@ -32,7 +38,7 @@ export const agentsTable = pgTable("agents", {
   information: json().$type<Information>(),
   triggers: json().$type<Trigger[]>(),
   status: varchar({ length: 255 }).notNull().$type<"paused" | "running">(),
-  agentPlatformList: json().$type<Array<"twitter">>(),
+  agentPlatformList: json().$type<AgentPlatformList[]>(),
 });
 
 export const agentsRelations = relations(agentsTable, ({ one, many }) => ({
