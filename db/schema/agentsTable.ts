@@ -31,7 +31,7 @@ export const agentsTable = pgTable("agents", {
   tickerSymbol: varchar({ length: 255 }),
   information: json().$type<Information>(),
   triggers: json().$type<Trigger[]>(),
-  status: varchar({ length: 255 }).notNull().$type<"running" | "paused" | "initial">(),
+  status: varchar({ length: 255 }).notNull().$type<"paused" | "running">(),
 });
 
 export const agentsRelations = relations(agentsTable, ({ one, many }) => ({

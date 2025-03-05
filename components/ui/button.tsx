@@ -38,10 +38,11 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   ref?: React.ForwardedRef<React.Ref<HTMLButtonElement>>;
   parentClass?: string;
+  as?: React.ElementType;
 }
 
-const Button: React.FC<ButtonProps> = ({ children, className, parentClass, variant, size, asChild = false, link, loading, onClick, ref, ...props }) => {
-  const Comp = link ? Link : asChild ? Slot : ("button" as React.ElementType);
+const Button: React.FC<ButtonProps> = ({ children, className, parentClass, variant, size, asChild = false, link, loading, onClick, ref, as, ...props }) => {
+  const Comp = as ? as : link ? Link : asChild ? Slot : ("button" as React.ElementType);
 
   return (
     <Tap className={parentClass}>
