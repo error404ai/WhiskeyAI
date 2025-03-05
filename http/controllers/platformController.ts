@@ -15,8 +15,8 @@ export const connectTwitter = async (state: { agentUuid: string; url: string }) 
   return redirect(redirectUrl);
 };
 
-export const getAgentPlatformsByAgentId = async (agentUuid: string): Promise<AgentPlatform[]> => {
-  return await AgentPlatformService.getAgentPlatformsByAgentId(agentUuid);
+export const getAgentPlatformsByAgentUuid = async (agentUuid: string): Promise<AgentPlatform[]> => {
+  return await AgentPlatformService.getAgentPlatformsByAgentUuid(agentUuid);
 };
 
 export const deleteAgentPlatform = async (agentUuid: string, platformId: number) => {
