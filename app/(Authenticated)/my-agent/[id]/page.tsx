@@ -5,8 +5,8 @@ import { Card } from "@/components/ui/card";
 import * as AgentController from "@/http/controllers/agent/AgentController";
 import { useQuery } from "@tanstack/react-query";
 import { Info, Rocket, Share2, Wrench, Zap } from "lucide-react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import FunctionsStep from "./_partials/FunctionsStep";
 import InformationStep from "./_partials/InformationStep";
 import LaunchStep from "./_partials/LaunchStep";
@@ -14,7 +14,6 @@ import PlatformStep from "./_partials/PlatformStep";
 import TriggersStep from "./_partials/TriggersStep";
 
 export default function AgentConfigPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams();
   const agentUuid = params.id as string;
@@ -29,66 +28,72 @@ export default function AgentConfigPage() {
     queryFn: () => AgentController.getAgentByUuid(agentUuid),
   });
 
-  const configSteps = [
-    {
-      icon: Info,
-      title: "Information",
-      description: "Define agent personality, goals, and news",
-      key: "information",
-    },
-    {
-      icon: Share2,
-      title: "Platform Configuration",
-      description: "Configure your platform settings",
-      key: "platform",
-    },
-    {
-      icon: Zap,
-      title: "Configure Triggers",
-      description: "Set up custom triggers",
-      key: "triggers",
-    },
-    {
-      icon: Wrench,
-      title: "Configure Functions",
-      description: "Set up custom functions for your agent",
-      key: "functions",
-    },
-    {
-      icon: Rocket,
-      title: "Finalize & Launch",
-      description: "Deploy your agent",
-      key: "launch",
-    },
-  ];
+  const configSteps = useMemo(
+    () => [
+      {
+        icon: Info,
+        title: "Information",
+        description: "Define agent personality, goals, and news",
+        key: "information",
+      },
+      {
+        icon: Share2,
+        title: "Platform Configuration",
+        description: "Configure your platform settings",
+        key: "platform",
+      },
+      {
+        icon: Zap,
+        title: "Configure Triggers",
+        description: "Set up custom triggers",
+        key: "triggers",
+      },
+      {
+        icon: Wrench,
+        title: "Configure Functions",
+        description: "Set up custom functions for your agent",
+        key: "functions",
+      },
+      {
+        icon: Rocket,
+        title: "Finalize & Launch",
+        description: "Deploy your agent",
+        key: "launch",
+      },
+    ],
+    [],
+  );
 
   const defaultTabKey = "information";
   const [currentTabKey, setCurrentTabKey] = useState(searchParams.get("tab") || defaultTabKey);
 
-  const isValidTabKey = (key: string) => {
-    return configSteps.some((step) => step.key === key);
-  };
+  const isValidTabKey = useCallback(
+    (key: string) => {
+      return configSteps.some((step) => step.key === key);
+    },
+    [configSteps],
+  );
+
+  const handleTabChange = useCallback(
+    (key: string) => {
+      if (key !== currentTabKey) {
+        // Use replaceState to avoid adding history entries
+        const params = new URLSearchParams(searchParams);
+        params.set("tab", key);
+        window.history.replaceState(null, "", `?${params.toString()}`);
+
+        setCurrentTabKey(key);
+      }
+    },
+    [currentTabKey, searchParams],
+  );
 
   useEffect(() => {
     const tabFromUrl = searchParams.get("tab");
     if (tabFromUrl && isValidTabKey(tabFromUrl)) {
       setCurrentTabKey(tabFromUrl);
-    } else if (tabFromUrl !== currentTabKey) {
-      const params = new URLSearchParams(searchParams);
-      params.set("tab", currentTabKey);
-      router.push(`?${params.toString()}`, { scroll: false });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, router, currentTabKey]);
-
-  const handleTabChange = (key: string) => {
-    if (key !== currentTabKey) {
-      setCurrentTabKey(key);
-      const params = new URLSearchParams(searchParams);
-      params.set("tab", key);
-      router.push(`?${params.toString()}`, { scroll: false });
-    }
-  };
+  }, [searchParams, isValidTabKey]);
 
   const renderStepContent = () => {
     switch (currentTabKey) {

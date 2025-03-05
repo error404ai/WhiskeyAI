@@ -1,9 +1,10 @@
 "use server";
 
 import { Agent } from "@/db/schema";
+import { agentInformationSchema } from "@/db/zodSchema/agentInformationSchema";
 import { AgentService } from "@/http/services/agent/agentService";
 import { agentCreateSchema } from "@/http/zodSchema/agentCreateSchema";
-import { ZodError } from "zod";
+import { z, ZodError } from "zod";
 
 export const createAgent = async (data: unknown): Promise<boolean | string> => {
   try {
@@ -29,4 +30,9 @@ export const deleteAgent = async (agentId: number): Promise<boolean> => {
   } else {
     return false;
   }
+};
+
+export const saveAgentInformation = async (agentUuid: string, data: z.infer<typeof agentInformationSchema>): Promise<boolean> => {
+  const parsedData = agentInformationSchema.parse(data);
+  return await AgentService.saveAgentInformation(agentUuid, parsedData);
 };
