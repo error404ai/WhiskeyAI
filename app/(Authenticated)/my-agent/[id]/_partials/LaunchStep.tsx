@@ -1,16 +1,23 @@
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
-import { Bot } from "lucide-react";
+import { AgentPlatform } from "@/db/schema";
+import * as PlatformController from "@/http/controllers/platformController";
+import { useQuery } from "@tanstack/react-query";
+import { Trash2 } from "lucide-react";
+import { useParams } from "next/navigation";
 import { useState } from "react";
+import Skeleton from "react-loading-skeleton";
 
 type TabType = "memory" | "simulation" | "connect" | "launch" | "custom_texts" | "post_id";
 
 function LaunchStep() {
+  const agentUuid = useParams().id as string;
   const [activeTab, setActiveTab] = useState<TabType>("simulation");
   const [innerSimulateActiveTab, setinnerSimulateActiveTab] = useState<TabType>("custom_texts");
   const [formData, setFormData] = useState({
@@ -29,6 +36,29 @@ function LaunchStep() {
       configuration: "",
     },
   });
+
+  const {
+    isPending,
+    isFetching,
+    data: platforms,
+    refetch,
+  } = useQuery({
+    queryKey: ["getAgentPlatformsByAgentId"],
+    queryFn: () => PlatformController.getAgentPlatformsByAgentUuid(agentUuid),
+  });
+
+  const handleAddTwitter = async () => {
+    await PlatformController.connectTwitter({
+      agentUuid,
+      url: `/my-agent/${agentUuid}?tab=launch`,
+    });
+    refetch();
+  };
+
+  const handleDeletePlatform = async (platform: AgentPlatform) => {
+    await PlatformController.deleteAgentPlatform(agentUuid, platform.id);
+    refetch();
+  };
 
   const [tokenForm, setTokenForm] = useState({
     launchType: "no_token",
@@ -54,6 +84,8 @@ function LaunchStep() {
     // { id: "launch", label: "Launch" },
   ];
 
+  console.log("platforms", platforms);
+
   return (
     <div className="bg-card text-card-foreground rounded-xl border p-4 shadow-sm">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
@@ -63,7 +95,7 @@ function LaunchStep() {
             <p className="text-muted-foreground text-sm">Test your agent&apos;s behavior before deployment. Make sure to test your changes before updating.</p>
           </div>
 
-          <div className="flex w-full">
+          {/* <div className="flex w-full">
             {tabs.map((tab) => (
               <div key={tab.id} className="w-1/2 px-1">
                 <Button variant={activeTab === tab.id ? "default" : "outline"} className={cn("w-full", activeTab === tab.id && "bg-primary text-primary-foreground hover:bg-primary/90")} onClick={() => setActiveTab(tab.id)}>
@@ -71,7 +103,7 @@ function LaunchStep() {
                 </Button>
               </div>
             ))}
-          </div>
+          </div> */}
 
           <div className="mt-6">
             {activeTab === "memory" && (
@@ -84,7 +116,7 @@ function LaunchStep() {
               </div>
             )}
 
-            {activeTab === "simulation" && (
+            {/* {activeTab === "simulation" && (
               <div className="space-y-4 rounded-xl border p-4">
                 <div className="flex justify-between">
                   <div>
@@ -136,25 +168,48 @@ function LaunchStep() {
                     </div>
                   </div>
                 )}
-                {/* <div>
-                                <Label>Simulation Logs</Label>
-                                <p className="text-sm text-muted-foreground mb-2">Run your simulated prompts</p>
-                                <div className="h-[200px] rounded-md border bg-muted/10 p-4">
-                                    <p className="text-sm text-muted-foreground">Simulation results will appear here...</p>
-                                </div>
-                            </div> */}
+             
+              </div>
+            )} */}
+            {(isFetching || isPending) && <Skeleton height={40} />}
+            {!isFetching && !isPending && !platforms?.find((platform) => platform.type === "twitter") && (
+              <div className="mt-4 space-y-4 rounded-xl border p-4">
+                <div className="flex justify-between">
+                  <div>
+                    <Label>Connect Twitter</Label>
+                  </div>
+                </div>
+                <Button onClick={handleAddTwitter} variant={"outline"} className="w-full flex-1">
+                  Connect
+                </Button>
               </div>
             )}
-            <div className="mt-4 space-y-4 rounded-xl border p-4">
-              <div className="flex justify-between">
-                <div>
-                  <Label>Connect Twitter</Label>
+            {!isFetching && !isPending && platforms?.find((platform) => platform.type === "twitter") && (
+              <div className="mt-4 space-y-4 rounded-xl border p-4">
+                <div className="flex justify-between">
+                  <div className="flex w-full items-center justify-between">
+                    <Label>Connect Twitter</Label>
+                    <Button
+                      variant={"ghost"}
+                      onClick={() => {
+                        const twitterPlatform = platforms.find((platform) => platform.type === "twitter");
+                        if (twitterPlatform) {
+                          handleDeletePlatform(twitterPlatform);
+                        }
+                      }}
+                    >
+                      <Trash2 className="size-5" />
+                    </Button>
+                  </div>
                 </div>
+                {platforms && (
+                  <Button variant={"secondary"} className="w-full flex-1">
+                    <img src={platforms.find((platform) => platform.type === "twitter")?.account?.avatar} alt="" className="mr-2 h-6 w-6 rounded-full" />
+                    {platforms.find((platform) => platform.type === "twitter")?.account?.name}
+                  </Button>
+                )}
               </div>
-              <Button variant={"outline"} className="w-full flex-1">
-                Connect
-              </Button>
-            </div>
+            )}
             <div className="mt-4 space-y-4 rounded-xl border p-4">
               <div className="flex justify-between">
                 <div>
@@ -222,64 +277,6 @@ function LaunchStep() {
                 List your agent on vvaifu.fun | Costs 751 $VVAIFU
               </label>
             </div>
-
-            {/* {activeTab === "connect" && (
-                        <div className="space-y-6">
-                            <div>
-                                <Label>Connect Twitter</Label>
-                                <Input
-                                    placeholder="Enter Twitter API Key"
-                                    value={formData.connect.twitter}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, connect: { ...formData.connect, twitter: e.target.value } })
-                                    }
-                                />
-                            </div>
-
-                            <div>
-                                <Label>Connect Discord Bot</Label>
-                                <p className="text-sm text-muted-foreground mb-2">
-                                    To add the Discord Bot, head up to the Discord Developer Portal, create a new application, and then
-                                    create a bot user.
-                                </p>
-                                <Input
-                                    placeholder="Enter Discord Bot Key"
-                                    value={formData.connect.discordBot}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, connect: { ...formData.connect, discordBot: e.target.value } })
-                                    }
-                                />
-                            </div>
-
-                            <div>
-                                <Label>Connect Telegram Bot</Label>
-                                <p className="text-sm text-muted-foreground mb-2">
-                                    Configure your Telegram bot by obtaining a Bot Token on Telegram. Once you have the token, enter it
-                                    below.
-                                </p>
-                                <Input
-                                    placeholder="Enter Telegram Bot Key"
-                                    value={formData.connect.telegramBot}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, connect: { ...formData.connect, telegramBot: e.target.value } })
-                                    }
-                                />
-                            </div>
-
-                            <div>
-                                <Label>Voice Configuration</Label>
-                                <p className="text-sm text-muted-foreground mb-2">
-                                    Configure your Eleven Labs Voice ID for your agent voice. Only connect if you want to use voice
-                                    features.
-                                </p>
-                                <Input
-                                    placeholder="Enter Voice Lab ID"
-                                    value={formData.voice.apiKey}
-                                    onChange={(e) => setFormData({ ...formData, voice: { ...formData.voice, apiKey: e.target.value } })}
-                                />
-                            </div>
-                        </div>
-                    )} */}
           </div>
 
           <Button className="bg-primary text-primary-foreground hover:bg-primary/90 w-full">Connect Model</Button>

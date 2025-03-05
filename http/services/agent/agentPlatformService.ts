@@ -10,7 +10,7 @@ export class AgentPlatformService {
       where: eq(agentPlatformsTable.id, id),
     });
   }
-  static async getAgentPlatformsByAgentId(agentUuid: string): Promise<AgentPlatform[]> {
+  static async getAgentPlatformsByAgentUuid(agentUuid: string): Promise<AgentPlatform[]> {
     const agentId = (await AgentService.getAgentByUuid(agentUuid))?.id;
     if (!agentId) throw new Error("Agent not found");
     return await db.query.agentPlatformsTable.findMany({
