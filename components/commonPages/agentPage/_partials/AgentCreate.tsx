@@ -33,7 +33,7 @@ const AgentCreate: React.FC<AgentCreateProps> = ({ refetch }) => {
   return (
     <Dialog open={modalOpen} onOpenChange={setModalOpen}>
       <DialogTrigger>
-        <Button>
+        <Button as={"div"}>
           <Plus /> Create New Agent
         </Button>
       </DialogTrigger>
