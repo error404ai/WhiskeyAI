@@ -14,7 +14,7 @@ export const agentPlatformsTable = pgTable("agentPlatforms", {
     .notNull()
     .references(() => agentsTable.id, { onDelete: "cascade" }),
   name: varchar({ length: 50 }).notNull(),
-  type: varchar({ length: 50 }).$type<"twitter" | "discord" | "telegram">().notNull(),
+  type: varchar({ length: 50 }).$type<"twitter">().notNull(),
   description: varchar({ length: 255 }),
   credentials: jsonb().$type<Credentials>().notNull(),
   enabled: boolean().notNull().default(false),

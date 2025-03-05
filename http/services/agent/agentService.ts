@@ -1,6 +1,6 @@
 import { db } from "@/db/db";
 import { agentsTable } from "@/db/schema";
-import { Agent } from "@/db/schema/agentsTable";
+import { Agent, AgentPlatformList } from "@/db/schema/agentsTable";
 import { agentInformationSchema } from "@/db/zodSchema/agentInformationSchema";
 import { agentCreateSchema } from "@/http/zodSchema/agentCreateSchema";
 import { eq } from "drizzle-orm";
@@ -57,6 +57,24 @@ export class AgentService {
       .update(agentsTable)
       .set({
         information: data,
+      })
+      .where(eq(agentsTable.uuid, agentUuid));
+    if (res) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  static async storeAgentPlatformList(agentUuid: string, platformList: AgentPlatformList[]) {
+    const agent = await AgentService.getAgentByUuid(agentUuid);
+    const authUser = await AuthService.getAuthUser();
+    if (!agent || !authUser) throw new Error("User not authenticated");
+    if (Number(authUser.id) !== agent.userId) throw new Error("User not authenticated");
+    const res = await db
+      .update(agentsTable)
+      .set({
+        agentPlatformList: platformList,
       })
       .where(eq(agentsTable.uuid, agentUuid));
     if (res) {
