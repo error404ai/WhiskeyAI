@@ -107,7 +107,7 @@ export class TwitterProvider extends OAuthProvider {
           Authorization: `Bearer ${accessToken}`,
         },
         params: {
-          "user.fields": "id,name,username,profile_image_url,email",
+          "user.fields": "id,name,username,profile_image_url",
         },
       });
 

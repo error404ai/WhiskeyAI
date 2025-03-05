@@ -1,6 +1,6 @@
 "use server";
 
-import { Agent } from "@/db/schema";
+import { Agent, AgentPlatformList } from "@/db/schema";
 import { agentInformationSchema } from "@/db/zodSchema/agentInformationSchema";
 import { AgentService } from "@/http/services/agent/agentService";
 import { agentCreateSchema } from "@/http/zodSchema/agentCreateSchema";
@@ -35,4 +35,8 @@ export const deleteAgent = async (agentId: number): Promise<boolean> => {
 export const saveAgentInformation = async (agentUuid: string, data: z.infer<typeof agentInformationSchema>): Promise<boolean> => {
   const parsedData = agentInformationSchema.parse(data);
   return await AgentService.saveAgentInformation(agentUuid, parsedData);
+};
+
+export const storeAgentPlatformList = async (agentUuid: string, data: AgentPlatformList[]) => {
+  return await AgentService.storeAgentPlatformList(agentUuid, data);
 };
