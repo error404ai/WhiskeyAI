@@ -6,7 +6,9 @@ import { redirect } from "next/navigation";
 export const GET = async (request: Request): Promise<Response> => {
   const twitterProvider = new SocialiteService().driver("twitter");
   const res = await twitterProvider.exchangeCodeForToken(request);
+  const profile = await twitterProvider.getUserInfo(res.accessToken);
   console.log("res", res);
+  console.log("profile", profile);
   const base64StateString = res.state as string;
   const stateString = atob(base64StateString);
   const state = JSON.parse(stateString);
@@ -23,6 +25,7 @@ export const GET = async (request: Request): Promise<Response> => {
       accessToken: res.accessToken,
       refreshToken: res.refreshToken ?? "",
     },
+    account: profile,
   });
   return redirect(state.url);
 };

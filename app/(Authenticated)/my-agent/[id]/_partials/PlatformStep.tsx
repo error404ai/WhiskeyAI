@@ -21,7 +21,7 @@ const PlatformStep = () => {
     refetch,
   } = useQuery({
     queryKey: ["getAgentPlatformsByAgentId"],
-    queryFn: () => PlatformController.getAgentPlatformsByAgentId(agentId),
+    queryFn: () => PlatformController.getAgentPlatformsByAgentUuid(agentId),
   });
   const availablePlatforms: AgentPlatform[] = [
     {
@@ -34,6 +34,7 @@ const PlatformStep = () => {
         accessToken: "",
         refreshToken: "",
       },
+      account: null,
       enabled: false,
     },
   ];
