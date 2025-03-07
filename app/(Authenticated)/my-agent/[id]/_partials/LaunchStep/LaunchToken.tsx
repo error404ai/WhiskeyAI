@@ -1,78 +1,84 @@
+"use client";
+import ImageInput from "@/components/MyUi/ImageInput/ImageInput";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { tokenLaunchSchema } from "@/http/zodSchema/tokenLaunchSchema";
+import { PumpportalService } from "@/http/services/PumpportalService";
+import { tokenMetadataSchema } from "@/http/zodSchema/tokenMetadataSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
 const LaunchToken = () => {
-  const methods = useForm<z.infer<typeof tokenLaunchSchema>>({
+  "use no memo";
+  const methods = useForm<z.infer<typeof tokenMetadataSchema>>({
     mode: "onTouched",
-    resolver: zodResolver(tokenLaunchSchema),
+    resolver: zodResolver(tokenMetadataSchema),
   });
-  const onSubmit = async (data: z.infer<typeof tokenLaunchSchema>) => {
+
+  const onSubmit = async (data: z.infer<typeof tokenMetadataSchema>) => {
     console.log("data is", data);
-    const tx = "tx token";
+    const walletPrivateKey = "walletPrivateKey";
+    const tx = new PumpportalService().sendLocalCreateTx(walletPrivateKey, data);
+    console.log("tx is", tx);
   };
 
-  const [tokenForm, setTokenForm] = useState({
-    launchType: "no_token",
-    name: "",
-    ticker: "",
-    description: "",
-    buyAmount: "",
-    contractAddress: "",
-    image: null as File | null,
-  });
+  const launchType = methods.watch("launchType");
+
+  console.log("launchType is", launchType);
+
   return (
     <FormProvider {...methods}>
       <form onSubmit={methods.handleSubmit(onSubmit)}>
         <div className="mt-4 space-y-4 rounded-xl border p-4">
           <div className="space-y-2">
             <Label>Launch Type</Label>
+            {launchType}
+
             <div className="flex gap-2">
-              <select className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50">
+              <select {...methods.register("launchType")} className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50">
                 <option value="no_token">no_token</option>
                 <option value="new_token">new_token</option>
                 <option value="existing_token">existing_token</option>
               </select>
+              <p className="text-red-500">{methods.formState.errors.launchType?.message}</p>
             </div>
           </div>
 
-          {(tokenForm.launchType === "new_token" || tokenForm.launchType === "existing_token") && (
+          {(methods.getValues("launchType") === "new_token" || methods.getValues("launchType") === "existing_token") && (
             <div className="space-y-4">
-              {tokenForm.launchType === "existing_token" && (
+              {methods.getValues("launchType") === "existing_token" && (
                 <div className="space-y-2">
                   <Label>Token Contract Address</Label>
-                  <Input placeholder="Enter contract address" value={tokenForm.contractAddress} onChange={(e) => setTokenForm({ ...tokenForm, contractAddress: e.target.value })} />
+                  <Input name="contractAddress" placeholder="Enter contract address" />
                 </div>
               )}
 
               <div className="space-y-2">
                 <Label>Token Name</Label>
-                <Input placeholder="Enter token name" value={tokenForm.name} onChange={(e) => setTokenForm({ ...tokenForm, name: e.target.value })} />
+                <Input name="name" placeholder="Enter token name" />
               </div>
 
               <div className="space-y-2">
                 <Label>Token Ticker</Label>
-                <Input placeholder="Enter token ticker" value={tokenForm.ticker} onChange={(e) => setTokenForm({ ...tokenForm, ticker: e.target.value })} />
+                <Input name="symbol" placeholder="Enter token ticker" />
               </div>
 
               <div className="space-y-2">
                 <Label>Description</Label>
-                <Textarea placeholder="Enter token description" value={tokenForm.description} onChange={(e) => setTokenForm({ ...tokenForm, description: e.target.value })} />
+                <Textarea name="description" placeholder="Enter token description" />
               </div>
 
-              <div className="space-y-2">
-                <Label>Buy Amount</Label>
-                <Input type="number" placeholder="Enter buy amount" value={tokenForm.buyAmount} onChange={(e) => setTokenForm({ ...tokenForm, buyAmount: e.target.value })} />
-              </div>
+              {methods.getValues("launchType") === "new_token" && (
+                <div className="space-y-2">
+                  <Label>Buy Amount</Label>
+                  <Input name="buyAmount" type="number" placeholder="Enter buy amount" />
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label>Token Image</Label>
-                <Input type="file" accept="image/*" onChange={(e) => setTokenForm({ ...tokenForm, image: e.target.files?.[0] || null })} />
+                <ImageInput name="file" />
               </div>
             </div>
           )}
