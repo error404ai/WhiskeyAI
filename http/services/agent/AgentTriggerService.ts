@@ -5,7 +5,7 @@ import { agentTriggerCreateSchema } from "@/http/zodSchema/agentTriggerCreateSch
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import AuthService from "../authService";
-import { AgentService } from "./agentService";
+import { AgentService } from "./AgentService";
 
 export class AgentTriggerService {
   static async createAgentTrigger(data: z.infer<typeof agentTriggerCreateSchema>) {

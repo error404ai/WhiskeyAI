@@ -1,0 +1,115 @@
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { AgentPlatform } from "@/db/schema";
+import * as PlatformController from "@/http/controllers/platformController";
+import { useQuery } from "@tanstack/react-query";
+import { Trash2 } from "lucide-react";
+import { useParams } from "next/navigation";
+import Skeleton from "react-loading-skeleton";
+import LaunchToken from "./LaunchToken";
+
+type TabType = "memory" | "simulation" | "connect" | "launch" | "custom_texts" | "post_id";
+
+function LaunchStep() {
+  const agentUuid = useParams().id as string;
+  const {
+    isPending,
+    isFetching,
+    data: platforms,
+    refetch,
+  } = useQuery({
+    queryKey: ["getAgentPlatformsByAgentId"],
+    queryFn: () => PlatformController.getAgentPlatformsByAgentUuid(agentUuid),
+  });
+
+  const handleAddTwitter = async () => {
+    await PlatformController.connectTwitter({
+      agentUuid,
+      url: `/my-agent/${agentUuid}?tab=launch`,
+    });
+    refetch();
+  };
+
+  const handleDeletePlatform = async (platform: AgentPlatform) => {
+    await PlatformController.deleteAgentPlatform(agentUuid, platform.id);
+    refetch();
+  };
+
+  return (
+    <div className="bg-card text-card-foreground rounded-xl border p-4 shadow-sm">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-lg font-semibold">Finalize & Test</h2>
+            <p className="text-muted-foreground text-sm">Test your agent&apos;s behavior before deployment. Make sure to test your changes before updating.</p>
+          </div>
+
+          <div className="mt-6">
+            {(isFetching || isPending) && <Skeleton height={40} />}
+            {!isFetching && !isPending && !platforms?.find((platform) => platform.type === "twitter") && (
+              <div className="mt-4 space-y-4 rounded-xl border p-4">
+                <div className="flex justify-between">
+                  <div>
+                    <Label>Connect Twitter</Label>
+                  </div>
+                </div>
+                <Button onClick={handleAddTwitter} variant={"outline"} className="w-full flex-1">
+                  Connect
+                </Button>
+              </div>
+            )}
+            {!isFetching && !isPending && platforms?.find((platform) => platform.type === "twitter") && (
+              <div className="mt-4 space-y-4 rounded-xl border p-4">
+                <div className="flex justify-between">
+                  <div className="flex w-full items-center justify-between">
+                    <Label>Connect Twitter</Label>
+                    <Button
+                      variant={"ghost"}
+                      onClick={() => {
+                        const twitterPlatform = platforms.find((platform) => platform.type === "twitter");
+                        if (twitterPlatform) {
+                          handleDeletePlatform(twitterPlatform);
+                        }
+                      }}
+                    >
+                      <Trash2 className="size-5" />
+                    </Button>
+                  </div>
+                </div>
+                {platforms && (
+                  <Button variant={"secondary"} className="w-full flex-1">
+                    <img src={platforms.find((platform) => platform.type === "twitter")?.account?.avatar} alt="" className="mr-2 h-6 w-6 rounded-full" />
+                    {platforms.find((platform) => platform.type === "twitter")?.account?.name}
+                  </Button>
+                )}
+              </div>
+            )}
+            <div className="mt-4 space-y-4 rounded-xl border p-4">
+              <div className="flex justify-between">
+                <div>
+                  <Label>Wallet Management</Label>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div>
+                  <Label>Solana Public Wallet</Label>
+                  <Input placeholder="Enter post ID (e.g., 1234567890)" value="HcCUDzFp8RPD8FcKheFiUL9LxddNYuqcomwKqm2zhJhg" />
+                </div>
+              </div>
+            </div>
+            <LaunchToken />
+          </div>
+
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 w-full">Connect Model</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default LaunchStep;
