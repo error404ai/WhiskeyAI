@@ -2,7 +2,7 @@
 
 import { Agent, AgentPlatformList } from "@/db/schema";
 import { agentInformationSchema } from "@/db/zodSchema/agentInformationSchema";
-import { AgentService } from "@/http/services/agent/agentService";
+import { AgentService } from "@/http/services/agent/AgentService";
 import { agentCreateSchema } from "@/http/zodSchema/agentCreateSchema";
 import { z, ZodError } from "zod";
 

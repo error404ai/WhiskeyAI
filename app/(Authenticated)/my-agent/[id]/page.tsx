@@ -9,7 +9,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import FunctionsStep from "./_partials/FunctionsStep";
 import InformationStep from "./_partials/InformationStep";
-import LaunchStep from "./_partials/LaunchStep";
+import LaunchStep from "./_partials/LaunchStep/LaunchStep";
 import PlatformStep from "./_partials/PlatformStep";
 import TriggersStep from "./_partials/TriggersStep";
 
