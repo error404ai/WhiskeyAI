@@ -2,7 +2,7 @@ import { db } from "@/db/db";
 import { AgentPlatform, agentPlatformsTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import AuthService from "../authService";
-import { AgentService } from "./agentService";
+import { AgentService } from "./AgentService";
 
 export class AgentPlatformService {
   static async getAgentPlatform(id: number) {
