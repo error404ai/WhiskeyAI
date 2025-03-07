@@ -1,7 +1,7 @@
 import { db } from "@/db/db";
 import { usersTable } from "@/db/schema";
 import { UserType } from "@/db/schema/usersTable";
-import { profileBasicInfoSchema } from "@/db/zodSchema/profileUpdateSchema";
+import { profileBasicInfoSchema } from "@/http/zodSchema/profileUpdateSchema";
 import { eq } from "drizzle-orm";
 import { z, ZodError } from "zod";
 import UserResource, { UserResourceType } from "../resource/userResource";

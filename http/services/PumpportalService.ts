@@ -1,6 +1,7 @@
+import { tokenMetadataSchema } from "@/http/zodSchema/tokenMetadataSchema";
 import { Connection, Keypair, VersionedTransaction } from "@solana/web3.js";
 import bs58 from "bs58";
-import { openAsBlob } from "fs";
+import { z } from "zod";
 
 export class PumpportalService {
   public RPC_ENDPOINT = "Your RPC Endpoint";
@@ -10,31 +11,29 @@ export class PumpportalService {
     this.web3Connection = new Connection(this.RPC_ENDPOINT, "confirmed");
   }
 
-  async sendLocalCreateTx(walletPrivateKey: string, tokenMetadata: { file: string; name: string; symbol: string; description: string; twitter?: string; telegram?: string; website: string; showName: boolean }) {
+  async sendLocalCreateTx(walletPrivateKey: string, tokenMetadata: z.infer<typeof tokenMetadataSchema>) {
     const signerKeyPair = Keypair.fromSecretKey(bs58.decode(walletPrivateKey));
 
-    // Generate a random keypair for token
+    const parsedTokenMetadata = tokenMetadataSchema.parse(tokenMetadata);
+
     const mintKeypair = Keypair.generate();
 
-    // Define token metadata
     const formData = new FormData();
-    formData.append("file", await openAsBlob(tokenMetadata.file));
-    formData.append("name", tokenMetadata.name);
-    formData.append("symbol", tokenMetadata.symbol);
-    formData.append("description", tokenMetadata.description);
-    if (tokenMetadata.twitter) formData.append("twitter", tokenMetadata.twitter);
-    if (tokenMetadata.telegram) formData.append("telegram", tokenMetadata.telegram);
-    formData.append("website", tokenMetadata.website);
-    formData.append("showName", String(tokenMetadata.showName));
+    formData.append("file", parsedTokenMetadata.file);
+    formData.append("name", parsedTokenMetadata.name);
+    formData.append("symbol", parsedTokenMetadata.symbol);
+    formData.append("description", parsedTokenMetadata.description);
+    if (parsedTokenMetadata.twitter) formData.append("twitter", parsedTokenMetadata.twitter);
+    if (parsedTokenMetadata.telegram) formData.append("telegram", parsedTokenMetadata.telegram);
+    formData.append("website", parsedTokenMetadata.website);
+    formData.append("showName", String(parsedTokenMetadata.showName));
 
-    // Create IPFS metadata storage
     const metadataResponse = await fetch("https://pump.fun/api/ipfs", {
       method: "POST",
       body: formData,
     });
     const metadataResponseJSON = await metadataResponse.json();
 
-    // Get the create transaction
     const response = await fetch(`https://pumpportal.fun/api/trade-local`, {
       method: "POST",
       headers: {
@@ -58,11 +57,10 @@ export class PumpportalService {
     });
 
     if (response.status === 200) {
-      // successfully generated transaction
       const data = await response.arrayBuffer();
       const tx = VersionedTransaction.deserialize(new Uint8Array(data));
       tx.sign([mintKeypair, signerKeyPair]);
-      const signature = await this.web3Connection.sendTransaction(tx);
+      const signature = await this.web3Connection.sendRawTransaction(tx.serialize());
       console.log("Transaction: https://solscan.io/tx/" + signature);
     } else {
       console.log(response.statusText); // log error
