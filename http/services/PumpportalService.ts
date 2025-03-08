@@ -36,6 +36,8 @@ export class PumpportalService {
       mode: "no-cors",
     });
 
+    console.log("metadataResponse is", metadataResponse);
+
     if (!metadataResponse.ok) {
       throw new Error(`Failed to upload metadata: ${metadataResponse.statusText}`);
     }
