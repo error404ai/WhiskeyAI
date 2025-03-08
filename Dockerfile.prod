@@ -2,6 +2,8 @@ FROM node:23-alpine AS builder
 
 WORKDIR /app
 
+RUN npm install -g node-pre-gyp@0.17.0
+
 COPY package.json package-lock.json ./
 RUN npm i -f
 
