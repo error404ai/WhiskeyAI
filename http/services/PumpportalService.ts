@@ -4,7 +4,7 @@ import bs58 from "bs58";
 import { z } from "zod";
 
 export class PumpportalService {
-  public RPC_ENDPOINT = "Your RPC Endpoint";
+  public RPC_ENDPOINT = "https://api.mainnet-beta.solana.com";
   public web3Connection: Connection;
 
   constructor() {
@@ -19,14 +19,14 @@ export class PumpportalService {
     const mintKeypair = Keypair.generate();
 
     const formData = new FormData();
-    formData.append("file", parsedTokenMetadata.file);
+    formData.append("file", parsedTokenMetadata.file as File);
     formData.append("name", parsedTokenMetadata.name);
     formData.append("symbol", parsedTokenMetadata.symbol);
     formData.append("description", parsedTokenMetadata.description);
     if (parsedTokenMetadata.twitter) formData.append("twitter", parsedTokenMetadata.twitter);
     if (parsedTokenMetadata.telegram) formData.append("telegram", parsedTokenMetadata.telegram);
     formData.append("website", parsedTokenMetadata.website);
-    formData.append("showName", String(parsedTokenMetadata.showName));
+    formData.append("showName", "true");
 
     const metadataResponse = await fetch("https://pump.fun/api/ipfs", {
       method: "POST",
