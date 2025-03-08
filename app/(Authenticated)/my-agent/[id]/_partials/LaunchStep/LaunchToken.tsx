@@ -115,7 +115,7 @@ const LaunchToken = () => {
                 {methods.getValues("launchType") === "new_token" && (
                   <div className="space-y-2">
                     <Label>Buy Amount</Label>
-                    <Input name="buyAmount" type="number" placeholder="Enter buy amount" />
+                    <Input name="buyAmount" step={0.0001} type="number" placeholder="Enter buy amount" />
                   </div>
                 )}
 
