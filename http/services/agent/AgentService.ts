@@ -1,8 +1,8 @@
 import { db } from "@/db/db";
 import { agentsTable } from "@/db/schema";
 import { Agent, AgentPlatformList } from "@/db/schema/agentsTable";
-import { agentInformationSchema } from "@/db/zodSchema/agentInformationSchema";
 import { agentCreateSchema } from "@/http/zodSchema/agentCreateSchema";
+import { agentInformationSchema } from "@/http/zodSchema/agentInformationSchema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import AuthService from "../authService";
@@ -13,9 +13,12 @@ export class AgentService {
       where: eq(agentsTable.id, agentId),
     });
   }
-  static async getAgentByUuid(agentUuid: string): Promise<Agent | undefined> {
+  static async getAgentByUuid(agentUuid: string) {
     return await db.query.agentsTable.findFirst({
       where: eq(agentsTable.uuid, agentUuid),
+      with: {
+        user: true,
+      },
     });
   }
   static async createAgent(data: z.infer<typeof agentCreateSchema>): Promise<boolean> {

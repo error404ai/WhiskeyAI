@@ -3,20 +3,20 @@ import { Button } from "@/components/ui/button";
 import * as AuthController from "@/http/controllers/authController";
 import bs58 from "bs58";
 
-interface Solana {
-  isPhantom?: boolean;
-  publicKey?: {
-    toBase58(): string;
-  };
-  connect(): Promise<{ publicKey: { toBase58(): string } }>;
-  signMessage(message: Uint8Array, encoding: string): Promise<{ signature: Uint8Array }>;
-}
+// interface Solana {
+//   isPhantom?: boolean;
+//   publicKey?: {
+//     toBase58(): string;
+//   };
+//   connect(): Promise<{ publicKey: { toBase58(): string } }>;
+//   signMessage(message: Uint8Array, encoding: string): Promise<{ signature: Uint8Array }>;
+// }
 
-declare global {
-  interface Window {
-    solana?: Solana;
-  }
-}
+// declare global {
+//   interface Window {
+//     solana?: Solana;
+//   }
+// }
 
 const ConnectButton = ({ ...props }) => {
   const handleLogin = async () => {

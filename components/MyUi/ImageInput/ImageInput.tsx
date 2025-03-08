@@ -40,6 +40,7 @@ const ImageInput: React.FC<ImageInputProps> = ({ name, label, required, maxSize 
       });
     } else {
       context.clearErrors(name as string);
+      console.log("file is", file instanceof File);
       context.setValue(name as string, file);
     }
   };
@@ -55,7 +56,7 @@ const ImageInput: React.FC<ImageInputProps> = ({ name, label, required, maxSize 
       </div>
       <Avatar className="h-24 w-24 border-3 border-gray-600 object-cover">
         <AvatarImage loading="lazy" className="object-cover" src={getImageSrc()} />
-        <AvatarFallback>Avatar</AvatarFallback>
+        <AvatarFallback>Image</AvatarFallback>
       </Avatar>
       <input onChange={handleFileChange} type="file" className="hidden" />
       {error && <p className="text-xs text-red-500 select-none">{error}</p>}
