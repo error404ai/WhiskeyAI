@@ -129,12 +129,7 @@ const LaunchToken = () => {
               </div>
             )}
           </div>
-          {/* <div className="mt-2 flex items-center">
-            <input type="checkbox" id="confirm" className="mr-2" />
-            <label htmlFor="confirm" className="text-muted-foreground text-sm">
-              List your agent on vvaifu.fun | Costs 751 $VVAIFU
-            </label>
-          </div> */}
+
           <Button className="bg-primary text-primary-foreground hover:bg-primary/90 mt-4 w-full">Launch Token</Button>
         </form>
       </FormProvider>
