@@ -3,10 +3,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AgentPlatform } from "@/db/schema";
-import * as AgentController from "@/http/controllers/agent/AgentController";
 import * as PlatformController from "@/http/controllers/platformController";
 import { useQuery } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
@@ -27,14 +25,6 @@ function LaunchStep() {
     queryKey: ["getAgentPlatformsByAgentId"],
     queryFn: () => PlatformController.getAgentPlatformsByAgentUuid(agentUuid),
   });
-  const {
-    isPending: isAgentPending,
-    isFetching: isAgentFetching,
-    data: agent,
-  } = useQuery({
-    queryKey: ["getAgentByUuid"],
-    queryFn: () => AgentController.getAgentByUuid(agentUuid),
-  });
 
   const handleAddTwitter = async () => {
     await PlatformController.connectTwitter({
@@ -48,8 +38,6 @@ function LaunchStep() {
     await PlatformController.deleteAgentPlatform(agentUuid, platform.id);
     platformRefetch();
   };
-
-  console.log("agent", agent);
 
   return (
     <div className="bg-card text-card-foreground rounded-xl border p-4 shadow-sm">
@@ -100,22 +88,7 @@ function LaunchStep() {
                 )}
               </div>
             )}
-            {(isAgentFetching || isAgentPending) && <Skeleton height={40} />}
-            {!isAgentFetching && !isAgentPending && (
-              <div className="mt-4 space-y-4 rounded-xl border p-4">
-                <div className="flex justify-between">
-                  <div>
-                    <Label>Wallet Management</Label>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div>
-                    <Label>Solana Public Wallet</Label>
-                    <Input placeholder="Enter post ID (e.g., 1234567890)" value={agent?.user.publicKey} />
-                  </div>
-                </div>
-              </div>
-            )}
+
             <LaunchToken />
           </div>
         </div>

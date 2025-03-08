@@ -9,7 +9,7 @@ import { tokenMetadataSchema } from "@/http/zodSchema/tokenMetadataSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -22,7 +22,7 @@ const LaunchToken = () => {
     mode: "onTouched",
     resolver: zodResolver(tokenMetadataSchema),
   });
-  methods.watch("launchType");
+  methods.watch();
 
   const onSubmit = async (data: z.infer<typeof tokenMetadataSchema>) => {
     if (!publicKey || !signTransaction) {
@@ -45,8 +45,11 @@ const LaunchToken = () => {
     }
   };
 
+  console.log("file is from launch token", methods.getValues("file"));
+
   return (
     <div className="mt-6 flex flex-col gap-4">
+      signature is {txSignature}
       <div className="rounded-lg border p-4">
         <label className="mb-2 block">Connect Wallet</label>
         <div className="flex items-center gap-4">
@@ -61,11 +64,10 @@ const LaunchToken = () => {
               <div className="mt-4 space-y-4 rounded-xl border p-4">
                 <div className="border-l-4 border-red-400 bg-red-50 p-4">
                   <ul className="list-disc space-y-1 pl-5 text-red-700">
-                    {Object.entries(methods.formState.errors).map(([key, value]) => (
-                      <li key={key}>
-                        {key}: {value?.message}
-                      </li>
-                    ))}
+                    {Object.entries(methods.formState.errors).map(([key, value]) => {
+                      const error = value as ReactNode;
+                      return <li key={key}>{error}</li>;
+                    })}
                   </ul>
                 </div>
               </div>
