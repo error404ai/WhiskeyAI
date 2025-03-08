@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
+import NoSsr from "@/components/NoSsr/NoSsr";
 import { Card } from "@/components/ui/card";
 import * as AgentController from "@/http/controllers/agent/AgentController";
 import { useQuery } from "@tanstack/react-query";
@@ -107,41 +108,43 @@ export default function AgentConfigPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="space-y-8">
-        <div className="bg-card text-card-foreground rounded-xl border p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h1 className="text-2xl font-bold">
-                {agent?.name} <span className="text-muted-foreground text-sm">{agent?.tickerSymbol}</span>
-              </h1>
+    <NoSsr>
+      <div className="container mx-auto px-4 py-8">
+        <div className="space-y-8">
+          <div className="bg-card text-card-foreground rounded-xl border p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <h1 className="text-2xl font-bold">
+                  {agent?.name} <span className="text-muted-foreground text-sm">{agent?.tickerSymbol}</span>
+                </h1>
+              </div>
+            </div>
+
+            <div>
+              <h2 className="mb-4 text-lg font-semibold">Agent Definition Prompts</h2>
+              <p className="text-muted-foreground mb-4 text-sm">Configure your agent&apos;s behavior and capabilities</p>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
+                {configSteps.map((step) => {
+                  const Icon = step.icon;
+                  const isActive = step.key === currentTabKey;
+
+                  return (
+                    <Card key={step.key} onClick={() => handleTabChange(step.key)} className={`cursor-pointer p-4 transition-colors ${isActive ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>
+                      <div className="space-y-2">
+                        <Icon className="h-5 w-5" />
+                        <h3 className="font-medium">{step.title}</h3>
+                        <p className="text-sm opacity-90">{step.description}</p>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
-          <div>
-            <h2 className="mb-4 text-lg font-semibold">Agent Definition Prompts</h2>
-            <p className="text-muted-foreground mb-4 text-sm">Configure your agent&apos;s behavior and capabilities</p>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
-              {configSteps.map((step) => {
-                const Icon = step.icon;
-                const isActive = step.key === currentTabKey;
-
-                return (
-                  <Card key={step.key} onClick={() => handleTabChange(step.key)} className={`cursor-pointer p-4 transition-colors ${isActive ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>
-                    <div className="space-y-2">
-                      <Icon className="h-5 w-5" />
-                      <h3 className="font-medium">{step.title}</h3>
-                      <p className="text-sm opacity-90">{step.description}</p>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
+          {renderStepContent()}
         </div>
-
-        {renderStepContent()}
       </div>
-    </div>
+    </NoSsr>
   );
 }

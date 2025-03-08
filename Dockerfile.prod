@@ -6,7 +6,9 @@ RUN apk add --no-cache \
     python3 \
     make \
     g++ \
-    libusb-dev
+    libusb-dev \
+    eudev-dev \
+    linux-headers
 
 COPY package.json package-lock.json ./
 RUN npm i -f
