@@ -3,8 +3,11 @@ FROM node:23-alpine
 
 WORKDIR /app
 
-# Install dependencies
-RUN npm install -g node-pre-gyp@0.17.0
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    libusb-dev
 
 COPY package.json package-lock.json ./
 COPY . .
