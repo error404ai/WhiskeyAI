@@ -30,8 +30,6 @@ const LaunchToken = () => {
       return;
     }
 
-    console.log("data is", data);
-
     try {
       const pumpService = new PumpportalService();
       // Pass the wallet's publicKey and signTransaction function instead of a private key
@@ -44,8 +42,6 @@ const LaunchToken = () => {
       alert(`Error launching token: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   };
-
-  console.log("file is from launch token", methods.getValues("file"));
 
   return (
     <div className="mt-6 flex flex-col gap-4">
