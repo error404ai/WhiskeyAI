@@ -9,6 +9,7 @@ import * as PlatformController from "@/http/controllers/platformController";
 import { useQuery } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
 import { useParams } from "next/navigation";
+import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import LaunchToken from "./LaunchToken";
 
@@ -26,7 +27,10 @@ function LaunchStep() {
     queryFn: () => PlatformController.getAgentPlatformsByAgentUuid(agentUuid),
   });
 
+  const [connecting, setConnecting] = useState(false);
+
   const handleAddTwitter = async () => {
+    setConnecting(true);
     await PlatformController.connectTwitter({
       agentUuid,
       url: `/my-agent/${agentUuid}?tab=launch`,
@@ -57,7 +61,7 @@ function LaunchStep() {
                     <Label>Connect Twitter</Label>
                   </div>
                 </div>
-                <Button onClick={handleAddTwitter} variant={"outline"} className="w-full flex-1">
+                <Button disabled={connecting} loading={connecting} onClick={handleAddTwitter} variant={"outline"} className="w-full flex-1">
                   Connect
                 </Button>
               </div>
