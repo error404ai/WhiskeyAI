@@ -1,7 +1,7 @@
 "use server";
 
-import { profileBasicInfoSchema } from "@/db/zodSchema/profileUpdateSchema";
 import UserService from "@/http/services/userService";
+import { profileBasicInfoSchema } from "@/http/zodSchema/profileUpdateSchema";
 import { UserResourceType } from "../resource/userResource";
 import AuthService from "../services/authService";
 

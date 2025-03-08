@@ -1,5 +1,5 @@
-import { AgentPlatformService } from "@/http/services/agent/agentPlatformService";
-import { AgentService } from "@/http/services/agent/agentService";
+import { AgentPlatformService } from "@/http/services/agent/AgentPlatformService";
+import { AgentService } from "@/http/services/agent/AgentService";
 import { SocialiteService } from "@/http/services/oAuthService/SocialiteService";
 import { redirect } from "next/navigation";
 

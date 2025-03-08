@@ -1,7 +1,7 @@
 "use server";
 import { AgentPlatform } from "@/db/schema";
 import { redirect } from "next/navigation";
-import { AgentPlatformService } from "../services/agent/agentPlatformService";
+import { AgentPlatformService } from "../services/agent/AgentPlatformService";
 import { SocialiteService } from "../services/oAuthService/SocialiteService";
 
 export const connectTwitter = async (state: { agentUuid: string; url: string }) => {
