@@ -5,12 +5,11 @@ export const tokenMetadataSchema = z.object({
   contractAddress: z.string().optional(),
   buyAmount: z.string().nonempty({ message: "Buy amount is required" }),
 
-  file: z.string(),
+  file: z.object({}),
   name: z.string().min(1, "Name is required"),
   symbol: z.string().min(1, "Symbol is required"),
   description: z.string().min(1, "Description is required"),
   twitter: z.string().optional(),
   telegram: z.string().optional(),
   website: z.string().url("Website must be a valid URL"),
-  showName: z.boolean(),
 });

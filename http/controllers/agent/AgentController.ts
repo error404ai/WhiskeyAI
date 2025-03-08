@@ -1,6 +1,6 @@
 "use server";
 
-import { Agent, AgentPlatformList } from "@/db/schema";
+import { AgentPlatformList } from "@/db/schema";
 import { AgentService } from "@/http/services/agent/AgentService";
 import { agentCreateSchema } from "@/http/zodSchema/agentCreateSchema";
 import { agentInformationSchema } from "@/http/zodSchema/agentInformationSchema";
@@ -19,7 +19,7 @@ export const getAgents = async () => {
   return await AgentService.getAgents();
 };
 
-export const getAgentByUuid = async (agentUuid: string): Promise<Agent | undefined> => {
+export const getAgentByUuid = async (agentUuid: string) => {
   return await AgentService.getAgentByUuid(agentUuid);
 };
 

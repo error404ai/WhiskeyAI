@@ -13,9 +13,12 @@ export class AgentService {
       where: eq(agentsTable.id, agentId),
     });
   }
-  static async getAgentByUuid(agentUuid: string): Promise<Agent | undefined> {
+  static async getAgentByUuid(agentUuid: string) {
     return await db.query.agentsTable.findFirst({
       where: eq(agentsTable.uuid, agentUuid),
+      with: {
+        user: true,
+      },
     });
   }
   static async createAgent(data: z.infer<typeof agentCreateSchema>): Promise<boolean> {

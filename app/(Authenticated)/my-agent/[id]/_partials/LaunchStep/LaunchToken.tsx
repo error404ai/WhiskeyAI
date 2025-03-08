@@ -1,5 +1,6 @@
 "use client";
 import ImageInput from "@/components/MyUi/ImageInput/ImageInput";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,26 +16,35 @@ const LaunchToken = () => {
     mode: "onTouched",
     resolver: zodResolver(tokenMetadataSchema),
   });
+  methods.watch("launchType");
 
   const onSubmit = async (data: z.infer<typeof tokenMetadataSchema>) => {
     console.log("data is", data);
+    console.log("typeof file is", typeof data.file);
     const walletPrivateKey = "walletPrivateKey";
     const tx = new PumpportalService().sendLocalCreateTx(walletPrivateKey, data);
     console.log("tx is", tx);
   };
 
-  const launchType = methods.watch("launchType");
-
-  console.log("launchType is", launchType);
-
   return (
     <FormProvider {...methods}>
       <form onSubmit={methods.handleSubmit(onSubmit)}>
-        <div className="mt-4 space-y-4 rounded-xl border p-4">
+        <div className="space-y-4">
+          {Object.keys(methods.formState.errors).length > 0 && (
+            <div className="mt-4 space-y-4 rounded-xl border p-4">
+              <div className="border-l-4 border-red-400 bg-red-50 p-4">
+                <ul className="list-disc space-y-1 pl-5 text-red-700">
+                  {Object.entries(methods.formState.errors).map(([key, value]) => (
+                    <li key={key}>
+                      {key}: {value?.message}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
           <div className="space-y-2">
             <Label>Launch Type</Label>
-            {launchType}
-
             <div className="flex gap-2">
               <select {...methods.register("launchType")} className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50">
                 <option value="no_token">no_token</option>
@@ -68,6 +78,10 @@ const LaunchToken = () => {
                 <Label>Description</Label>
                 <Textarea name="description" placeholder="Enter token description" />
               </div>
+              <div className="space-y-2">
+                <Label>Website</Label>
+                <Textarea name="website" placeholder="Enter website" />
+              </div>
 
               {methods.getValues("launchType") === "new_token" && (
                 <div className="space-y-2">
@@ -78,17 +92,21 @@ const LaunchToken = () => {
 
               <div className="space-y-2">
                 <Label>Token Image</Label>
-                <ImageInput name="file" />
+                <div className="bg-background ring-offset-background flex items-center rounded-md border p-2">
+                  <ImageInput name="file" />
+                  <p className="text-muted-foreground mx-2 text-sm">Upload an image (optional)</p>
+                </div>
               </div>
             </div>
           )}
         </div>
-        <div className="mt-2 flex items-center">
+        {/* <div className="mt-2 flex items-center">
           <input type="checkbox" id="confirm" className="mr-2" />
           <label htmlFor="confirm" className="text-muted-foreground text-sm">
             List your agent on vvaifu.fun | Costs 751 $VVAIFU
           </label>
-        </div>
+        </div> */}
+        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 mt-4 w-full">Launch Token</Button>
       </form>
     </FormProvider>
   );

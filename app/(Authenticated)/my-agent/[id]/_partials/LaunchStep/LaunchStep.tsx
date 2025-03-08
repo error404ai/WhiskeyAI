@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AgentPlatform } from "@/db/schema";
+import * as AgentController from "@/http/controllers/agent/AgentController";
 import * as PlatformController from "@/http/controllers/platformController";
 import { useQuery } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
@@ -18,13 +19,21 @@ type TabType = "memory" | "simulation" | "connect" | "launch" | "custom_texts" |
 function LaunchStep() {
   const agentUuid = useParams().id as string;
   const {
-    isPending,
-    isFetching,
+    isPending: isPlatformPending,
+    isFetching: isPlatformFetching,
     data: platforms,
-    refetch,
+    refetch: platformRefetch,
   } = useQuery({
     queryKey: ["getAgentPlatformsByAgentId"],
     queryFn: () => PlatformController.getAgentPlatformsByAgentUuid(agentUuid),
+  });
+  const {
+    isPending: isAgentPending,
+    isFetching: isAgentFetching,
+    data: agent,
+  } = useQuery({
+    queryKey: ["getAgentByUuid"],
+    queryFn: () => AgentController.getAgentByUuid(agentUuid),
   });
 
   const handleAddTwitter = async () => {
@@ -32,13 +41,15 @@ function LaunchStep() {
       agentUuid,
       url: `/my-agent/${agentUuid}?tab=launch`,
     });
-    refetch();
+    platformRefetch();
   };
 
   const handleDeletePlatform = async (platform: AgentPlatform) => {
     await PlatformController.deleteAgentPlatform(agentUuid, platform.id);
-    refetch();
+    platformRefetch();
   };
+
+  console.log("agent", agent);
 
   return (
     <div className="bg-card text-card-foreground rounded-xl border p-4 shadow-sm">
@@ -50,8 +61,8 @@ function LaunchStep() {
           </div>
 
           <div className="mt-6">
-            {(isFetching || isPending) && <Skeleton height={40} />}
-            {!isFetching && !isPending && !platforms?.find((platform) => platform.type === "twitter") && (
+            {(isPlatformFetching || isPlatformPending) && <Skeleton height={40} />}
+            {!isPlatformFetching && !isPlatformPending && !platforms?.find((platform) => platform.type === "twitter") && (
               <div className="mt-4 space-y-4 rounded-xl border p-4">
                 <div className="flex justify-between">
                   <div>
@@ -63,7 +74,7 @@ function LaunchStep() {
                 </Button>
               </div>
             )}
-            {!isFetching && !isPending && platforms?.find((platform) => platform.type === "twitter") && (
+            {!isPlatformFetching && !isPlatformPending && platforms?.find((platform) => platform.type === "twitter") && (
               <div className="mt-4 space-y-4 rounded-xl border p-4">
                 <div className="flex justify-between">
                   <div className="flex w-full items-center justify-between">
@@ -89,23 +100,24 @@ function LaunchStep() {
                 )}
               </div>
             )}
-            <div className="mt-4 space-y-4 rounded-xl border p-4">
-              <div className="flex justify-between">
-                <div>
-                  <Label>Wallet Management</Label>
+            {(isAgentFetching || isAgentPending) && <Skeleton height={40} />}
+            {!isAgentFetching && !isAgentPending && (
+              <div className="mt-4 space-y-4 rounded-xl border p-4">
+                <div className="flex justify-between">
+                  <div>
+                    <Label>Wallet Management</Label>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div>
+                    <Label>Solana Public Wallet</Label>
+                    <Input placeholder="Enter post ID (e.g., 1234567890)" value={agent?.user.publicKey} />
+                  </div>
                 </div>
               </div>
-              <div className="space-y-2">
-                <div>
-                  <Label>Solana Public Wallet</Label>
-                  <Input placeholder="Enter post ID (e.g., 1234567890)" value="HcCUDzFp8RPD8FcKheFiUL9LxddNYuqcomwKqm2zhJhg" />
-                </div>
-              </div>
-            </div>
+            )}
             <LaunchToken />
           </div>
-
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 w-full">Connect Model</Button>
         </div>
       </div>
     </div>
