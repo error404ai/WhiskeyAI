@@ -40,6 +40,7 @@ const ImageInput: React.FC<ImageInputProps> = ({ name, label, required, maxSize 
       });
     } else {
       context.clearErrors(name as string);
+      console.log("file is", file instanceof File);
       context.setValue(name as string, file);
     }
   };
