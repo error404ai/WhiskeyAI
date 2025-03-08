@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -52,6 +52,22 @@ function FunctionsStep() {
     },
     {
       id: "2",
+      name: "retweet",
+      description: "Retweet an existing tweet",
+      platform: "Twitter",
+      icon: "Twitter",
+      type: "agent",
+    },
+    {
+      id: "3",
+      name: "reply_tweet",
+      description: "Reply to an existing tweet",
+      platform: "Twitter",
+      icon: "Twitter",
+      type: "agent",
+    },
+    {
+      id: "4",
       name: "quote_tweet",
       description: "Quote and comment on a tweet",
       platform: "Twitter",
@@ -59,21 +75,29 @@ function FunctionsStep() {
       type: "agent",
     },
     {
-      id: "3",
-      name: "search_twitter",
-      description: "Search twitter for information & sentiment",
-      platform: "Twitter",
-      icon: "Twitter",
+      id: "5",
+      name: "token_launch",
+      description: "Use to launch token",
+      platform: "wallet",
+      icon: "wallet",
       type: "agent",
     },
-    {
-      id: "4",
-      name: "generate_voice",
-      description: "Use to convert text to speech",
-      platform: "Special",
-      icon: "Mic",
-      type: "agent",
-    },
+    // {
+    //   id: "3",
+    //   name: "search_twitter",
+    //   description: "Search twitter for information & sentiment",
+    //   platform: "Twitter",
+    //   icon: "Twitter",
+    //   type: "agent",
+    // },
+    // {
+    //   id: "4",
+    //   name: "generate_voice",
+    //   description: "Use to convert text to speech",
+    //   platform: "Special",
+    //   icon: "Mic",
+    //   type: "agent",
+    // },
   ]);
 
   // const [newFunction, setNewFunction] = useState({
@@ -217,14 +241,14 @@ function FunctionsStep() {
           </TabsContent>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 mt-4">
             <Dialog open={showFunctionDialog} onOpenChange={setShowFunctionDialog}>
-              <DialogTrigger asChild>
+              {/* <DialogTrigger asChild>
                 <Card className="hover:bg-muted/50 flex h-[124px] cursor-pointer items-center justify-center border-dashed p-4">
                   <div className="flex flex-col items-center space-y-2 text-center">
                     <Plus className="h-6 w-6" />
                     <span className="text-sm font-medium">Add Custom Function</span>
                   </div>
                 </Card>
-              </DialogTrigger>
+              </DialogTrigger> */}
               <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-[700px] lg:max-w-[900px]">
                 <DialogHeader>
                   <DialogTitle>Custom Function</DialogTitle>
@@ -263,7 +287,7 @@ function FunctionsStep() {
                             </div>
                           </div>
 
-                          
+
                           <div className="mt-4">
                             <div className="flex justify-between mb-4">
                               <h4 className="mb-2 text-sm font-medium">Function Arguments</h4>

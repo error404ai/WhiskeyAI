@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { passwordUpdateSchema } from "@/db/zodSchema/passwordUpdateSchema";
+import { passwordUpdateSchema } from "@/http/zodSchema/passwordUpdateSchema";
 import { setFormErrors } from "@/lib/setFormErrors";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CircleCheck } from "lucide-react";
