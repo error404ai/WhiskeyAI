@@ -33,7 +33,6 @@ export class PumpportalService {
     const metadataResponse = await fetch("https://pump.fun/api/ipfs", {
       method: "POST",
       body: formData,
-      mode: "no-cors",
     });
 
     console.log("metadataResponse is", metadataResponse);
