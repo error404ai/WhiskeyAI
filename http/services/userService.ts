@@ -1,6 +1,5 @@
 import { db } from "@/db/db";
 import { usersTable } from "@/db/schema";
-import { UserType } from "@/db/schema/usersTable";
 import { profileBasicInfoSchema } from "@/http/zodSchema/profileUpdateSchema";
 import { eq } from "drizzle-orm";
 import { z, ZodError } from "zod";
@@ -27,11 +26,15 @@ class UserService {
   }
 
   static async createUserByPublicKey(publicKey: string): Promise<UserResourceType | null> {
-    const user = (await db.insert(usersTable).values({
+    await db.insert(usersTable).values({
       roleId: 2,
       publicKey,
       email: "",
-    })) as unknown as UserType;
+    });
+
+    const user = await db.query.usersTable.findFirst({
+      where: eq(usersTable.publicKey, publicKey),
+    });
     return user ? new UserResource(user).toJSON() : null;
   }
 

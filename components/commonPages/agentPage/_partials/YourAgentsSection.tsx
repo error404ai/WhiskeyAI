@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import * as AgentController from "@/http/controllers/agent/AgentController";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshCw, Trash2 } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import AgentCreate from "./AgentCreate";
@@ -28,6 +29,8 @@ export default function YourAgentsSection() {
     refetch();
   };
 
+  const { data: session } = useSession();
+  console.log("session is", session);
   return (
     <NoSsr>
       <div className="container mx-auto px-4 py-8">
