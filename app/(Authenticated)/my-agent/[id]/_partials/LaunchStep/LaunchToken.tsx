@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { uploadMetadata } from "@/http/controllers/pumpportalController";
 import { PumpportalService } from "@/http/services/PumpportalService";
 import { tokenMetadataSchema } from "@/http/zodSchema/tokenMetadataSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,9 +32,16 @@ const LaunchToken = () => {
     }
 
     try {
+      const formData = new FormData();
+      Object.entries(data).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+
+      const metadataJSON = await uploadMetadata(formData);
+
       const pumpService = new PumpportalService();
       // Pass the wallet's publicKey and signTransaction function instead of a private key
-      const signature = await pumpService.sendWalletCreateTx(publicKey, signTransaction, data);
+      const signature = await pumpService.sendWalletCreateTx(publicKey, signTransaction, metadataJSON);
 
       console.log("Transaction: https://solscan.io/tx/" + signature);
       setTxSignature(signature);

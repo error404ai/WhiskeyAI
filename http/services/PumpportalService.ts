@@ -1,47 +1,17 @@
-import { tokenMetadataSchema } from "@/http/zodSchema/tokenMetadataSchema";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Connection, Keypair, PublicKey, SendOptions, Transaction, VersionedTransaction } from "@solana/web3.js";
 
-import { z } from "zod";
-
 export class PumpportalService {
-  public RPC_ENDPOINT = "https://api.mainnet-beta.solana.com";
+  public RPC_ENDPOINT = "https://kelcey-184ipf-fast-mainnet.helius-rpc.com";
   public web3Connection: Connection;
 
   constructor() {
     this.web3Connection = new Connection(this.RPC_ENDPOINT, "confirmed");
   }
 
-  async sendWalletCreateTx(publicKey: PublicKey, signTransaction: (transaction: Transaction | VersionedTransaction) => Promise<Transaction | VersionedTransaction>, tokenMetadata: z.infer<typeof tokenMetadataSchema>) {
-    const parsedTokenMetadata = tokenMetadataSchema.parse(tokenMetadata);
-
-    console.log("buy amount is", parsedTokenMetadata.buyAmount);
-
+  async sendWalletCreateTx(publicKey: PublicKey, signTransaction: (transaction: Transaction | VersionedTransaction) => Promise<Transaction | VersionedTransaction>, metadataResponseJSON: any) {
     // Generate a keypair for the mint
     const mintKeypair = Keypair.generate();
-
-    // Upload metadata to IPFS
-    const formData = new FormData();
-    formData.append("file", parsedTokenMetadata.file as File);
-    formData.append("name", parsedTokenMetadata.name);
-    formData.append("symbol", parsedTokenMetadata.symbol);
-    formData.append("description", parsedTokenMetadata.description);
-    if (parsedTokenMetadata.twitter) formData.append("twitter", parsedTokenMetadata.twitter);
-    if (parsedTokenMetadata.telegram) formData.append("telegram", parsedTokenMetadata.telegram);
-    formData.append("website", parsedTokenMetadata.website);
-    formData.append("showName", "true");
-
-    const metadataResponse = await fetch("https://pump.fun/api/ipfs", {
-      method: "POST",
-      body: formData,
-    });
-
-    console.log("metadataResponse is", metadataResponse);
-
-    if (!metadataResponse.ok) {
-      throw new Error(`Failed to upload metadata: ${metadataResponse.statusText}`);
-    }
-
-    const metadataResponseJSON = await metadataResponse.json();
 
     // Get the create transaction from the API
     const response = await fetch(`https://pumpportal.fun/api/trade-local`, {
@@ -59,7 +29,7 @@ export class PumpportalService {
         },
         mint: mintKeypair.publicKey.toBase58(),
         denominatedInSol: "true",
-        amount: parsedTokenMetadata.buyAmount, // Use the provided buy amount or default to 1 SOL
+        amount: 0.0001, // Use the provided buy amount or default to 1 SOL
         slippage: 10,
         priorityFee: 0.0005,
         pool: "pump",
