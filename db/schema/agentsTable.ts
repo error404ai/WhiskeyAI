@@ -39,6 +39,7 @@ export const agentsTable = pgTable("agents", {
   triggers: json().$type<Trigger[]>(),
   status: varchar({ length: 255 }).notNull().$type<"paused" | "running">(),
   agentPlatformList: json().$type<AgentPlatformList[]>(),
+  txLink: varchar({ length: 255 }),
 });
 
 export const agentsRelations = relations(agentsTable, ({ one, many }) => ({

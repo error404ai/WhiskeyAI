@@ -40,3 +40,7 @@ export const saveAgentInformation = async (agentUuid: string, data: z.infer<type
 export const storeAgentPlatformList = async (agentUuid: string, data: AgentPlatformList[]) => {
   return await AgentService.storeAgentPlatformList(agentUuid, data);
 };
+
+export const storeAgentTxLink = async (agentUuid: string, txLink: string): Promise<boolean> => {
+  return await AgentService.storeAgentTxLink(agentUuid, txLink);
+};
