@@ -86,4 +86,22 @@ export class AgentService {
       return false;
     }
   }
+
+  static async storeAgentTxLink(agentUuid: string, txLink: string): Promise<boolean> {
+    const agent = await AgentService.getAgentByUuid(agentUuid);
+    const authUser = await AuthService.getAuthUser();
+    if (!agent || !authUser) throw new Error("User not authenticated");
+    if (Number(authUser.id) !== agent.userId) throw new Error("User not authenticated");
+    const res = await db
+      .update(agentsTable)
+      .set({
+        txLink: txLink,
+      })
+      .where(eq(agentsTable.uuid, agentUuid));
+    if (res) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }
