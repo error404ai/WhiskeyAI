@@ -1,23 +1,35 @@
 "use client";
 import ImageInput from "@/components/MyUi/ImageInput/ImageInput";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import * as AgentController from "@/http/controllers/agent/AgentController";
 import * as PumpportailController from "@/http/controllers/pumpportalController";
 import { tokenMetadataSchema } from "@/http/zodSchema/tokenMetadataSchema";
 import { sendWalletCreateTx } from "@/lib/pumpportalUtils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { useQuery } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
 const LaunchToken = () => {
   "use no memo";
+  const agentUuid = useParams().id as string;
+
+  const { data: agent, refetch } = useQuery({
+    queryKey: ["getAgentByUuid"],
+    queryFn: () => AgentController.getAgentByUuid(agentUuid),
+  });
+
   const { publicKey, signTransaction, connected } = useWallet();
   const [txSignature, setTxSignature] = useState<string | null>(null);
+  // const [txLinkUploaded, setTxLinkUploaded] = useState<boolean>(false);
 
   const methods = useForm<z.infer<typeof tokenMetadataSchema>>({
     mode: "onTouched",
@@ -31,6 +43,11 @@ const LaunchToken = () => {
       return;
     }
 
+    // mimic the logic of the backend
+    // await new Promise((resolve) => setTimeout(resolve, 2000));
+    // setTxSignature("test");
+    // return;
+
     try {
       const formData = new FormData();
       Object.entries(data).forEach(([key, value]) => {
@@ -39,18 +56,17 @@ const LaunchToken = () => {
 
       const metadataJSON = await PumpportailController.uploadMetadata(formData);
       const signature = await sendWalletCreateTx(publicKey, signTransaction, metadataJSON, data.buyAmount);
-
-      console.log("Transaction: https://solscan.io/tx/" + signature);
+      const txLink = `https://solscan.io/tx/${signature}`;
+      await AgentController.storeAgentTxLink(agentUuid, txLink);
+      refetch();
       setTxSignature(signature);
     } catch (error) {
-      console.error("Error launching token:", error);
       alert(`Error launching token: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   };
 
   return (
     <div className="mt-6 flex flex-col gap-4">
-      signature is {txSignature}
       <div className="rounded-lg border p-4">
         <label className="mb-2 block">Connect Wallet</label>
         <div className="flex items-center gap-4">
@@ -109,6 +125,14 @@ const LaunchToken = () => {
                   <Textarea name="description" placeholder="Enter token description" />
                 </div>
                 <div className="space-y-2">
+                  <Label>Telegram</Label>
+                  <Textarea name="telegram" placeholder="Enter telegram" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Twitter</Label>
+                  <Textarea name="twitter" placeholder="Enter twitter" />
+                </div>
+                <div className="space-y-2">
                   <Label>Website</Label>
                   <Textarea name="website" placeholder="Enter website" />
                 </div>
@@ -131,9 +155,30 @@ const LaunchToken = () => {
             )}
           </div>
 
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 mt-4 w-full">Launch Token</Button>
+          {!agent?.txLink && methods.getValues("launchType") !== "no_token" && (
+            <Button variant={"outline"} className="mt-4 w-full" loading={methods.formState.isSubmitting}>
+              Launch Token
+            </Button>
+          )}
         </form>
       </FormProvider>
+      {(agent?.txLink || methods.getValues("launchType") === "no_token") && <Button className="w-full">Deploy Agent</Button>}
+      {/* Modal Showing TxLink */}
+      <Dialog open={Boolean(txSignature)} onOpenChange={() => setTxSignature("")}>
+        <DialogContent className="space-y-4">
+          <DialogTitle className="text-lg font-bold">Token Launched</DialogTitle>
+          <p className="text-muted-foreground">Your token has been launched successfully. You can view the transaction on Solscan by clicking the link below.</p>
+
+          <div className="flex justify-center gap-3">
+            <Button variant={"outline"} parentClass="w-fit" onClick={() => setTxSignature("")}>
+              Close
+            </Button>
+            <a href={`https://solscan.io/tx/${txSignature}`} target="_blank" rel="noopener noreferrer" className="w-fit">
+              <Button parentClass="w-fit">View on Solscan</Button>
+            </a>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
