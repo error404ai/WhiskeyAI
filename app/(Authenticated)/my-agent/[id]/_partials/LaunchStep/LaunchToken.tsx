@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { PumpportalService } from "@/http/services/PumpportalService";
+import * as PumpportailController from "@/http/controllers/pumpportalController";
 import { tokenMetadataSchema } from "@/http/zodSchema/tokenMetadataSchema";
+import { sendWalletCreateTx } from "@/lib/pumpportalUtils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { ReactNode, useState } from "react";
+import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -31,9 +32,13 @@ const LaunchToken = () => {
     }
 
     try {
-      const pumpService = new PumpportalService();
-      // Pass the wallet's publicKey and signTransaction function instead of a private key
-      const signature = await pumpService.sendWalletCreateTx(publicKey, signTransaction, data);
+      const formData = new FormData();
+      Object.entries(data).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+
+      const metadataJSON = await PumpportailController.uploadMetadata(formData);
+      const signature = await sendWalletCreateTx(publicKey, signTransaction, metadataJSON, data.buyAmount);
 
       console.log("Transaction: https://solscan.io/tx/" + signature);
       setTxSignature(signature);
@@ -61,7 +66,7 @@ const LaunchToken = () => {
                 <div className="border-l-4 border-red-400 bg-red-50 p-4">
                   <ul className="list-disc space-y-1 pl-5 text-red-700">
                     {Object.entries(methods.formState.errors).map(([key, value]) => {
-                      const error = value as ReactNode;
+                      const error = typeof value.message === "string" ? value.message : "";
                       return <li key={key}>{error}</li>;
                     })}
                   </ul>
@@ -118,7 +123,7 @@ const LaunchToken = () => {
                 <div className="space-y-2">
                   <Label>Token Image</Label>
                   <div className="bg-background ring-offset-background flex items-center rounded-md border p-2">
-                    <ImageInput name="file" />
+                    <ImageInput name="file" maxSize={2} />
                     <p className="text-muted-foreground mx-2 text-sm">Upload an image (optional)</p>
                   </div>
                 </div>
