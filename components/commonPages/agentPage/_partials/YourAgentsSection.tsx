@@ -8,7 +8,6 @@ import * as AgentController from "@/http/controllers/agent/AgentController";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshCw, Trash2 } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import AgentCreate from "./AgentCreate";
 
@@ -23,7 +22,6 @@ export default function YourAgentsSection() {
     queryFn: AgentController.getAgents,
   });
 
-  const [showApiKey, setShowApiKey] = useState(false);
   const handleDeleteAgent = async (agentId: number) => {
     await AgentController.deleteAgent(agentId);
     refetch();
@@ -46,10 +44,6 @@ export default function YourAgentsSection() {
 
           {/* Actions */}
           <div className="flex items-start justify-between">
-            <Button variant="outline" onClick={() => setShowApiKey(!showApiKey)}>
-              Show API Key
-            </Button>
-
             <div className="flex gap-4">
               <Button variant="outline" size="icon">
                 <RefreshCw className="h-4 w-4" />
