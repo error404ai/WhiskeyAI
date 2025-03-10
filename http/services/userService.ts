@@ -27,6 +27,7 @@ class UserService {
 
   static async createUserByPublicKey(publicKey: string): Promise<UserResourceType | null> {
     await db.insert(usersTable).values({
+      customer_id: this.generateCustomerId(),
       roleId: 2,
       publicKey,
       email: "",
@@ -89,37 +90,6 @@ class UserService {
     return true;
   }
 
-  // static async updatePassword(customerId: string, data: z.infer<typeof passwordUpdateSchema>): Promise<boolean | string> {
-  //   try {
-  //     const user = await db.query.usersTable.findFirst({
-  //       where: eq(usersTable.customer_id, customerId),
-  //     });
-
-  //     if (!user) {
-  //       return false;
-  //     }
-
-  //     const passwordMatched = await verifyHash(data.currentPassword, user.password);
-
-  //     if (!passwordMatched) {
-  //       return new ZodError([{ code: "custom", message: "Current password is incorrect", path: ["currentPassword"] }]).toString();
-  //     }
-
-  //     if (data.newPassword !== data.confirmPassword) {
-  //       return new ZodError([{ code: "custom", message: "New password and confirm password do not match", path: ["confirmPassword"] }]).toString();
-  //     }
-
-  //     await db
-  //       .update(usersTable)
-  //       .set({ password: await makeHash(data.newPassword) })
-  //       .where(eq(usersTable.customer_id, customerId));
-
-  //     return true;
-  //   } catch {
-  //     return false;
-  //   }
-  // }
-
   static async deleteUser(userId: number): Promise<void> {
     try {
       await db.delete(usersTable).where(eq(usersTable.id, userId));
@@ -127,6 +97,19 @@ class UserService {
       console.error("Error deleting user:", error);
       throw new Error("Failed to delete user.");
     }
+  }
+
+  private static generateCustomerId() {
+    const now = new Date();
+    const year = now.getFullYear().toString().slice(-2);
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const seconds = String(now.getSeconds()).padStart(2, "0");
+    const random = Math.floor(1000 + Math.random() * 9000);
+
+    return `CUS${year}${month}${day}${hours}${minutes}${seconds}${random}`;
   }
 }
 
