@@ -23,7 +23,7 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 ## 📢 Stay Updated on Twitter!
 Twitter: @TheWhiskeyAI 
 https://x.com/thewhiskeyai
-
+.....
 
 ## Learn More
 
