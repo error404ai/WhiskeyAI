@@ -105,36 +105,36 @@ const LaunchToken = () => {
               <div className="space-y-4">
                 {methods.getValues("launchType") === "existing_token" && (
                   <div className="space-y-2">
-                    <Label>Token Contract Address</Label>
-                    <Input name="contractAddress" placeholder="Enter contract address" />
+                    <Label>Token Mint</Label>
+                    <Input name="tokenMint" placeholder="Enter token mint" />
                   </div>
                 )}
 
                 <div className="space-y-2">
                   <Label>Token Name</Label>
-                  <Input name="name" placeholder="Enter token name" />
+                  <Input disabled={methods.getValues("launchType") === "existing_token"} name="name" placeholder="Enter token name" />
                 </div>
 
                 <div className="space-y-2">
                   <Label>Token Ticker</Label>
-                  <Input name="symbol" placeholder="Enter token ticker" />
+                  <Input disabled={methods.getValues("launchType") === "existing_token"} name="symbol" placeholder="Enter token ticker" />
                 </div>
 
                 <div className="space-y-2">
                   <Label>Description</Label>
-                  <Textarea name="description" placeholder="Enter token description" />
+                  <Textarea disabled={methods.getValues("launchType") === "existing_token"} name="description" placeholder="Enter token description" />
                 </div>
                 <div className="space-y-2">
                   <Label>Telegram</Label>
-                  <Textarea name="telegram" placeholder="Enter telegram" />
+                  <Textarea disabled={methods.getValues("launchType") === "existing_token"} name="telegram" placeholder="Enter telegram" />
                 </div>
                 <div className="space-y-2">
                   <Label>Twitter</Label>
-                  <Textarea name="twitter" placeholder="Enter twitter" />
+                  <Textarea disabled={methods.getValues("launchType") === "existing_token"} name="twitter" placeholder="Enter twitter" />
                 </div>
                 <div className="space-y-2">
                   <Label>Website</Label>
-                  <Textarea name="website" placeholder="Enter website" />
+                  <Textarea disabled={methods.getValues("launchType") === "existing_token"} name="website" placeholder="Enter website" />
                 </div>
 
                 {methods.getValues("launchType") === "new_token" && (
@@ -144,13 +144,15 @@ const LaunchToken = () => {
                   </div>
                 )}
 
-                <div className="space-y-2">
-                  <Label>Token Image</Label>
-                  <div className="bg-background ring-offset-background flex items-center rounded-md border p-2">
-                    <ImageInput name="file" maxSize={2} />
-                    <p className="text-muted-foreground mx-2 text-sm">Upload an image (optional)</p>
+                {!(methods.getValues("launchType") === "existing_token") && (
+                  <div className="space-y-2">
+                    <Label>Token Image</Label>
+                    <div className="bg-background ring-offset-background flex items-center rounded-md border p-2">
+                      <ImageInput name="file" maxSize={2} />
+                      <p className="text-muted-foreground mx-2 text-sm">Upload an image (optional)</p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
           </div>

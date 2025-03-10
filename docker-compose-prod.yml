@@ -11,14 +11,13 @@ services:
       - ./public/uploads:/app/public/uploads
     ports:
       - "3000:3000"
-    # command: ["sh", "-c", "npm i -f && npm run db:push && npm run start"]
     networks:
       - default
     depends_on:
       - db
 
   db:
-    image: pgvector/pgvector:pg17
+    image: postgres:17
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -27,19 +26,19 @@ services:
       - pgdata:/var/lib/postgresql/data
     networks:
       - default
-  minio:
-    image: minio/minio:latest
-    environment:
-      MINIO_ROOT_USER: aiAgent
-      MINIO_ROOT_PASSWORD: aiAgent
-    command: server /data --console-address ":9001"
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - minio_data:/data
-    networks:
-      - default
+  # minio:
+  #   image: minio/minio:latest
+  #   environment:
+  #     MINIO_ROOT_USER: aiAgent
+  #     MINIO_ROOT_PASSWORD: aiAgent
+  #   command: server /data --console-address ":9001"
+  #   ports:
+  #     - "9000:9000"
+  #     - "9001:9001"
+  #   volumes:
+  #     - minio_data:/data
+  #   networks:
+  #     - default
 
   adminer:
     image: adminer
