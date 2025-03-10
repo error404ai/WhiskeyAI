@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Connection, Keypair, PublicKey, SendOptions, Transaction, VersionedTransaction } from "@solana/web3.js";
+const RPC_ENDPOINT = "https://kelcey-184ipf-fast-mainnet.helius-rpc.com";
 
 export const sendWalletCreateTx = async (publicKey: PublicKey, signTransaction: (transaction: Transaction | VersionedTransaction) => Promise<Transaction | VersionedTransaction>, metadataResponseJSON: any, amount: string) => {
-  const RPC_ENDPOINT = "https://kelcey-184ipf-fast-mainnet.helius-rpc.com";
   const web3Connection = new Connection(RPC_ENDPOINT, "confirmed");
   const mintKeypair = Keypair.generate();
   const response = await fetch(`https://pumpportal.fun/api/trade-local`, {

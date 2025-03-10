@@ -18,7 +18,7 @@ services:
       - db
 
   db:
-    image: pgvector/pgvector:pg17
+    image: postgres:17
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -27,19 +27,19 @@ services:
       - pgdata:/var/lib/postgresql/data
     networks:
       - default
-  minio:
-    image: minio/minio:latest
-    environment:
-      MINIO_ROOT_USER: minio
-      MINIO_ROOT_PASSWORD: minio123
-    command: server /data --console-address ":9001"
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - minio_data:/data
-    networks:
-      - default
+  # minio:
+  #   image: minio/minio:latest
+  #   environment:
+  #     MINIO_ROOT_USER: minio
+  #     MINIO_ROOT_PASSWORD: minio123
+  #   command: server /data --console-address ":9001"
+  #   ports:
+  #     - "9000:9000"
+  #     - "9001:9001"
+  #   volumes:
+  #     - minio_data:/data
+  #   networks:
+  #     - default
 
   adminer:
     image: adminer
