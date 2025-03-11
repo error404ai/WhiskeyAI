@@ -25,7 +25,7 @@ export default function AgentConfigPage() {
     data: agent,
     refetch,
   } = useQuery({
-    queryKey: ["getAgentTriggers"],
+    queryKey: ["getAgentByUuid"],
     queryFn: () => AgentController.getAgentByUuid(agentUuid),
   });
 
