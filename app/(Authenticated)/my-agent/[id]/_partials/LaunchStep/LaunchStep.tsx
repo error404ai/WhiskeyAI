@@ -12,6 +12,7 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import LaunchToken from "./LaunchToken";
+import TwitterAgentTest from "./TwitterAgentTest";
 
 type TabType = "memory" | "simulation" | "connect" | "launch" | "custom_texts" | "post_id";
 
@@ -45,6 +46,7 @@ function LaunchStep() {
 
   return (
     <div className="bg-card text-card-foreground rounded-xl border p-4 shadow-sm">
+      <TwitterAgentTest />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
         <div className="space-y-4">
           <div>

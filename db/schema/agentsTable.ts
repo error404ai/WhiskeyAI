@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import { integer, json, pgTable, uuid, varchar } from "drizzle-orm/pg-core";
+import { agentPlatformsTable } from "./agentPlatformsTable";
 import { agentTriggersTable } from "./agentTriggersTable";
 import { usersTable } from "./usersTable";
 
@@ -48,6 +49,7 @@ export const agentsRelations = relations(agentsTable, ({ one, many }) => ({
     references: [usersTable.id],
   }),
   triggers: many(agentTriggersTable),
+  agentPlatforms: many(agentPlatformsTable),
 }));
 
 export type Agent = typeof agentsTable.$inferSelect;
