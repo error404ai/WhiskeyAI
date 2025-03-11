@@ -18,7 +18,7 @@ export const agentPlatformsTable = pgTable("agentPlatforms", {
   description: varchar({ length: 255 }),
   credentials: jsonb().$type<Credentials>().notNull(),
   enabled: boolean().notNull().default(false),
-  account: jsonb().$type<OAuthUser>(),
+  account: jsonb().$type<OAuthUser>().notNull(),
 });
 
 export const agentPlatformsRelations = relations(agentPlatformsTable, ({ one }) => ({
