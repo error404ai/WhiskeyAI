@@ -18,6 +18,7 @@ export class AgentService {
       where: eq(agentsTable.uuid, agentUuid),
       with: {
         user: true,
+        agentPlatforms: true,
       },
     });
   }
