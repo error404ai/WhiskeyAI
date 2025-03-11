@@ -10,7 +10,7 @@ export const connectTwitter = async (state: { agentUuid: string; url: string }) 
   const twitterProvider = new SocialiteService().driver("twitter");
   const redirectUrl = await twitterProvider.redirect({
     state: base64StateString,
-    scopes: ["users.read", "tweet.read", "tweet.write", "offline.access"],
+    scopes: ["users.read", "tweet.read", "tweet.write", "offline.access", "like.read", "like.write"],
   });
   return redirect(redirectUrl);
 };
