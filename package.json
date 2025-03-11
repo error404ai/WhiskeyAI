@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "NODE_OPTIONS='--inspect' next dev --turbopack",
+    "dev": "NODE_OPTIONS='--inspect' next dev",
     "build": "next build",
     "start": "next start",
     "prod": "docker-compose down && docker-compose -f docker-compose-prod.yml build --no-cache && docker-compose -f docker-compose-prod.yml up -d",
@@ -81,6 +81,7 @@
     "tailwind-merge": "^3.0.2",
     "tailwindcss-animate": "^1.0.7",
     "tweetnacl": "^1.0.3",
+    "twitter-api-v2": "^1.20.2",
     "uuid": "^11.1.0",
     "zod": "^3.24.2"
   },
