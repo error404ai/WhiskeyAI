@@ -18,6 +18,33 @@ class TwitterService {
     }
   }
 
+  async postTweet(text: string) {
+    await this.refreshTokenIfNeeded();
+    return await this.twitterApi.v2.tweet(text);
+  }
+
+  async replyTweet(text: string, tweetId: string) {
+    await this.refreshTokenIfNeeded();
+    return await this.twitterApi.v2.reply(text, tweetId);
+  }
+
+  async likeTweet(tweetId: string) {
+    await this.refreshTokenIfNeeded();
+    return await this.twitterApi.v2.like(this.platform.account.id, tweetId);
+  }
+
+  async quoteTweet(quotedTweetId: string, comment: string) {
+    await this.refreshTokenIfNeeded();
+    const tweet = await this.twitterApi.v2.tweet(comment, { quote_tweet_id: quotedTweetId });
+    return tweet.data;
+  }
+
+  async reTweet(tweetId: string) {
+    await this.refreshTokenIfNeeded();
+    const retweet = await this.twitterApi.v2.retweet(this.platform.account.id, tweetId);
+    return retweet.data;
+  }
+
   // Update the token expiry timestamp when we get a new token
   private updateTokenExpiry(expiresIn: number): number {
     const expiryTimestamp = Math.floor(Date.now() / 1000) + expiresIn;
@@ -36,13 +63,13 @@ class TwitterService {
   }
 
   private async refreshTokenIfNeeded(): Promise<void> {
-    // If another request is already refreshing the token, wait for it
     if (this.refreshTokenPromise) {
       await this.refreshTokenPromise;
       return;
     }
 
     if (this.isTokenExpired() && this.platform.credentials.refreshToken) {
+      console.log("Refreshing Twitter access token...");
       // Set a promise to prevent multiple concurrent refresh attempts
       this.refreshTokenPromise = (async () => {
         try {
@@ -74,33 +101,6 @@ class TwitterService {
 
       await this.refreshTokenPromise;
     }
-  }
-
-  async postTweet(text: string) {
-    await this.refreshTokenIfNeeded();
-    return await this.twitterApi.v2.tweet(text);
-  }
-
-  async replyTweet(text: string, tweetId: string) {
-    await this.refreshTokenIfNeeded();
-    return await this.twitterApi.v2.reply(text, tweetId);
-  }
-
-  async likeTweet(tweetId: string) {
-    await this.refreshTokenIfNeeded();
-    return await this.twitterApi.v2.like(this.platform.account.id, tweetId);
-  }
-
-  async quoteTweet(quotedTweetId: string, comment: string) {
-    await this.refreshTokenIfNeeded();
-    const tweet = await this.twitterApi.v2.tweet(comment, { quote_tweet_id: quotedTweetId });
-    return tweet.data;
-  }
-
-  async reTweet(tweetId: string) {
-    await this.refreshTokenIfNeeded();
-    const retweet = await this.twitterApi.v2.retweet(this.platform.account.id, tweetId);
-    return retweet.data;
   }
 }
 
