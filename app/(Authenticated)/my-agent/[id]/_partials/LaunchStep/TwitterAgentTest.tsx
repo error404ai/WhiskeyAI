@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -81,7 +82,7 @@ export default function TwitterAgentTest() {
         status: "error",
         message: `Unexpected error: ${(err as Error).message}`,
         isRateLimit: false,
-        errorDetails: JSON.stringify(err)
+        errorDetails: JSON.stringify(err),
       };
       setError(safeError);
       console.error(`${actionName} unexpected error:`, JSON.stringify(safeError));
@@ -132,19 +133,19 @@ export default function TwitterAgentTest() {
   // Try to parse error details if they exist
   const getErrorDetails = () => {
     if (!error?.errorDetails) return null;
-    
+
     try {
       const details = JSON.parse(error.errorDetails);
       return (
         <div className="mt-3 w-full">
-          <div className="font-semibold text-sm">Error Details:</div>
-          <div className="max-h-32 overflow-auto rounded bg-gray-100 p-2 mt-1 w-full">
-            <pre className="text-xs whitespace-pre-wrap break-words">{JSON.stringify(details, null, 2)}</pre>
+          <div className="text-sm font-semibold">Error Details:</div>
+          <div className="mt-1 max-h-32 w-full overflow-auto rounded bg-gray-100 p-2">
+            <pre className="text-xs break-words whitespace-pre-wrap">{JSON.stringify(details, null, 2)}</pre>
           </div>
         </div>
       );
     } catch (e) {
-      return <div className="mt-3 text-xs w-full whitespace-normal">{error.errorDetails}</div>;
+      return <div className="mt-3 w-full text-xs whitespace-normal">{error.errorDetails}</div>;
     }
   };
 
@@ -292,23 +293,13 @@ export default function TwitterAgentTest() {
 
         {error && (
           <Alert variant={error.isRateLimit ? "default" : "destructive"} className={`mb-4 ${error.isRateLimit ? "border-yellow-200 bg-yellow-50 text-yellow-800" : ""}`}>
-            <div className="flex flex-col w-full">
+            <div className="flex w-full flex-col">
               <div className="flex items-start">
-                <div className="mr-2 mt-0.5">
-                  {error.isRateLimit ? <Clock className="h-4 w-4 text-yellow-600" /> : <AlertCircle className="h-4 w-4" />}
-                </div>
+                <div className="mt-0.5 mr-2">{error.isRateLimit ? <Clock className="h-4 w-4 text-yellow-600" /> : <AlertCircle className="h-4 w-4" />}</div>
                 <div className="flex-1">
-                  <AlertTitle className="block font-semibold mb-1">
-                    {error.isRateLimit ? "Rate Limit Exceeded" : `Error ${error.code ? `(${error.code})` : ""}`}
-                  </AlertTitle>
-                  <AlertDescription className="block whitespace-normal">
-                    {error.message}
-                  </AlertDescription>
-                  {error.isRateLimit && (
-                    <div className="mt-2 text-sm whitespace-normal">
-                      Twitter limits the number of API requests. Please wait a few minutes before trying again.
-                    </div>
-                  )}
+                  <AlertTitle className="mb-1 block font-semibold">{error.isRateLimit ? "Rate Limit Exceeded" : `Error ${error.code ? `(${error.code})` : ""}`}</AlertTitle>
+                  <AlertDescription className="block whitespace-normal">{error.message}</AlertDescription>
+                  {error.isRateLimit && <div className="mt-2 text-sm whitespace-normal">Twitter limits the number of API requests. Please wait a few minutes before trying again.</div>}
                   {getErrorDetails()}
                 </div>
               </div>
@@ -319,11 +310,11 @@ export default function TwitterAgentTest() {
         {success && (
           <Alert variant="default" className="mb-4 border-green-200 bg-green-50 text-green-800">
             <div className="flex items-start">
-              <div className="mr-2 mt-0.5">
+              <div className="mt-0.5 mr-2">
                 <CheckCircle className="h-4 w-4 text-green-600" />
               </div>
               <div>
-                <AlertTitle className="block font-semibold mb-1">Success</AlertTitle>
+                <AlertTitle className="mb-1 block font-semibold">Success</AlertTitle>
                 <AlertDescription className="block whitespace-normal">{success}</AlertDescription>
               </div>
             </div>
@@ -337,7 +328,7 @@ export default function TwitterAgentTest() {
             </CardHeader>
             <CardContent>
               <div className="max-h-96 overflow-auto rounded bg-gray-100 p-4">
-                <pre className="text-sm whitespace-pre-wrap break-words">{formatJson(result.data)}</pre>
+                <pre className="text-sm break-words whitespace-pre-wrap">{formatJson(result.data)}</pre>
               </div>
             </CardContent>
           </Card>
