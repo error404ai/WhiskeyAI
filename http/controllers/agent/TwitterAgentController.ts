@@ -1,6 +1,7 @@
 "use server";
 import { AgentService } from "@/http/services/agent/AgentService";
 import TwitterService from "@/http/services/TwitterService";
+import { TwitterApiError, TwitterResponse } from "@/types/twitter";
 
 // Helper function to get Twitter service for an agent
 const getTwitterServiceForAgent = async (agentUuid: string) => {
@@ -11,32 +12,102 @@ const getTwitterServiceForAgent = async (agentUuid: string) => {
   return new TwitterService(platform);
 };
 
-export const postTweet = async (agentUuid: string, text: string) => {
-  const twitterService = await getTwitterServiceForAgent(agentUuid);
-  return twitterService.postTweet(text);
+// Helper function to handle errors
+const handleTwitterError = (error: unknown): TwitterApiError => {
+  console.error("Twitter API error:", error);
+
+  // Check if this is a rate limit error (code 429)
+  const errorString = String(error);
+  const isRateLimit = errorString.includes("429") || errorString.includes("rate limit");
+
+  // Extract error code if available
+  const codeMatch = errorString.match(/code (\d+)/);
+  const code = codeMatch ? parseInt(codeMatch[1]) : undefined;
+
+  // Format error for client
+  return {
+    status: "error",
+    code,
+    message: isRateLimit ? "Twitter API rate limit exceeded. Please wait a few minutes before trying again." : `Twitter API error: ${errorString}`,
+    isRateLimit,
+    details: error,
+  };
 };
 
-export const getHomeTimeLine = async (agentUuid: string) => {
-  const twitterService = await getTwitterServiceForAgent(agentUuid);
-  return await twitterService.getHomeTimeLine();
+export const postTweet = async (agentUuid: string, text: string): Promise<TwitterResponse> => {
+  try {
+    const twitterService = await getTwitterServiceForAgent(agentUuid);
+    const result = await twitterService.postTweet(text);
+    return {
+      status: "success",
+      data: result,
+    };
+  } catch (error) {
+    return handleTwitterError(error);
+  }
 };
 
-export const replyTweet = async (agentUuid: string, text: string, tweetId: string) => {
-  const twitterService = await getTwitterServiceForAgent(agentUuid);
-  return await twitterService.replyTweet(text, tweetId);
+export const getHomeTimeLine = async (agentUuid: string): Promise<TwitterResponse> => {
+  try {
+    const twitterService = await getTwitterServiceForAgent(agentUuid);
+    const result = await twitterService.getHomeTimeLine();
+    return {
+      status: "success",
+      data: result,
+    };
+  } catch (error) {
+    return handleTwitterError(error);
+  }
 };
 
-export const likeTweet = async (agentUuid: string, tweetId: string) => {
-  const twitterService = await getTwitterServiceForAgent(agentUuid);
-  return await twitterService.likeTweet(tweetId);
+export const replyTweet = async (agentUuid: string, text: string, tweetId: string): Promise<TwitterResponse> => {
+  try {
+    const twitterService = await getTwitterServiceForAgent(agentUuid);
+    const result = await twitterService.replyTweet(text, tweetId);
+    return {
+      status: "success",
+      data: result,
+    };
+  } catch (error) {
+    return handleTwitterError(error);
+  }
 };
 
-export const quoteTweet = async (agentUuid: string, quotedTweetId: string, comment: string) => {
-  const twitterService = await getTwitterServiceForAgent(agentUuid);
-  return await twitterService.quoteTweet(quotedTweetId, comment);
+export const likeTweet = async (agentUuid: string, tweetId: string): Promise<TwitterResponse> => {
+  try {
+    const twitterService = await getTwitterServiceForAgent(agentUuid);
+    const result = await twitterService.likeTweet(tweetId);
+    return {
+      status: "success",
+      data: result,
+    };
+  } catch (error) {
+    return handleTwitterError(error);
+  }
 };
 
-export const reTweet = async (agentUuid: string, tweetId: string) => {
-  const twitterService = await getTwitterServiceForAgent(agentUuid);
-  return await twitterService.reTweet(tweetId);
+export const quoteTweet = async (agentUuid: string, quotedTweetId: string, comment: string): Promise<TwitterResponse> => {
+  try {
+    const twitterService = await getTwitterServiceForAgent(agentUuid);
+    const result = await twitterService.quoteTweet(quotedTweetId, comment);
+    return {
+      status: "success",
+      data: result,
+    };
+  } catch (error) {
+    return handleTwitterError(error);
+  }
+};
+
+export const reTweet = async (agentUuid: string, tweetId: string): Promise<TwitterResponse> => {
+  try {
+    const twitterService = await getTwitterServiceForAgent(agentUuid);
+    const result = await twitterService.reTweet(tweetId);
+    return {
+      status: "success",
+      data: result,
+    };
+  } catch (error) {
+    return handleTwitterError(error);
+  }
 };
