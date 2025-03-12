@@ -1,5 +1,6 @@
-import { z } from "zod";
-import { TwitterApiErrorSchema, TwitterApiResponseSchema } from "../http/zodSchema/twitterSchema";
+/**
+ * Twitter API response types
+ */
 
 // Type for API error responses
 export type TwitterApiError = {
@@ -17,4 +18,4 @@ export type TwitterApiSuccess = {
 };
 
 // Type for all possible responses
-export type TwitterResponse = TwitterApiSuccess | TwitterApiError;
+export type TwitterResponse = TwitterApiSuccess | TwitterApiError; 

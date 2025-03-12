@@ -1,7 +1,7 @@
 "use server";
 import { AgentService } from "@/http/services/agent/AgentService";
 import TwitterService from "@/http/services/TwitterService";
-import { TwitterResponse } from "@/types/twitter";
+import { TwitterResponse } from "@/types/twitter.d";
 
 // Helper function to get Twitter service for an agent
 const getTwitterServiceForAgent = async (agentUuid: string) => {
