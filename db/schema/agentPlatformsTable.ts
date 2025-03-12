@@ -3,9 +3,10 @@ import { relations } from "drizzle-orm";
 import { boolean, integer, jsonb, pgTable, varchar } from "drizzle-orm/pg-core";
 import { agentsTable } from "./agentsTable";
 
-type Credentials = {
+export type Credentials = {
   accessToken: string;
   refreshToken: string;
+  expiresIn: number;
 };
 
 export const agentPlatformsTable = pgTable("agentPlatforms", {
