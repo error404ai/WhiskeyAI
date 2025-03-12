@@ -7,6 +7,7 @@ export type Credentials = {
   accessToken: string;
   refreshToken: string;
   expiresIn: number;
+  expiryTimestamp: number; // Unix timestamp when the token expires
 };
 
 export const agentPlatformsTable = pgTable("agentPlatforms", {

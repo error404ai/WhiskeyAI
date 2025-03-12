@@ -6,26 +6,33 @@ import { SocialiteService } from "./oAuthService/SocialiteService";
 class TwitterService {
   private twitterApi: TwitterApi;
   private platform: AgentPlatform;
-  private tokenExpiryTime?: Date;
   private refreshTokenPromise: Promise<void> | null = null;
 
   constructor(platform: AgentPlatform) {
     this.platform = platform;
     this.twitterApi = new TwitterApi(this.platform.credentials.accessToken);
 
-    // If we have expiresIn data, calculate the expiry time
-    if (platform.credentials.expiresIn) {
-      this.tokenExpiryTime = new Date();
-      this.tokenExpiryTime.setSeconds(this.tokenExpiryTime.getSeconds() + platform.credentials.expiresIn);
+    // If we received a token but there's no expiryTimestamp, calculate and store it
+    if (platform.credentials.expiresIn && !platform.credentials.expiryTimestamp) {
+      this.updateTokenExpiry(platform.credentials.expiresIn);
     }
   }
 
+  // Update the token expiry timestamp when we get a new token
+  private updateTokenExpiry(expiresIn: number): number {
+    const expiryTimestamp = Math.floor(Date.now() / 1000) + expiresIn;
+    this.platform.credentials.expiryTimestamp = expiryTimestamp;
+    return expiryTimestamp;
+  }
+
   private isTokenExpired(): boolean {
-    if (!this.tokenExpiryTime) return false;
-    // Consider token expired if less than 5 minutes left
-    const fiveMinutesFromNow = new Date();
-    fiveMinutesFromNow.setMinutes(fiveMinutesFromNow.getMinutes() + 5);
-    return this.tokenExpiryTime < fiveMinutesFromNow;
+    if (!this.platform.credentials.expiryTimestamp) return false;
+
+    // Current time in seconds
+    const now = Math.floor(Date.now() / 1000);
+
+    // Consider token expired if less than 5 minutes (300 seconds) left
+    return this.platform.credentials.expiryTimestamp - now < 300;
   }
 
   private async refreshTokenIfNeeded(): Promise<void> {
@@ -47,22 +54,16 @@ class TwitterService {
           if (tokens.refreshToken) {
             this.platform.credentials.refreshToken = tokens.refreshToken;
           }
+          if (tokens.expiresIn) {
+            this.platform.credentials.expiresIn = tokens.expiresIn;
+            this.platform.credentials.expiryTimestamp = this.updateTokenExpiry(tokens.expiresIn);
+          }
 
           // Update Twitter API client
           this.twitterApi = new TwitterApi(tokens.accessToken);
 
-          // Update expiry time if provided
-          if (tokens.expiresIn) {
-            this.tokenExpiryTime = new Date();
-            this.tokenExpiryTime.setSeconds(this.tokenExpiryTime.getSeconds() + tokens.expiresIn);
-          }
-
           // Save the updated credentials to the database
-          await AgentPlatformService.updatePlatformCredentials(this.platform.id, {
-            accessToken: tokens.accessToken,
-            refreshToken: this.platform.credentials.refreshToken,
-            expiresIn: tokens.expiresIn ?? 0,
-          });
+          await AgentPlatformService.updatePlatformCredentials(this.platform.id, this.platform.credentials);
         } catch (error) {
           console.error("Failed to refresh token:", error);
           throw new Error(`Failed to refresh Twitter access token: ${(error as Error).message}`);
