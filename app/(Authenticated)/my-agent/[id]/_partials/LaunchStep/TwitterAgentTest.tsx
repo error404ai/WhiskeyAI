@@ -56,7 +56,8 @@ export default function TwitterAgentTest() {
   const processResponse = (response: TwitterResponse, actionName: string) => {
     if (response.status === "error") {
       setError(response);
-      console.error(`${actionName} error:`, response);
+      // Safely log the serializable error object without trying to expand non-serializable properties
+      console.error(`${actionName} error:`, JSON.stringify(response));
     } else {
       setResult({ action: actionName, data: response.data });
       setSuccess(`${actionName} completed successfully!`);
@@ -75,13 +76,15 @@ export default function TwitterAgentTest() {
       const response = await apiCall();
       processResponse(response, actionName);
     } catch (err) {
-      // Handle any unexpected errors that weren't caught by the controller
-      setError({
+      // Create a safe serializable error object
+      const safeError: TwitterApiError = {
         status: "error",
         message: `Unexpected error: ${(err as Error).message}`,
         isRateLimit: false,
-      });
-      console.error(`${actionName} unexpected error:`, err);
+        errorDetails: JSON.stringify(err)
+      };
+      setError(safeError);
+      console.error(`${actionName} unexpected error:`, JSON.stringify(safeError));
     } finally {
       setLoading(false);
     }
@@ -94,52 +97,53 @@ export default function TwitterAgentTest() {
 
   const handlePostTweet = (data: z.infer<typeof tweetSchema>) => {
     handleApiCall(() => postTweet(agentUuid, data.tweetText), "Post Tweet");
-
-    // Reset form on successful submission
-    if (!error) {
-      tweetForm.reset();
-    }
+    tweetForm.reset();
   };
 
   const handleReplyTweet = (data: z.infer<typeof replySchema>) => {
     handleApiCall(() => replyTweet(agentUuid, data.replyText, data.replyTweetId), "Reply Tweet");
-
-    // Reset form on successful submission
-    if (!error) {
-      replyForm.reset();
-    }
+    replyForm.reset();
   };
 
   const handleLikeTweet = (data: z.infer<typeof likeSchema>) => {
     handleApiCall(() => likeTweet(agentUuid, data.likeTweetId), "Like Tweet");
-
-    // Reset form on successful submission
-    if (!error) {
-      likeForm.reset();
-    }
+    likeForm.reset();
   };
 
   const handleQuoteTweet = (data: z.infer<typeof quoteSchema>) => {
     handleApiCall(() => quoteTweet(agentUuid, data.quoteTweetId, data.quoteText), "Quote Tweet");
-
-    // Reset form on successful submission
-    if (!error) {
-      quoteForm.reset();
-    }
+    quoteForm.reset();
   };
 
   const handleRetweet = (data: z.infer<typeof retweetSchema>) => {
     handleApiCall(() => reTweet(agentUuid, data.retweetId), "Retweet");
-
-    // Reset form on successful submission
-    if (!error) {
-      retweetForm.reset();
-    }
+    retweetForm.reset();
   };
 
   // Format JSON for display
   const formatJson = (data: any) => {
-    return JSON.stringify(data, null, 2);
+    try {
+      return JSON.stringify(data, null, 2);
+    } catch (err) {
+      return `Error formatting JSON: ${err}`;
+    }
+  };
+
+  // Try to parse error details if they exist
+  const getErrorDetails = () => {
+    if (!error?.errorDetails) return null;
+    
+    try {
+      const details = JSON.parse(error.errorDetails);
+      return (
+        <div className="mt-2 text-xs">
+          <div className="font-semibold">Error Details:</div>
+          <pre className="mt-1 max-h-32 overflow-auto rounded bg-gray-100 p-2">{JSON.stringify(details, null, 2)}</pre>
+        </div>
+      );
+    } catch (e) {
+      return <div className="mt-2 text-xs">{error.errorDetails}</div>;
+    }
   };
 
   return (
@@ -290,6 +294,7 @@ export default function TwitterAgentTest() {
             <AlertTitle>{error.isRateLimit ? "Rate Limit Exceeded" : `Error ${error.code ? `(${error.code})` : ""}`}</AlertTitle>
             <AlertDescription>{error.message}</AlertDescription>
             {error.isRateLimit && <div className="mt-2 text-sm">Twitter limits the number of API requests. Please wait a few minutes before trying again.</div>}
+            {getErrorDetails()}
           </Alert>
         )}
 
