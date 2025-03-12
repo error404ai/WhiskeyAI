@@ -6,7 +6,7 @@ export const TwitterApiErrorSchema = z.object({
   code: z.number().optional(),
   message: z.string(),
   isRateLimit: z.boolean().default(false),
-  details: z.any().optional(),
+  errorDetails: z.string().optional(),
 });
 
 // Define a standard success response schema
