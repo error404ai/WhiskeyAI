@@ -131,4 +131,38 @@ export class TwitterProvider extends OAuthProvider {
       }
     }
   }
+
+  async refreshToken(refreshToken: string): Promise<OAuthTokens> {
+    try {
+      const basicAuth = Buffer.from(`${this.clientId}:${this.clientSecret}`).toString("base64");
+
+      const params = new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: refreshToken,
+      });
+
+      const response = await axios.post(this.tokenUrl, params.toString(), {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Basic ${basicAuth}`,
+        },
+      });
+
+      return {
+        accessToken: response.data.access_token,
+        refreshToken: response.data.refresh_token || refreshToken,
+        expiresIn: response.data.expires_in,
+      };
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        const statusCode = error.response.status;
+        const errorData = error.response.data;
+        console.error(`Token refresh failed (${statusCode}):`, errorData);
+        throw new Error(`Token refresh failed: ${statusCode} - ${JSON.stringify(errorData)}`);
+      } else {
+        console.error("Token refresh network error:", error);
+        throw new Error(`Token refresh network error: ${(error as Error).message}`);
+      }
+    }
+  }
 }
