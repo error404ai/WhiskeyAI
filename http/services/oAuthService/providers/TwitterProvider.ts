@@ -113,8 +113,11 @@ export class TwitterProvider extends OAuthProvider {
 
       const userData = response.data.data;
 
+      console.log("user data is", userData);
+
       return {
         id: userData.id,
+        username: userData.username,
         name: userData.name || userData.username,
         email: userData.email || null,
         avatar: userData.profile_image_url,
