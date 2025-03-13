@@ -16,11 +16,24 @@ export class AgentTriggerService {
     if (Number(authUser.id) !== agent.userId) throw new Error("User not authenticated");
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { agentUuid, ...triggerData } = data;
+    
+    // Calculate the initial nextRunAt timestamp
+    const now = new Date();
+    const nextRunAt = new Date(now);
+    if (triggerData.runEvery === "minutes") {
+      nextRunAt.setMinutes(now.getMinutes() + Number(triggerData.interval));
+    } else if (triggerData.runEvery === "hours") {
+      nextRunAt.setHours(now.getHours() + Number(triggerData.interval));
+    }
+    
     const res = await db.insert(agentTriggersTable).values({
       ...triggerData,
       agentId: agent.id,
       interval: Number(triggerData.interval),
+      nextRunAt: nextRunAt,
+      status: "active",
     });
+    
     if (res) {
       return true;
     } else {

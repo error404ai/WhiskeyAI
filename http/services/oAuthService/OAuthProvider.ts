@@ -7,6 +7,7 @@ export interface OAuthTokens {
 
 export interface OAuthUser {
   id: string;
+  username: string;
   name: string;
   email?: string;
   avatar?: string;
