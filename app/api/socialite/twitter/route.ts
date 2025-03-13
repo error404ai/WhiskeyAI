@@ -24,6 +24,8 @@ export const GET = async (request: Request): Promise<Response> => {
     credentials: {
       accessToken: res.accessToken,
       refreshToken: res.refreshToken ?? "",
+      expiresIn: res.expiresIn ?? 0,
+      expiryTimestamp: res.expiresIn ? Math.floor(Date.now() / 1000) + res.expiresIn : 0,
     },
     account: profile,
   });

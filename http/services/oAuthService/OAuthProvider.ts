@@ -36,4 +36,6 @@ export abstract class OAuthProvider {
   abstract exchangeCodeForToken(request: Request): Promise<OAuthTokens>;
 
   abstract getUserInfo(accessToken: string): Promise<OAuthUser>;
+
+  abstract refreshToken(refreshToken: string): Promise<OAuthTokens>;
 }
