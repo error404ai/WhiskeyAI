@@ -174,7 +174,7 @@ export default function TwitterAgentTest() {
               <CardDescription>Fetch your Twitter home timeline</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button onClick={handleGetTimeline} disabled={loading} className="bg-blue-500 hover:bg-blue-600">
+              <Button parentClass="w-fit" onClick={handleGetTimeline} disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                 {loading ? "Loading..." : "Get Timeline"}
               </Button>
             </CardContent>
@@ -193,7 +193,7 @@ export default function TwitterAgentTest() {
                 <CardContent className="space-y-4">
                   <Textarea name="tweetText" label="Tweet Text" placeholder="What's happening?" required />
                   <div className="-mt-2 text-xs text-gray-500">{tweetForm.watch("tweetText")?.length || 0}/280 characters</div>
-                  <Button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Posting..." : "Post Tweet"}
                   </Button>
                 </CardContent>
@@ -215,7 +215,7 @@ export default function TwitterAgentTest() {
                   <Input name="replyTweetId" label="Tweet ID to Reply to" placeholder="Enter tweet ID" required />
                   <Textarea name="replyText" label="Reply Text" placeholder="Your reply" required />
                   <div className="-mt-2 text-xs text-gray-500">{replyForm.watch("replyText")?.length || 0}/280 characters</div>
-                  <Button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Replying..." : "Reply"}
                   </Button>
                 </CardContent>
@@ -235,7 +235,7 @@ export default function TwitterAgentTest() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Input name="likeTweetId" label="Tweet ID to Like" placeholder="Enter tweet ID" required />
-                  <Button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Liking..." : "Like Tweet"}
                   </Button>
                 </CardContent>
@@ -257,7 +257,7 @@ export default function TwitterAgentTest() {
                   <Input name="quoteTweetId" label="Tweet ID to Quote" placeholder="Enter tweet ID" required />
                   <Textarea name="quoteText" label="Your Comment" placeholder="Add your comment" required />
                   <div className="-mt-2 text-xs text-gray-500">{quoteForm.watch("quoteText")?.length || 0}/280 characters</div>
-                  <Button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Quoting..." : "Quote Tweet"}
                   </Button>
                 </CardContent>
@@ -277,7 +277,7 @@ export default function TwitterAgentTest() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Input name="retweetId" label="Tweet ID to Retweet" placeholder="Enter tweet ID" required />
-                  <Button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Retweeting..." : "Retweet"}
                   </Button>
                 </CardContent>
