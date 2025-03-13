@@ -1,10 +1,10 @@
 import cron from "node-cron";
 
-const runTask = () => {
-  console.log("⏳ Running scheduled task at", new Date().toLocaleTimeString());
+const runTask = async () => {
+  console.log("cron");
 };
 
-cron.schedule("* * * * *", () => {
+cron.schedule("* * * * * *", () => {
   runTask();
 });
 
