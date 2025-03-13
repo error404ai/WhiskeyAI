@@ -29,6 +29,7 @@ const LaunchToken = () => {
 
   const { publicKey, signTransaction, connected } = useWallet();
   const [txSignature, setTxSignature] = useState<string | null>(null);
+  const [agentDeployStatus, setAgentDeployStatus] = useState<StatusType>("initial");
   // const [txLinkUploaded, setTxLinkUploaded] = useState<boolean>(false);
 
   const methods = useForm<z.infer<typeof tokenMetadataSchema>>({
@@ -42,11 +43,6 @@ const LaunchToken = () => {
       alert("Please connect your wallet first");
       return;
     }
-
-    // mimic the logic of the backend
-    // await new Promise((resolve) => setTimeout(resolve, 2000));
-    // setTxSignature("test");
-    // return;
 
     try {
       const formData = new FormData();
@@ -62,6 +58,16 @@ const LaunchToken = () => {
       setTxSignature(signature);
     } catch (error) {
       alert(`Error launching token: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  };
+
+  const handleDeployAgent = async () => {
+    setAgentDeployStatus("loading");
+    const res = await AgentController.deployAgent(agentUuid);
+    if (res) {
+      setAgentDeployStatus("success");
+    } else {
+      setAgentDeployStatus("error");
     }
   };
 
@@ -164,7 +170,11 @@ const LaunchToken = () => {
           )}
         </form>
       </FormProvider>
-      {(agent?.txLink || methods.getValues("launchType") === "no_token") && <Button className="w-full">Deploy Agent</Button>}
+      {(agent?.txLink || methods.getValues("launchType") === "no_token") && (
+        <Button onClick={handleDeployAgent} loading={agentDeployStatus === "loading"} disabled={agent?.status === "running" || agentDeployStatus === "success"} className="w-full">
+          {agent?.status === "running" ? "Deployed" : "Deploy Agent"}
+        </Button>
+      )}
       {/* Modal Showing TxLink */}
       <Dialog open={Boolean(txSignature)} onOpenChange={() => setTxSignature("")}>
         <DialogContent className="space-y-4">
