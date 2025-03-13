@@ -12,7 +12,9 @@ RUN apk add --no-cache \
 COPY package.json package-lock.json ./
 COPY . .
 
+# Make scripts executable
 RUN chmod +x /app/scripts/entrypoint.sh
+RUN chmod +x /app/scripts/start-app.sh
 
 EXPOSE 3000
 
