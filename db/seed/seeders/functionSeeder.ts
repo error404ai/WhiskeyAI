@@ -4,23 +4,21 @@ import { Seeder } from "../SeederInterface";
 
 export class FunctionsSeeder implements Seeder {
   private functions: Omit<Function, "id">[] = [
-    // Agent Functions
+    // Agent Functions - Twitter Service Functions
+    {
+      name: "get_home_timeline",
+      description: "Get the most recent tweets from the home timeline of the Twitter account",
+      parameters: {},
+      type: "agent",
+    },
     {
       name: "post_tweet",
       description: "Create and publish a new tweet on Twitter",
       parameters: {
-        content: {
+        text: {
           type: "string",
           description: "The content of the tweet to post",
           required: true,
-        },
-        media_urls: {
-          type: "array",
-          items: {
-            type: "string",
-          },
-          description: "Optional array of media URLs to attach to the tweet",
-          required: false,
         },
       },
       type: "agent",
@@ -29,14 +27,14 @@ export class FunctionsSeeder implements Seeder {
       name: "reply_tweet",
       description: "Reply to an existing tweet on Twitter",
       parameters: {
-        tweet_id: {
-          type: "string",
-          description: "The ID of the tweet to reply to",
-          required: true,
-        },
-        content: {
+        text: {
           type: "string",
           description: "The content of the reply",
+          required: true,
+        },
+        tweetId: {
+          type: "string",
+          description: "The ID of the tweet to reply to",
           required: true,
         },
       },
@@ -46,7 +44,7 @@ export class FunctionsSeeder implements Seeder {
       name: "like_tweet",
       description: "Like a specific tweet on Twitter",
       parameters: {
-        tweet_id: {
+        tweetId: {
           type: "string",
           description: "The ID of the tweet to like",
           required: true,
@@ -58,12 +56,12 @@ export class FunctionsSeeder implements Seeder {
       name: "quote_tweet",
       description: "Quote and comment on a tweet on Twitter",
       parameters: {
-        tweet_id: {
+        quotedTweetId: {
           type: "string",
           description: "The ID of the tweet to quote",
           required: true,
         },
-        content: {
+        comment: {
           type: "string",
           description: "The content of your quote",
           required: true,
@@ -75,7 +73,7 @@ export class FunctionsSeeder implements Seeder {
       name: "retweet",
       description: "Retweet an existing tweet on Twitter",
       parameters: {
-        tweet_id: {
+        tweetId: {
           type: "string",
           description: "The ID of the tweet to retweet",
           required: true,
