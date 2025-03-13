@@ -1,10 +1,18 @@
 import cron from "node-cron";
+import { TriggerSchedulerService } from "../services/agent/TriggerSchedulerService";
 
 const runTask = async () => {
-  console.log("cron");
+  try {
+    console.log("Running scheduled trigger check...");
+    const triggerScheduler = new TriggerSchedulerService();
+    await triggerScheduler.processPendingTriggers();
+  } catch (error) {
+    console.error("Error in cron job:", error);
+  }
 };
 
-cron.schedule("* * * * * *", () => {
+// Schedule to run every minute
+cron.schedule("* * * * *", () => {
   runTask();
 });
 
