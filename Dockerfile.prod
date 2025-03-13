@@ -8,7 +8,8 @@ RUN apk add --no-cache \
     g++ \
     libusb-dev \
     eudev-dev \
-    linux-headers
+    linux-headers \
+    supervisor
 
 COPY package.json package-lock.json ./
 RUN npm i -f
