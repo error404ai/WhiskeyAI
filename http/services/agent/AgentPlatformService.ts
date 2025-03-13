@@ -1,5 +1,5 @@
 import { db } from "@/db/db";
-import { AgentPlatform, agentPlatformsTable } from "@/db/schema";
+import { AgentPlatform, agentPlatformsTable, Credentials } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import AuthService from "../authService";
 import { AgentService } from "./AgentService";
@@ -36,5 +36,14 @@ export class AgentPlatformService {
     } else {
       return false;
     }
+  }
+
+  static async updatePlatformCredentials(platformId: number, credentials: Credentials) {
+    return await db
+      .update(agentPlatformsTable)
+      .set({
+        credentials,
+      })
+      .where(eq(agentPlatformsTable.id, platformId));
   }
 }
