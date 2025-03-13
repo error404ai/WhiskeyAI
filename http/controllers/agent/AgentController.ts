@@ -44,3 +44,7 @@ export const storeAgentPlatformList = async (agentUuid: string, data: AgentPlatf
 export const storeAgentTxLink = async (agentUuid: string, txLink: string): Promise<boolean> => {
   return await AgentService.storeAgentTxLink(agentUuid, txLink);
 };
+
+export const deployAgent = async (agentUuid: string): Promise<boolean> => {
+  return await AgentService.deployAgent(agentUuid);
+};
