@@ -20,7 +20,7 @@ export class FunctionsSeeder implements Seeder {
           required: true,
         },
       },
-      type: "agent",
+      type: "trigger",
     },
     {
       name: "reply_tweet",
