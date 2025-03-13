@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { integer, pgTable, varchar } from "drizzle-orm/pg-core";
+import { integer, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
 import { agentsTable } from "./agentsTable";
 
 export const agentTriggersTable = pgTable("agentTriggers", {
@@ -13,6 +13,9 @@ export const agentTriggersTable = pgTable("agentTriggers", {
   runEvery: varchar({ length: 255 }).notNull().$type<"minutes" | "hours">(),
   functionName: varchar({ length: 255 }).notNull(),
   informationSource: varchar({ length: 255 }).notNull(),
+  lastRunAt: timestamp(),
+  nextRunAt: timestamp(),
+  status: varchar({ length: 50 }).$type<"active" | "paused">().default("active"),
 });
 
 export const agentTriggersRelations = relations(agentTriggersTable, ({ one }) => ({
