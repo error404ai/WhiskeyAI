@@ -13,7 +13,7 @@ export const tokenMetadataSchema = z
     description: z.string().min(1, "Description is required"),
     twitter: z.string().optional(),
     telegram: z.string().optional(),
-    website: z.string().url("Website must be a valid URL"),
+    website: z.string().optional(),
     tokenMint: z.string().optional(),
   })
   .refine((data) => data.launchType !== "existing_token" || data.tokenMint, {
