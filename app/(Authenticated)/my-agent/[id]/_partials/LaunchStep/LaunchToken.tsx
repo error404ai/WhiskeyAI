@@ -1,10 +1,12 @@
 "use client";
 import ImageInput from "@/components/MyUi/ImageInput/ImageInput";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { AgentPlatform } from "@/db/schema";
 import * as AgentController from "@/http/controllers/agent/AgentController";
 import * as PumpportailController from "@/http/controllers/pumpportalController";
 import { tokenMetadataSchema } from "@/http/zodSchema/tokenMetadataSchema";
@@ -18,9 +20,15 @@ import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
-const LaunchToken = () => {
+type Props = {
+  platforms: AgentPlatform[] | undefined;
+  platformLoading: boolean;
+};
+
+const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
   "use no memo";
   const agentUuid = useParams().id as string;
+  const twitterPlatform = platforms?.find((platform) => platform.name === "twitter");
 
   const { data: agent, refetch } = useQuery({
     queryKey: ["getAgentByUuid"],
@@ -163,18 +171,26 @@ const LaunchToken = () => {
             )}
           </div>
 
-          {!agent?.txLink && methods.getValues("launchType") !== "no_token" && (
+          {!agent?.txLink && methods.getValues("launchType") !== "no_token" && twitterPlatform && (
             <Button variant={"outline"} className="mt-4 w-full" loading={methods.formState.isSubmitting}>
               Launch Token
             </Button>
           )}
         </form>
       </FormProvider>
-      {(agent?.txLink || methods.getValues("launchType") === "no_token") && (
+      {/* Deploy agent button */}
+      {(agent?.txLink || methods.getValues("launchType") === "no_token") && twitterPlatform && (
         <Button onClick={handleDeployAgent} loading={agentDeployStatus === "loading"} disabled={agent?.status === "running" || agentDeployStatus === "success"} className="w-full">
           {agent?.status === "running" ? "Deployed" : "Deploy Agent"}
         </Button>
       )}
+
+      {!twitterPlatform && !platformLoading && (
+        <Badge className="h-12 w-full" variant={"destructive"}>
+          You need to add twitter platform first
+        </Badge>
+      )}
+
       {/* Modal Showing TxLink */}
       <Dialog open={Boolean(txSignature)} onOpenChange={() => setTxSignature("")}>
         <DialogContent className="space-y-4">
