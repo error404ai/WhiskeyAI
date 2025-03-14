@@ -23,7 +23,6 @@ class TwitterService {
     return await this.twitterApi.v2.homeTimeline();
   }
 
-
   async postTweet(text: string) {
     await this.refreshTokenIfNeeded();
     return await this.twitterApi.v2.tweet(text);
