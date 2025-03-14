@@ -94,7 +94,7 @@ function LaunchStep() {
               </div>
             )}
 
-            <LaunchToken />
+            <LaunchToken platforms={platforms} platformLoading={isPlatformFetching || isPlatformPending} />
           </div>
         </div>
         <div>
