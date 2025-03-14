@@ -1,28 +1,16 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import DisconnectButton from "@/components/Guest/Header/_partials/DisconnectButton";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import * as AuthController from "@/http/controllers/authController";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
-import { MouseEventHandler, useEffect, useState } from "react";
-import Skeleton from "react-loading-skeleton";
+import { useEffect } from "react";
 
 const AuthHeader = () => {
   const { data: session, update } = useSession();
   const path = usePathname();
-  const { isMobile } = useSidebar();
-  const [status, setStatus] = useState<StatusType>("initial");
-  const handleLogout: MouseEventHandler<HTMLDivElement> = async (e) => {
-    e.preventDefault();
-    setStatus("loading");
-    await AuthController.logout();
-    setStatus("success");
-  };
 
   useEffect(() => {
     if (!session) {
@@ -46,38 +34,7 @@ const AuthHeader = () => {
           </BreadcrumbList>
         </Breadcrumb>
       </div>
-      <div className="flex items-center gap-4">
-        {!isMobile && <span className="text-sm font-medium">{session?.user.name}</span>}
-        <DropdownMenu>
-          <DropdownMenuTrigger>
-            <>
-              {!session?.user.avatar && <Skeleton circle width={40} height={40} />}
-              {session?.user.avatar && (
-                <Avatar className="cursor-pointer">
-                  <AvatarImage className="object-cover" src={session.user.avatar} alt="Profile" />
-                  <AvatarFallback>JD</AvatarFallback>
-                </Avatar>
-              )}
-            </>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
-              {status === "loading" && (
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor" className="mx-auto animate-spin">
-                  <path d="M222.7 32.1c5 16.9-4.6 34.8-21.5 39.8C121.8 95.6 64 169.1 64 256c0 106 86 192 192 192s192-86 192-192c0-86.9-57.8-160.4-137.1-184.1c-16.9-5-26.6-22.9-21.5-39.8s22.9-26.6 39.8-21.5C434.9 42.1 512 140 512 256c0 141.4-114.6 256-256 256S0 397.4 0 256C0 140 77.1 42.1 182.9 10.6c16.9-5 34.8 4.6 39.8 21.5z" />
-                </svg>
-              )}
-              {status !== "loading" && (
-                <>
-                  <div className="hidden w-full items-center gap-4 rounded-lg bg-[#ef4444] p-2 md:flex">
-                    <DisconnectButton />
-                  </div>
-                </>
-              )}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      <DisconnectButton />
     </header>
   );
 };

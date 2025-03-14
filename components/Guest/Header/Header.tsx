@@ -5,7 +5,7 @@ import { Home } from "lucide-react";
 import { Link } from "next-view-transitions";
 import Logo from "../Common/Logo";
 import LoginButton from "./_partials/ConnectButton";
-import LogoutButton from "./_partials/DisconnectButton";
+import DisconnectButton from "./_partials/DisconnectButton";
 
 const Header = () => {
   return (
@@ -32,7 +32,7 @@ const Header = () => {
           <Button variant="outline" link="/dashboard" className="border-2 border-blue-500 text-blue-500 transition-all hover:bg-blue-500 hover:text-white">
             <Home className="mr-2" /> Dashboard
           </Button>
-          <LogoutButton />
+          <DisconnectButton />
         </div>
       </LoggedIn>
     </div>
