@@ -20,7 +20,9 @@ class TwitterService {
 
   async getHomeTimeLine() {
     await this.refreshTokenIfNeeded();
-    return await this.twitterApi.v2.homeTimeline();
+    return await this.twitterApi.v2.homeTimeline({
+      max_results: 1,
+    });
   }
 
   async postTweet(text: string) {

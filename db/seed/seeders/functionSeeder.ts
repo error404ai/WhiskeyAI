@@ -7,18 +7,25 @@ export class FunctionsSeeder implements Seeder {
     {
       name: "get_home_timeline",
       description: "Get the most recent tweets from the home timeline of the Twitter account",
-      parameters: {},
+      parameters: {
+        type: "object",
+        properties: {},
+        required: []
+      },
       type: "agent",
     },
     {
       name: "post_tweet",
       description: "Create and publish a new tweet on Twitter",
       parameters: {
-        text: {
-          type: "string",
-          description: "The content of the tweet to post",
-          required: true,
+        type: "object",
+        properties: {
+          text: {
+            type: "string",
+            description: "The content of the tweet to post"
+          }
         },
+        required: ["text"]
       },
       type: "trigger",
     },
@@ -26,59 +33,69 @@ export class FunctionsSeeder implements Seeder {
       name: "reply_tweet",
       description: "Reply to an existing tweet on Twitter",
       parameters: {
-        text: {
-          type: "string",
-          description: "The content of the reply",
-          required: true,
+        type: "object",
+        properties: {
+          text: {
+            type: "string",
+            description: "The content of the reply"
+          },
+          tweetId: {
+            type: "string",
+            description: "The ID of the tweet to reply to"
+          }
         },
-        tweetId: {
-          type: "string",
-          description: "The ID of the tweet to reply to",
-          required: true,
-        },
+        required: ["text", "tweetId"]
       },
-      type: "agent",
+      type: "trigger",
     },
     {
       name: "like_tweet",
       description: "Like a specific tweet on Twitter",
       parameters: {
-        tweetId: {
-          type: "string",
-          description: "The ID of the tweet to like",
-          required: true,
+        type: "object",
+        properties: {
+          tweetId: {
+            type: "string",
+            description: "The ID of the tweet to like"
+          }
         },
+        required: ["tweetId"]
       },
-      type: "agent",
+      type: "trigger",
     },
     {
       name: "quote_tweet",
       description: "Quote and comment on a tweet on Twitter",
       parameters: {
-        quotedTweetId: {
-          type: "string",
-          description: "The ID of the tweet to quote",
-          required: true,
+        type: "object",
+        properties: {
+          quotedTweetId: {
+            type: "string",
+            description: "The ID of the tweet to quote"
+          },
+          comment: {
+            type: "string",
+            description: "The content of your quote"
+          }
         },
-        comment: {
-          type: "string",
-          description: "The content of your quote",
-          required: true,
-        },
+        required: ["quotedTweetId", "comment"]
       },
-      type: "agent",
+      type: "trigger",
     },
     {
       name: "retweet",
       description: "Retweet an existing tweet on Twitter",
       parameters: {
-        tweetId: {
-          type: "string",
-          description: "The ID of the tweet to retweet",
-          required: true,
+        type: "object",
+        properties: {
+          tweetId: {
+            type: "string",
+            description: "The ID of the tweet to retweet"
+          }
         },
+        required: ["tweetId"]
       },
-      type: "agent",
+      type: "trigger",
     },
   ];
 
