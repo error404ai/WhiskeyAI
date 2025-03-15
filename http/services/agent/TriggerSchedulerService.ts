@@ -119,7 +119,10 @@ export class TriggerSchedulerService {
     const now = new Date();
 
     return await db.query.agentTriggersTable.findMany({
-      where: and(eq(agentTriggersTable.status, "active"), lte(agentTriggersTable.nextRunAt || new Date(0), now)),
+      where: and(
+        eq(agentTriggersTable.status, "active"), 
+        lte(agentTriggersTable.nextRunAt || new Date(0), now)
+      ),
       with: {
         agent: {
           with: {
@@ -127,6 +130,9 @@ export class TriggerSchedulerService {
           }
         },
       },
+    }).then(triggers => {
+      // Filter out triggers whose agent is paused
+      return triggers.filter(trigger => trigger.agent.status === "running");
     });
   }
 

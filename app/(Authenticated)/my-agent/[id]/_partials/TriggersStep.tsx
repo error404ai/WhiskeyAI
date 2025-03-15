@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import * as AgentTriggerController from "@/http/controllers/agent/AgentTriggerController";
@@ -59,6 +60,12 @@ const TriggersStep = () => {
       refetchAgentTriggers();
     }
   };
+  const handleToggleTriggerStatus = async (triggerId: number) => {
+    const res = await AgentTriggerController.toggleTriggerStatus(triggerId);
+    if (res) {
+      refetchAgentTriggers();
+    }
+  };
   const [showTriggerDialog, setShowTriggerDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
   useEffect(() => {
@@ -91,12 +98,24 @@ const TriggersStep = () => {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {/* Existing trigger cards */}
             {agentTriggers?.map((trigger) => (
-              <Card key={trigger.id} className="h-[180px] transition-shadow duration-300 hover:shadow-lg">
+              <Card key={trigger.id} className={`h-[180px] transition-shadow duration-300 hover:shadow-lg ${trigger.status === 'paused' ? 'opacity-60' : ''}`}>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <h3 className="truncate text-lg font-semibold">{trigger.name}</h3>
-                  <Button onClick={() => handleDeleteTrigger(trigger.id)} variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10">
-                    <X className="h-5 w-5" />
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2">
+                      <Switch 
+                        id={`trigger-status-${trigger.id}`}
+                        checked={trigger.status === 'active'}
+                        onCheckedChange={() => handleToggleTriggerStatus(trigger.id)}
+                      />
+                      <Label htmlFor={`trigger-status-${trigger.id}`} className="text-xs">
+                        {trigger.status === 'active' ? 'Active' : 'Paused'}
+                      </Label>
+                    </div>
+                    <Button onClick={() => handleDeleteTrigger(trigger.id)} variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10">
+                      <X className="h-5 w-5" />
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-2 line-clamp-2 text-sm">{trigger.description}</p>
