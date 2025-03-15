@@ -47,9 +47,9 @@ export function GuestHeader() {
         <LoggedIn>
           <div className="flex items-center gap-4">
             <div className="hidden items-center gap-4 md:flex">
-              <Button link="/dashboard">
+              <Button link="/my-agent">
                 <LayoutPanelTop />
-                Dashboard
+                My Agents
               </Button>
             </div>
             <div className="hidden items-center gap-4 md:flex">
