@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from "@/db/db";
-import { Agent, Function, agentPlatformsTable, agentTriggersTable, functionsTable } from "@/db/schema";
+import { Agent, type Function, agentPlatformsTable, agentTriggersTable, functionsTable } from "@/db/schema";
 import { AgentTrigger } from "@/db/schema/agentTriggersTable";
 import TwitterService from "@/http/services/TwitterService";
 import { and, eq, lte } from "drizzle-orm";
@@ -47,12 +47,20 @@ interface AssistantMessage {
   }>;
 }
 
+// Tool call data interface
+interface ToolCallData {
+  name: string;
+  args: any;
+  result?: any;
+}
+
 type ChatMessage = SystemMessage | UserMessage | ToolMessage | AssistantMessage;
 
 export class TriggerSchedulerService {
   private openai: OpenAI;
   private twitterService: TwitterService | null = null;
   private userId: number = 0;
+  private _isSecondExecution = false;
 
   constructor() {
     // Initialize OpenAI client
@@ -139,7 +147,11 @@ export class TriggerSchedulerService {
     };
     
     // Log trigger start
-    console.log(`Processing trigger: ${trigger.name} (ID: ${trigger.id})`);
+    console.log(`\n-----------------------------------------------`);
+    console.log(`[Trigger] Processing trigger: ${trigger.name} (ID: ${trigger.id})`);
+    console.log(`[Trigger] Agent ID: ${trigger.agentId}, Function: ${trigger.functionName}`);
+    console.log(`-----------------------------------------------`);
+    
     const startLog = await TriggerLogService.logTriggerLifecycle(
       triggerData,
       this.userId,
@@ -155,14 +167,16 @@ export class TriggerSchedulerService {
       // Get function details
       const functionDetails = await this.getFunctionDetails(trigger.functionName);
       if (!functionDetails) {
+        console.error(`[Trigger] Function ${trigger.functionName} not found in database`);
         throw new Error(`Function ${trigger.functionName} not found`);
       }
+      console.log(`[Trigger] Found function details for ${trigger.functionName}`);
 
       // Initialize Twitter service
       await this.initializeTwitterService(trigger.agentId);
 
       // Execute the function using OpenAI function calling
-      console.log(`Executing trigger function: ${trigger.functionName}`);
+      console.log(`[Trigger] Executing trigger function: ${trigger.functionName}`);
       const result = await this.executeWithAI(trigger);
       
       // Update the trigger's last run and next run times
@@ -173,9 +187,14 @@ export class TriggerSchedulerService {
       await TriggerLogService.updateLogExecutionTime(startLog.id, executionTime);
       await TriggerLogService.updateLogResponse(startLog.id, result as Record<string, unknown>);
 
-      console.log(`Successfully processed trigger ${trigger.id}`);
-    } catch (error) {
-      console.error(`Error processing trigger ${trigger.id}:`, error);
+      console.log(`[Trigger] Successfully processed trigger ${trigger.id}`);
+      console.log(`-----------------------------------------------\n`);
+    } catch (error: any) {
+      console.error(`[Trigger] *** ERROR PROCESSING TRIGGER ${trigger.id} ***`);
+      console.error(`[Trigger] Error type: ${error.name || 'Unknown'}`);
+      console.error(`[Trigger] Error message: ${error.message}`);
+      console.error(`[Trigger] Error details:`, error);
+      console.error(`-----------------------------------------------\n`);
       
       // Log error
       await TriggerLogService.updateLogError(startLog.id, error instanceof Error ? error.message : String(error));
@@ -189,17 +208,32 @@ export class TriggerSchedulerService {
    * Initialize the Twitter service for the agent
    */
   private async initializeTwitterService(agentId: number): Promise<void> {
+    console.log(`[Twitter] Initializing Twitter service for agent ${agentId}`);
+    
     // Get the agent's Twitter platform
     const platform = await db.query.agentPlatformsTable.findFirst({
       where: and(eq(agentPlatformsTable.agentId, agentId), eq(agentPlatformsTable.type, "twitter"), eq(agentPlatformsTable.enabled, true)),
     });
 
     if (!platform) {
+      console.error(`[Twitter] No enabled Twitter platform found for agent ${agentId}`);
       throw new Error("No enabled Twitter platform found for this agent");
     }
 
+    console.log(`[Twitter] Found Twitter platform for agent ${agentId}`, {
+      platformId: platform.id,
+      enabled: platform.enabled,
+      // Log useful details but not sensitive tokens
+    });
+
     // Initialize Twitter service
-    this.twitterService = new TwitterService(platform);
+    try {
+      this.twitterService = new TwitterService(platform);
+      console.log(`[Twitter] Successfully initialized Twitter service for agent ${agentId}`);
+    } catch (error) {
+      console.error(`[Twitter] Failed to initialize Twitter service for agent ${agentId}:`, error);
+      throw error;
+    }
   }
 
   /**
@@ -216,14 +250,21 @@ export class TriggerSchedulerService {
    */
   private async executeWithAI(triggerWithAgent: AgentTrigger & { agent: Agent & { user: { id: number } } }): Promise<any> {
     if (!this.twitterService) {
+      console.error(`[AI] Twitter service not initialized in executeWithAI`);
       throw new Error("Twitter service not initialized");
     }
 
+    console.log(`[AI] Starting AI execution for function: ${triggerWithAgent.functionName}`);
+
     // Define the agent tools (for data gathering)
+    console.log(`[AI] Fetching agent tools`);
     const agentTools = await this.getAgentTools();
+    console.log(`[AI] Found ${agentTools.length} agent tools`);
     
     // Define the trigger tool (the function that needs to be executed)
+    console.log(`[AI] Fetching trigger tool for: ${triggerWithAgent.functionName}`);
     const triggerTool = await this.getTriggerTool(triggerWithAgent.functionName);
+    console.log(`[AI] Successfully retrieved trigger tool: ${triggerWithAgent.functionName}`);
     
     // Combine all tools
     const tools = [...agentTools, triggerTool];
@@ -237,22 +278,109 @@ export class TriggerSchedulerService {
       triggerDescription: triggerWithAgent.description,
       informationSource: triggerWithAgent.informationSource,
     };
+    console.log(`[AI] Prepared context for AI conversation:`, {
+      agentName: context.agentName,
+      triggerName: context.triggerName,
+      informationSource: context.informationSource 
+    });
 
     // Start the conversation with OpenAI
-    console.log("Starting conversation with OpenAI");
-    const { toolCallsData } = await this.startConversation(triggerWithAgent, tools, context);
-    console.log(`Completed conversation with ${toolCallsData.length} tool calls`);
+    console.log(`[AI] Starting conversation with OpenAI for function: ${triggerWithAgent.functionName}`);
+    const { toolCallsData, successfulTriggerExecution } = await this.startConversation(triggerWithAgent, tools, context);
+    console.log(`[AI] Completed conversation with ${toolCallsData.length} tool calls`);
 
     // Process the final trigger tool call
-    if (toolCallsData.length > 0 && toolCallsData[toolCallsData.length - 1].name === triggerWithAgent.functionName) {
-      const triggerArgs = toolCallsData[toolCallsData.length - 1].args;
+    if (toolCallsData.length > 0) {
+      const lastCall = toolCallsData[toolCallsData.length - 1];
+      console.log(`[AI] Last tool call was: ${lastCall.name}`);
       
-      // Execute the trigger function
-      console.log(`Executing trigger function: ${triggerWithAgent.functionName}`);
-      return await this.executeTriggerFunction(triggerWithAgent.functionName, triggerArgs);
+      if (lastCall.name === triggerWithAgent.functionName) {
+        // Check if the trigger function was already successfully executed during the conversation
+        if (successfulTriggerExecution) {
+          console.log(`[AI] Trigger function ${triggerWithAgent.functionName} was already successfully executed during conversation`);
+          return lastCall.result;
+        }
+        
+        // Execute the trigger function
+        console.log(`[AI] Executing trigger function: ${triggerWithAgent.functionName} with args:`, lastCall.args);
+        try {
+          const result = await this.executeTriggerFunction(triggerWithAgent.functionName, lastCall.args);
+          
+          // Check if result is an error object (for handled errors like duplicate tweets)
+          if (result && typeof result === 'object' && result.success === false && result.error) {
+            console.error(`[AI] Trigger function returned error: ${result.error}`);
+            await TriggerLogService.logTriggerLifecycle(
+              { 
+                id: triggerWithAgent.id, 
+                agentId: triggerWithAgent.agentId, 
+                name: triggerWithAgent.name, 
+                functionName: triggerWithAgent.functionName 
+              },
+              this.userId,
+              "Execution Error",
+              {
+                step: "execution_error",
+                status: "error",
+                message: result.error,
+                requestData: lastCall.args as Record<string, unknown>,
+                errorDetails: JSON.stringify(result.originalError || {}),
+              }
+            );
+            throw new Error(result.error);
+          }
+          
+          console.log(`[AI] Successfully executed trigger function: ${triggerWithAgent.functionName}`);
+          return result;
+        } catch (error) {
+          console.error(`[AI] Error executing trigger function: ${triggerWithAgent.functionName}:`, error);
+          throw error;
+        }
+      } else {
+        console.error(`[AI] Expected last tool call to be ${triggerWithAgent.functionName} but was ${lastCall.name}`);
+        const errorMessage = `AI did not call the expected trigger function. Expected ${triggerWithAgent.functionName} but got ${lastCall.name}`;
+        
+        // Log this error
+        await TriggerLogService.logTriggerLifecycle(
+          { 
+            id: triggerWithAgent.id, 
+            agentId: triggerWithAgent.agentId, 
+            name: triggerWithAgent.name, 
+            functionName: triggerWithAgent.functionName 
+          },
+          this.userId,
+          "Execution Error",
+          {
+            step: "execution_error",
+            status: "error",
+            message: errorMessage,
+          }
+        );
+        
+        throw new Error(errorMessage);
+      }
+    } else {
+      console.error(`[AI] No tool calls were made during the conversation`);
+      const errorMessage = "AI did not make any tool calls during the conversation";
+      
+      // Log this error
+      await TriggerLogService.logTriggerLifecycle(
+        { 
+          id: triggerWithAgent.id, 
+          agentId: triggerWithAgent.agentId, 
+          name: triggerWithAgent.name, 
+          functionName: triggerWithAgent.functionName 
+        },
+        this.userId,
+        "Execution Error",
+        {
+          step: "execution_error",
+          status: "error",
+          message: errorMessage,
+        }
+      );
+      
+      throw new Error(errorMessage);
     }
-
-    throw new Error("OpenAI did not call the trigger function as expected");
   }
 
   /**
@@ -308,7 +436,9 @@ export class TriggerSchedulerService {
     triggerWithAgent: AgentTrigger & { agent: Agent & { user: { id: number } } },
     tools: FunctionTool[],
     context: Record<string, string>
-  ): Promise<{ toolCallsData: { name: string; args: any }[] }> {
+  ): Promise<{ toolCallsData: ToolCallData[]; successfulTriggerExecution: boolean }> {
+    console.log(`[Conv] Starting OpenAI conversation for trigger: ${triggerWithAgent.name}`);
+    
     // Initialize conversation
     const conversationHistory: ChatMessage[] = [
       {
@@ -329,6 +459,12 @@ export class TriggerSchedulerService {
         You can call agent functions to gather information before executing the trigger function.
         The trigger function to execute is: ${triggerWithAgent.functionName}
         
+        IMPORTANT: If you encounter a rate limit error or any other error when fetching data, 
+        proceed with the best information you have available. If a function call fails, simply
+        try to complete the task with the available information. If not possible to proceed then exit.
+        
+        if post tweet, Each tweet must be unique and cannot be the same as previous tweets.
+        
         First, call any agent functions needed to gather information, then call the trigger function with the appropriate arguments.`,
       },
       {
@@ -337,51 +473,164 @@ export class TriggerSchedulerService {
         Make sure to gather any necessary information using agent functions before calling the trigger function.`,
       },
     ];
+    console.log(`[Conv] Initialized conversation with system and user prompts`);
 
     // Track all tool calls
-    const toolCallsData: { name: string; args: any }[] = [];
+    const toolCallsData: ToolCallData[] = [];
     let keepConversation = true;
+    
+    // Track if the trigger function was successfully executed
+    let successfulTriggerExecution = false;
+    
+    // Track conversation errors
+    let conversationError = false;
+    let errorCount = 0;
+    const MAX_ERRORS = 3;
     
     // Continue conversation until all tool calls are processed
     let conversationTurn = 0;
-    while (keepConversation) {
+    while (keepConversation && !conversationError) {
       conversationTurn++;
-      console.log(`Processing conversation turn ${conversationTurn}`);
+      console.log(`[Conv] Processing conversation turn ${conversationTurn}`);
       
-      // Call OpenAI with current conversation history
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4-turbo",
-        messages: conversationHistory,
-        tools: tools,
-        tool_choice: "auto",
-      });
+      try {
+        // Call OpenAI with current conversation history
+        console.log(`[Conv] Sending request to OpenAI API`);
+        const response = await this.openai.chat.completions.create({
+          model: "gpt-4-turbo",
+          messages: conversationHistory,
+          tools: tools,
+          tool_choice: "auto",
+        });
+        console.log(`[Conv] Received response from OpenAI API`);
 
-      // Get the response message
-      const responseMessage = response.choices[0].message;
-      
-      // Add the AI response to the conversation history
-      conversationHistory.push({
-        role: responseMessage.role,
-        content: responseMessage.content || "",
-        tool_calls: responseMessage.tool_calls,
-      } as AssistantMessage);
-
-      // Process tool calls
-      if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
-        console.log(`Processing ${responseMessage.tool_calls.length} tool calls`);
+        // Get the response message
+        const responseMessage = response.choices[0].message;
+        console.log(`[Conv] AI response:`, {
+          hasContent: !!responseMessage.content,
+          contentPreview: responseMessage.content ? responseMessage.content.substring(0, 50) + '...' : null,
+          hasToolCalls: !!responseMessage.tool_calls,
+          toolCallCount: responseMessage.tool_calls?.length || 0
+        });
         
-        // Process each tool call
-        for (const toolCall of responseMessage.tool_calls) {
-          try {
-            // Parse arguments
-            const args = JSON.parse(toolCall.function.arguments);
-            console.log(`Executing tool call: ${toolCall.function.name}`);
+        // Add the AI response to the conversation history
+        conversationHistory.push({
+          role: responseMessage.role,
+          content: responseMessage.content || "",
+          tool_calls: responseMessage.tool_calls,
+        } as AssistantMessage);
+
+        // Process tool calls
+        if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
+          console.log(`[Conv] Processing ${responseMessage.tool_calls.length} tool calls`);
+          
+          // Process each tool call
+          for (const toolCall of responseMessage.tool_calls) {
+            console.log(`[Conv] Processing tool call: ${toolCall.function.name}`);
             
-            // Execute the function
-            const result = await this.executeFunctionByName(toolCall.function.name, args);
-            
-            // Log important function calls to database
-            if (toolCall.function.name === triggerWithAgent.functionName) {
+            try {
+              // Parse arguments
+              let args;
+              try {
+                args = JSON.parse(toolCall.function.arguments);
+                console.log(`[Conv] Parsed arguments for ${toolCall.function.name}:`, args);
+              } catch (parseError: any) {
+                console.error(`[Conv] Error parsing arguments for tool call ${toolCall.function.name}:`, parseError);
+                console.error(`[Conv] Raw arguments: ${toolCall.function.arguments}`);
+                throw new Error(`Failed to parse arguments: ${parseError.message}`);
+              }
+              
+              // Execute the function
+              console.log(`[Conv] Executing function: ${toolCall.function.name}`);
+              const result = await this.executeFunctionByName(toolCall.function.name, args);
+              
+              // Check if result is an error object (for handled errors like duplicate tweets)
+              if (result && typeof result === 'object' && result.success === false && result.error) {
+                console.warn(`[Conv] Function ${toolCall.function.name} returned handled error: ${result.error}`);
+                
+                // Log the error but don't throw - allow the conversation to continue
+                await TriggerLogService.logTriggerLifecycle(
+                  { 
+                    id: triggerWithAgent.id, 
+                    agentId: triggerWithAgent.agentId, 
+                    name: triggerWithAgent.name, 
+                    functionName: triggerWithAgent.functionName 
+                  },
+                  this.userId,
+                  "Tool Call Warning",
+                  {
+                    step: `tool_call_warning_${toolCall.function.name}`,
+                    status: "warning",
+                    message: `Warning executing tool call: ${toolCall.function.name} - ${result.error}`,
+                    requestData: args as Record<string, unknown>,
+                  }
+                );
+                
+                // Add the error response to the conversation so AI can try something else
+                const toolMessage: ToolMessage = {
+                  role: "tool",
+                  tool_call_id: toolCall.id,
+                  content: JSON.stringify({ error: result.error }),
+                };
+                
+                conversationHistory.push(toolMessage);
+                console.log(`[Conv] Added error result to conversation to let AI try again`);
+                
+                // Record the tool call with error result
+                toolCallsData.push({ name: toolCall.function.name, args, result });
+                
+                continue; // Skip to the next tool call
+              }
+              
+              console.log(`[Conv] Function executed successfully: ${toolCall.function.name}`);
+              
+              // Log important function calls to database
+              if (toolCall.function.name === triggerWithAgent.functionName) {
+                await TriggerLogService.logTriggerLifecycle(
+                  { 
+                    id: triggerWithAgent.id, 
+                    agentId: triggerWithAgent.agentId, 
+                    name: triggerWithAgent.name, 
+                    functionName: triggerWithAgent.functionName 
+                  },
+                  this.userId,
+                  "Trigger Function Called",
+                  {
+                    step: "trigger_function_called",
+                    status: "success",
+                    message: `AI called trigger function: ${triggerWithAgent.functionName}`,
+                    requestData: args as Record<string, unknown>,
+                  }
+                );
+                
+                // Mark that the trigger function was successfully executed
+                successfulTriggerExecution = true;
+              }
+              
+              // Record the tool call with its result
+              toolCallsData.push({ name: toolCall.function.name, args, result });
+              
+              // Add the function response to the conversation
+              const toolMessage: ToolMessage = {
+                role: "tool",
+                tool_call_id: toolCall.id,
+                content: JSON.stringify(result),
+              };
+              
+              conversationHistory.push(toolMessage);
+              console.log(`[Conv] Added function result to conversation`);
+              
+              // If this was the trigger function, end the conversation
+              if (toolCall.function.name === triggerWithAgent.functionName) {
+                console.log(`[Conv] Found trigger function call, ending conversation`);
+                keepConversation = false;
+              }
+            } catch (err) {
+              errorCount++;
+              const error = err as Error;
+              console.error(`[Conv] Error executing function ${toolCall.function.name}:`, error);
+              
+              // Log errors to database
               await TriggerLogService.logTriggerLifecycle(
                 { 
                   id: triggerWithAgent.id, 
@@ -390,71 +639,85 @@ export class TriggerSchedulerService {
                   functionName: triggerWithAgent.functionName 
                 },
                 this.userId,
-                "Trigger Function Called",
+                "Tool Call Error",
                 {
-                  step: "trigger_function_called",
-                  status: "success",
-                  message: `AI called trigger function: ${triggerWithAgent.functionName}`,
-                  requestData: args as Record<string, unknown>,
+                  step: `tool_call_error_${toolCall.function.name}`,
+                  status: "error",
+                  message: `Error executing tool call: ${toolCall.function.name}`,
+                  errorDetails: error.message,
                 }
               );
-            }
-            
-            // Record the tool call
-            toolCallsData.push({ name: toolCall.function.name, args });
-            
-            // Add the function response to the conversation
-            const toolMessage: ToolMessage = {
-              role: "tool",
-              tool_call_id: toolCall.id,
-              content: JSON.stringify(result),
-            };
-            
-            conversationHistory.push(toolMessage);
-            
-            // If this was the trigger function, end the conversation
-            if (toolCall.function.name === triggerWithAgent.functionName) {
-              keepConversation = false;
-            }
-          } catch (err) {
-            const error = err as Error;
-            console.error(`Error executing function ${toolCall.function.name}:`, error);
-            
-            // Log errors to database
-            await TriggerLogService.logTriggerLifecycle(
-              { 
-                id: triggerWithAgent.id, 
-                agentId: triggerWithAgent.agentId, 
-                name: triggerWithAgent.name, 
-                functionName: triggerWithAgent.functionName 
-              },
-              this.userId,
-              "Tool Call Error",
-              {
-                step: `tool_call_error_${toolCall.function.name}`,
-                status: "error",
-                message: `Error executing tool call: ${toolCall.function.name}`,
-                errorDetails: error.message,
+              
+              // If this is a rate limit error or another non-fatal error, let the conversation continue
+              const isRateLimitError = error.message.includes('429') || error.message.includes('rate limit');
+              const isTriggerFunction = toolCall.function.name === triggerWithAgent.functionName;
+              
+              // For critical errors on the trigger function or too many errors, end the conversation
+              if ((isTriggerFunction || errorCount >= MAX_ERRORS) && !isRateLimitError) {
+                conversationError = true;
+                console.error(`[Conv] Critical error encountered, ending conversation`);
+                break;
               }
-            );
-            
-            const toolMessage: ToolMessage = {
-              role: "tool",
-              tool_call_id: toolCall.id,
-              content: JSON.stringify({ error: `Error: ${error.message}` }),
-            };
-            
-            conversationHistory.push(toolMessage);
+              
+              // Add error response to the conversation
+              const toolMessage: ToolMessage = {
+                role: "tool",
+                tool_call_id: toolCall.id,
+                content: JSON.stringify({ 
+                  error: `Error: ${error.message}`,
+                  // Provide guidance to the AI on how to proceed
+                  guidance: isRateLimitError ? 
+                    "Rate limit reached. Please continue with available information or try a different approach." :
+                    "An error occurred. Please try a different approach or parameters."
+                }),
+              };
+              
+              conversationHistory.push(toolMessage);
+              console.log(`[Conv] Added error response to conversation`);
+            }
           }
+        } else {
+          // If no tool calls, end the conversation
+          keepConversation = false;
+          console.log(`[Conv] AI response contained no tool calls, ending conversation`);
         }
-      } else {
-        // If no tool calls, end the conversation
-        keepConversation = false;
-        console.log("AI response contained no tool calls");
+      } catch (error: any) {
+        // Handle errors in the conversation itself (like OpenAI API errors)
+        console.error(`[Conv] Error in conversation:`, error);
+        
+        // Log the error
+        await TriggerLogService.logTriggerLifecycle(
+          { 
+            id: triggerWithAgent.id, 
+            agentId: triggerWithAgent.agentId, 
+            name: triggerWithAgent.name, 
+            functionName: triggerWithAgent.functionName 
+          },
+          this.userId,
+          "Conversation Error",
+          {
+            step: "conversation_error",
+            status: "error",
+            message: `Error in conversation: ${error.message}`,
+            errorDetails: error.stack,
+          }
+        );
+        
+        throw error;
       }
     }
 
-    return { toolCallsData };
+    if (conversationError) {
+      console.error(`[Conv] Conversation ended with errors after ${toolCallsData.length} tool calls`);
+    } else {
+      console.log(`[Conv] Conversation completed with ${toolCallsData.length} total tool calls`);
+      // Log the sequence of tool calls
+      toolCallsData.forEach((call, index) => {
+        console.log(`[Conv] Tool call ${index + 1}: ${call.name}`);
+      });
+    }
+
+    return { toolCallsData, successfulTriggerExecution };
   }
 
   /**
@@ -462,25 +725,210 @@ export class TriggerSchedulerService {
    */
   private async executeFunctionByName(functionName: string, args: any): Promise<any> {
     if (!this.twitterService) {
+      console.error(`[Twitter] Twitter service not initialized before calling ${functionName}`);
       throw new Error("Twitter service not initialized");
     }
 
+    console.log(`[Twitter] Executing function: ${functionName}`, { arguments: args });
+
+    // For post_tweet, check if we're calling it from executeWithAI as a second execution
+    // This prevents duplicate tweet errors by skipping the second call
+    if (functionName === "post_tweet" && this._isSecondExecution) {
+      console.log(`[Twitter] Skipping second execution of post_tweet to avoid duplicate content error`);
+      return { 
+        success: true, 
+        message: "Tweet already sent in first execution. Skipping duplicate execution." 
+      };
+    }
+
     // Map function names to their implementations
-    switch (functionName) {
-      case "get_home_timeline":
-        return await this.twitterService.getHomeTimeLine();
-      case "post_tweet":
-        return await this.twitterService.postTweet(args.text);
-      case "reply_tweet":
-        return await this.twitterService.replyTweet(args.text, args.tweetId);
-      case "like_tweet":
-        return await this.twitterService.likeTweet(args.tweetId);
-      case "quote_tweet":
-        return await this.twitterService.quoteTweet(args.quotedTweetId, args.comment);
-      case "retweet":
-        return await this.twitterService.reTweet(args.tweetId);
-      default:
-        throw new Error(`Unknown function: ${functionName}`);
+    try {
+      let result;
+      switch (functionName) {
+        case "get_home_timeline":
+          console.log(`[Twitter] Fetching home timeline`);
+          try {
+            result = await this.twitterService.getHomeTimeLine();
+            console.log(`[Twitter] Successfully fetched home timeline`);
+            return result;
+          } catch (error: any) {
+            // For rate limit errors on timeline fetch, we can return an empty timeline
+            // This allows the conversation to continue even if we can't get the timeline
+            if (error.code === 429) {
+              console.warn(`[Twitter] Rate limit exceeded when fetching timeline. Returning empty timeline.`);
+              return { data: [] };
+            }
+            throw error;
+          }
+          
+        case "post_tweet":
+          console.log(`[Twitter] Posting tweet: "${args.text.substring(0, 30)}${args.text.length > 30 ? '...' : ''}"`);
+          try {
+            result = await this.twitterService.postTweet(args.text);
+            console.log(`[Twitter] Successfully posted tweet`);
+            return result;
+          } catch (error: any) {
+            // Handle duplicate content error specifically
+            if (error.code === 403 && error.data?.detail?.includes('duplicate content')) {
+              const errorMessage = "Cannot post duplicate tweet content. Please try with different content.";
+              console.error(`[Twitter] ${errorMessage}`);
+              // Return a structured error that can be handled by the caller
+              return {
+                success: false,
+                error: errorMessage,
+                code: error.code,
+                originalError: error.data
+              };
+            }
+            throw error;
+          }
+          
+        case "reply_tweet":
+          console.log(`[Twitter] Replying to tweet ${args.tweetId}`);
+          try {
+            result = await this.twitterService.replyTweet(args.text, args.tweetId);
+            console.log(`[Twitter] Successfully replied to tweet ${args.tweetId}`);
+            return result;
+          } catch (error: any) {
+            // Handle specific tweet reply errors
+            if (error.code === 404) {
+              const errorMessage = `Tweet ${args.tweetId} not found. It may have been deleted.`;
+              console.error(`[Twitter] ${errorMessage}`);
+              return {
+                success: false,
+                error: errorMessage,
+                code: error.code,
+                originalError: error.data
+              };
+            } else if (error.code === 403) {
+              const errorMessage = "Not authorized to reply to this tweet. The tweet might be protected or from a user who blocked you.";
+              console.error(`[Twitter] ${errorMessage}`);
+              return {
+                success: false,
+                error: errorMessage,
+                code: error.code,
+                originalError: error.data
+              };
+            }
+            throw error;
+          }
+          
+        case "like_tweet":
+          console.log(`[Twitter] Liking tweet ${args.tweetId}`);
+          try {
+            result = await this.twitterService.likeTweet(args.tweetId);
+            console.log(`[Twitter] Successfully liked tweet ${args.tweetId}`);
+            return result;
+          } catch (error: any) {
+            // Handle specific like tweet errors
+            if (error.code === 404) {
+              const errorMessage = `Tweet ${args.tweetId} not found. It may have been deleted.`;
+              console.error(`[Twitter] ${errorMessage}`);
+              return {
+                success: false,
+                error: errorMessage,
+                code: error.code,
+                originalError: error.data
+              };
+            } else if (error.code === 403 && error.data?.detail?.includes('already liked')) {
+              const errorMessage = "Tweet already liked.";
+              console.error(`[Twitter] ${errorMessage}`);
+              return {
+                success: false,
+                error: errorMessage,
+                code: error.code,
+                originalError: error.data
+              };
+            }
+            throw error;
+          }
+          
+        case "quote_tweet":
+          console.log(`[Twitter] Quoting tweet ${args.quotedTweetId}`);
+          try {
+            result = await this.twitterService.quoteTweet(args.quotedTweetId, args.comment);
+            console.log(`[Twitter] Successfully quoted tweet ${args.quotedTweetId}`);
+            return result;
+          } catch (error: any) {
+            // Handle specific quote tweet errors
+            if (error.code === 404) {
+              const errorMessage = `Tweet ${args.quotedTweetId} not found. It may have been deleted.`;
+              console.error(`[Twitter] ${errorMessage}`);
+              return {
+                success: false,
+                error: errorMessage,
+                code: error.code,
+                originalError: error.data
+              };
+            } else if (error.code === 403 && error.data?.detail?.includes('duplicate content')) {
+              const errorMessage = "Cannot post duplicate tweet content. Please try with different content.";
+              console.error(`[Twitter] ${errorMessage}`);
+              return {
+                success: false,
+                error: errorMessage,
+                code: error.code,
+                originalError: error.data
+              };
+            }
+            throw error;
+          }
+          
+        case "retweet":
+          console.log(`[Twitter] Retweeting tweet ${args.tweetId}`);
+          try {
+            result = await this.twitterService.reTweet(args.tweetId);
+            console.log(`[Twitter] Successfully retweeted tweet ${args.tweetId}`);
+            return result;
+          } catch (error: any) {
+            // Handle specific retweet errors
+            if (error.code === 404) {
+              const errorMessage = `Tweet ${args.tweetId} not found. It may have been deleted.`;
+              console.error(`[Twitter] ${errorMessage}`);
+              return {
+                success: false,
+                error: errorMessage,
+                code: error.code,
+                originalError: error.data
+              };
+            } else if (error.code === 403 && error.data?.detail?.includes('already retweeted')) {
+              const errorMessage = "Tweet already retweeted.";
+              console.error(`[Twitter] ${errorMessage}`);
+              return {
+                success: false,
+                error: errorMessage,
+                code: error.code,
+                originalError: error.data
+              };
+            }
+            throw error;
+          }
+          
+        default:
+          console.error(`[Twitter] Unknown function: ${functionName}`);
+          throw new Error(`Unknown function: ${functionName}`);
+      }
+    } catch (error: any) {
+      // Detailed error logging
+      console.error(`[Twitter] Error executing function ${functionName}:`, {
+        errorName: error.name,
+        errorMessage: error.message,
+        errorCode: error.code,
+        errorType: error.type,
+        errorData: error.data,
+        errorStack: error.stack,
+      });
+      
+      if (error.data) {
+        console.error(`[Twitter] API Error Details:`, {
+          detail: error.data.detail,
+          title: error.data.title,
+          status: error.data.status,
+          type: error.data.type
+        });
+      }
+      
+      // Rethrow the error for the caller to handle
+      throw error;
     }
   }
 
@@ -488,7 +936,14 @@ export class TriggerSchedulerService {
    * Execute a trigger function with provided arguments
    */
   private async executeTriggerFunction(functionName: string, args: any): Promise<any> {
-    return await this.executeFunctionByName(functionName, args);
+    // Mark this as a second execution to avoid duplicate tweets
+    this._isSecondExecution = true;
+    try {
+      return await this.executeFunctionByName(functionName, args);
+    } finally {
+      // Reset the flag after execution
+      this._isSecondExecution = false;
+    }
   }
 
   /**

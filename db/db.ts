@@ -8,5 +8,5 @@ export const pool = new Pool({
 export const db = drizzle({
   client: pool,
   schema,
-  logger: true,
+  // logger: true,
 });
