@@ -70,4 +70,87 @@ export class AgentTriggerService {
       return false;
     }
   }
+
+  static async toggleTriggerStatus(triggerId: number): Promise<boolean> {
+    const authUser = await AuthService.getAuthUser();
+    if (!authUser) throw new Error("User not authenticated");
+
+    const trigger = await db.query.agentTriggersTable.findFirst({
+      where: eq(agentTriggersTable.id, triggerId),
+      with: {
+        agent: true,
+      },
+    });
+
+    if (!trigger) throw new Error("Trigger not found");
+    if (Number(authUser.id) !== trigger.agent.userId) throw new Error("User not authenticated");
+
+    // Toggle the status between 'active' and 'paused'
+    const newStatus = trigger.status === "active" ? "paused" : "active";
+
+    const res = await db
+      .update(agentTriggersTable)
+      .set({
+        status: newStatus,
+      })
+      .where(eq(agentTriggersTable.id, triggerId));
+
+    return !!res;
+  }
+
+  static async updateAgentTrigger(triggerId: number, data: z.infer<typeof agentTriggerCreateSchema>): Promise<boolean> {
+    const authUser = await AuthService.getAuthUser();
+    if (!authUser) throw new Error("User not authenticated");
+
+    const trigger = await db.query.agentTriggersTable.findFirst({
+      where: eq(agentTriggersTable.id, triggerId),
+      with: {
+        agent: true,
+      },
+    });
+
+    if (!trigger) throw new Error("Trigger not found");
+    if (Number(authUser.id) !== trigger.agent.userId) throw new Error("User not authenticated");
+
+    // Calculate the next run time based on the updated interval
+    const now = new Date();
+    const nextRunAt = new Date(now);
+    if (data.runEvery === "minutes") {
+      nextRunAt.setMinutes(now.getMinutes() + Number(data.interval));
+    } else if (data.runEvery === "hours") {
+      nextRunAt.setHours(now.getHours() + Number(data.interval));
+    }
+
+    const res = await db
+      .update(agentTriggersTable)
+      .set({
+        name: data.name,
+        description: data.description,
+        interval: Number(data.interval),
+        runEvery: data.runEvery,
+        functionName: data.functionName,
+        informationSource: data.informationSource,
+        nextRunAt: nextRunAt,
+      })
+      .where(eq(agentTriggersTable.id, triggerId));
+
+    return !!res;
+  }
+  
+  static async getTriggerById(triggerId: number): Promise<AgentTrigger | undefined> {
+    const authUser = await AuthService.getAuthUser();
+    if (!authUser) throw new Error("User not authenticated");
+
+    const trigger = await db.query.agentTriggersTable.findFirst({
+      where: eq(agentTriggersTable.id, triggerId),
+      with: {
+        agent: true,
+      },
+    });
+
+    if (!trigger) return undefined;
+    if (Number(authUser.id) !== trigger.agent.userId) throw new Error("User not authenticated");
+
+    return trigger;
+  }
 }

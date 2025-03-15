@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -6,6 +7,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import * as AgentTriggerController from "@/http/controllers/agent/AgentTriggerController";
@@ -13,7 +15,7 @@ import * as FunctionController from "@/http/controllers/agent/functionController
 import { agentTriggerCreateSchema } from "@/http/zodSchema/agentTriggerCreateSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, Plus, X } from "lucide-react";
+import { Clock, Edit, Plus, X } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -23,6 +25,7 @@ import type { z } from "zod";
 const TriggersStep = () => {
   const params = useParams();
   const agentUuid = params.id as string;
+  const [editingTriggerId, setEditingTriggerId] = useState<number | null>(null);
 
   const {
     isPending: isAgentTriggerPending,
@@ -47,20 +50,67 @@ const TriggersStep = () => {
   });
   const onSubmit = async (data: z.infer<typeof agentTriggerCreateSchema>) => {
     console.log("data is", data);
-    const res = await AgentTriggerController.createAgentTrigger(data);
+    let res;
+    
+    if (editingTriggerId) {
+      // Update existing trigger
+      res = await AgentTriggerController.updateAgentTrigger(editingTriggerId, data);
+    } else {
+      // Create new trigger
+      res = await AgentTriggerController.createAgentTrigger(data);
+    }
+    
     if (res) {
       setShowTriggerDialog(false);
       refetchAgentTriggers();
+      resetForm();
     }
   };
+  
+  const resetForm = () => {
+    methods.reset();
+    setEditingTriggerId(null);
+    setActiveTab("basic");
+  };
+  
+  const handleEditTrigger = async (triggerId: number) => {
+    const trigger = await AgentTriggerController.getTriggerById(triggerId);
+    if (trigger) {
+      methods.reset({
+        name: trigger.name,
+        description: trigger.description,
+        interval: trigger.interval,
+        runEvery: trigger.runEvery,
+        functionName: trigger.functionName,
+        informationSource: trigger.informationSource,
+        agentUuid: agentUuid,
+      });
+      setEditingTriggerId(triggerId);
+      setShowTriggerDialog(true);
+    }
+  };
+  
   const handleDeleteTrigger = async (triggerId: number) => {
     const res = await AgentTriggerController.deleteAgentTrigger(triggerId);
     if (res) {
       refetchAgentTriggers();
     }
   };
+  const handleToggleTriggerStatus = async (triggerId: number) => {
+    const res = await AgentTriggerController.toggleTriggerStatus(triggerId);
+    if (res) {
+      refetchAgentTriggers();
+    }
+  };
   const [showTriggerDialog, setShowTriggerDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
+  
+  useEffect(() => {
+    if (!showTriggerDialog) {
+      resetForm();
+    }
+  }, [showTriggerDialog]);
+  
   useEffect(() => {
     if (methods.formState.errors.description || methods.formState.errors.name || methods.formState.errors.interval || methods.formState.errors.description) {
       setActiveTab("basic");
@@ -91,12 +141,37 @@ const TriggersStep = () => {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {/* Existing trigger cards */}
             {agentTriggers?.map((trigger) => (
-              <Card key={trigger.id} className="h-[180px] transition-shadow duration-300 hover:shadow-lg">
+              <Card key={trigger.id} className={`h-[180px] transition-shadow duration-300 hover:shadow-lg ${trigger.status === 'paused' ? 'opacity-60' : ''}`}>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <h3 className="truncate text-lg font-semibold">{trigger.name}</h3>
-                  <Button onClick={() => handleDeleteTrigger(trigger.id)} variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10">
-                    <X className="h-5 w-5" />
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2">
+                      <Switch 
+                        id={`trigger-status-${trigger.id}`}
+                        checked={trigger.status === 'active'}
+                        onCheckedChange={() => handleToggleTriggerStatus(trigger.id)}
+                      />
+                      <Label htmlFor={`trigger-status-${trigger.id}`} className="text-xs">
+                        {trigger.status === 'active' ? 'Active' : 'Paused'}
+                      </Label>
+                    </div>
+                    <Button 
+                      onClick={() => handleEditTrigger(trigger.id)} 
+                      variant="ghost" 
+                      size="icon" 
+                      className="text-primary hover:bg-primary/10"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      onClick={() => handleDeleteTrigger(trigger.id)} 
+                      variant="ghost" 
+                      size="icon" 
+                      className="text-destructive hover:bg-destructive/10"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-2 line-clamp-2 text-sm">{trigger.description}</p>
@@ -109,7 +184,10 @@ const TriggersStep = () => {
             ))}
 
             {/* Add Trigger card */}
-            <Dialog open={showTriggerDialog} onOpenChange={setShowTriggerDialog}>
+            <Dialog open={showTriggerDialog} onOpenChange={(open) => {
+              setShowTriggerDialog(open);
+              if (!open) resetForm();
+            }}>
               <DialogTrigger asChild>
                 <Card className="hover:bg-muted/50 flex h-[180px] cursor-pointer items-center justify-center border-dashed">
                   <div className="flex flex-col items-center space-y-2 text-center">
@@ -120,7 +198,7 @@ const TriggersStep = () => {
               </DialogTrigger>
               <DialogContent className="sm:max-w-[525px]">
                 <DialogHeader>
-                  <DialogTitle>Custom Trigger</DialogTitle>
+                  <DialogTitle>{editingTriggerId ? "Edit Trigger" : "Create Trigger"}</DialogTitle>
                 </DialogHeader>
                 <FormProvider {...methods}>
                   <form className="mt-4" onSubmit={methods.handleSubmit(onSubmit)}>
@@ -137,17 +215,35 @@ const TriggersStep = () => {
                       <TabsContent value="basic">
                         <div className="space-y-4">
                           <div className="space-y-2">
-                            <Input label="Trigger Name" required name="name" placeholder="Enter Trigger Name" />
+                            <Input 
+                              label="Trigger Name" 
+                              required 
+                              name="name" 
+                              placeholder="Enter Trigger Name" 
+                              defaultValue={methods.getValues("name") || ""}
+                            />
                           </div>
                           <div className="space-y-2">
-                            <Textarea name="description" label="Trigger Description" required placeholder="What does this trigger do?" />
+                            <Textarea 
+                              name="description" 
+                              label="Trigger Description" 
+                              required 
+                              placeholder="What does this trigger do?" 
+                              defaultValue={methods.getValues("description") || ""}
+                            />
                           </div>
                           <div className="space-y-2">
                             <Label>How Often Should The Trigger Run?</Label>
                             <div className="flex gap-2">
-                              <Input name="interval" type="number" min="1" className="w-24" />
+                              <Input 
+                                name="interval" 
+                                type="number" 
+                                min="1" 
+                                className="w-24" 
+                                defaultValue={methods.getValues("interval")?.toString() || ""}
+                              />
                               <div>
-                                <select {...methods.register("runEvery")} className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50" defaultValue="">
+                                <select {...methods.register("runEvery")} className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50" defaultValue={methods.getValues("runEvery") || ""}>
                                   <option value="" disabled>
                                     Select a unit
                                   </option>
@@ -164,7 +260,7 @@ const TriggersStep = () => {
                       <TabsContent value="function" className="space-y-4">
                         <label className="flex flex-col gap-2">
                           <span className="text-sm font-medium">Trigger Function</span>
-                          <select {...methods.register("functionName")} className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50" defaultValue="">
+                          <select {...methods.register("functionName")} className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50" defaultValue={methods.getValues("functionName") || ""}>
                             <option value="" disabled>
                               Select a function
                             </option>
@@ -178,7 +274,7 @@ const TriggersStep = () => {
                         </label>
                         <label className="flex flex-col gap-2">
                           <span className="text-sm font-medium">Where to get tweet information from?</span>
-                          <select {...methods.register("informationSource")} className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50" defaultValue="">
+                          <select {...methods.register("informationSource")} className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50" defaultValue={methods.getValues("informationSource") || ""}>
                             <option value="" disabled>
                               Select source
                             </option>
@@ -190,11 +286,14 @@ const TriggersStep = () => {
                       </TabsContent>
                     </Tabs>
                     <div className="mt-6 flex justify-end gap-2">
-                      <Button variant="outline" onClick={() => setShowTriggerDialog(false)}>
-                        Close
+                      <Button variant="outline" onClick={() => {
+                        setShowTriggerDialog(false);
+                        resetForm();
+                      }}>
+                        Cancel
                       </Button>
                       <Button type="submit" loading={methods.formState.isSubmitting}>
-                        Save Trigger
+                        {editingTriggerId ? "Update Trigger" : "Save Trigger"}
                       </Button>
                     </div>
                   </form>
