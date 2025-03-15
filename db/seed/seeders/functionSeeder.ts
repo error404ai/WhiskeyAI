@@ -37,7 +37,7 @@ export class FunctionsSeeder implements Seeder {
           required: true,
         },
       },
-      type: "agent",
+      type: "trigger",
     },
     {
       name: "like_tweet",
@@ -49,7 +49,7 @@ export class FunctionsSeeder implements Seeder {
           required: true,
         },
       },
-      type: "agent",
+      type: "trigger",
     },
     {
       name: "quote_tweet",
@@ -66,7 +66,7 @@ export class FunctionsSeeder implements Seeder {
           required: true,
         },
       },
-      type: "agent",
+      type: "trigger",
     },
     {
       name: "retweet",
@@ -78,7 +78,7 @@ export class FunctionsSeeder implements Seeder {
           required: true,
         },
       },
-      type: "agent",
+      type: "trigger",
     },
   ];
 
