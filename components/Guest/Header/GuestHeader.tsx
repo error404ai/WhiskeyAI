@@ -29,6 +29,11 @@ export function GuestHeader() {
                   </Link>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
+                  <Link href="/services" legacyBehavior passHref>
+                    <NavigationMenuLink className={navigationMenuTriggerStyle}>Services</NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
                   <Link href="/faq" legacyBehavior passHref>
                     <NavigationMenuLink className={navigationMenuTriggerStyle}>FAQ</NavigationMenuLink>
                   </Link>
@@ -70,6 +75,9 @@ export function GuestHeader() {
             <div className="mt-6 flex flex-col gap-3">
               <Link href="/agent" className="hover:text-primary text-lg font-semibold">
                 Agent
+              </Link>
+              <Link href="/services" className="hover:text-primary text-lg font-semibold">
+                Services
               </Link>
               <Link href="/faq" className="hover:text-primary text-lg font-semibold">
                 FAQ
