@@ -5,6 +5,7 @@ import { AgentTrigger } from "@/db/schema/agentTriggersTable";
 import TwitterService from "@/http/services/TwitterService";
 import { and, eq, lte } from "drizzle-orm";
 import { OpenAI } from "openai";
+import { TriggerLogService } from "./TriggerLogService";
 
 // Define OpenAI function calling interfaces
 interface FunctionTool {
@@ -51,6 +52,7 @@ type ChatMessage = SystemMessage | UserMessage | ToolMessage | AssistantMessage;
 export class TriggerSchedulerService {
   private openai: OpenAI;
   private twitterService: TwitterService | null = null;
+  private userId: number = 0;
 
   constructor() {
     // Initialize OpenAI client
@@ -65,6 +67,9 @@ export class TriggerSchedulerService {
    */
   public async processPendingTriggers(): Promise<void> {
     try {
+      // Log process starting
+      console.log("Starting to process pending triggers");
+      
       // Get all triggers that need to be processed
       const pendingTriggers = await this.getPendingTriggers();
 
@@ -79,8 +84,23 @@ export class TriggerSchedulerService {
       for (const trigger of pendingTriggers) {
         await this.processTrigger(trigger);
       }
+      
+      console.log("Successfully processed all pending triggers");
     } catch (error) {
       console.error("Error processing pending triggers:", error);
+      
+      // Log critical errors to database
+      await TriggerLogService.logTriggerLifecycle(
+        { id: 0, agentId: 0, name: "System", functionName: "processPendingTriggers" },
+        this.userId,
+        "Error",
+        {
+          step: "error",
+          status: "error",
+          message: "Error processing pending triggers",
+          errorDetails: error instanceof Error ? error.message : String(error),
+        }
+      );
     }
   }
 
@@ -93,7 +113,11 @@ export class TriggerSchedulerService {
     return await db.query.agentTriggersTable.findMany({
       where: and(eq(agentTriggersTable.status, "active"), lte(agentTriggersTable.nextRunAt || new Date(0), now)),
       with: {
-        agent: true,
+        agent: {
+          with: {
+            user: true
+          }
+        },
       },
     });
   }
@@ -101,10 +125,33 @@ export class TriggerSchedulerService {
   /**
    * Process a single trigger
    */
-  private async processTrigger(trigger: AgentTrigger & { agent: Agent }): Promise<void> {
+  private async processTrigger(trigger: AgentTrigger & { agent: Agent & { user: { id: number } } }): Promise<void> {
+    // Set the userId from the agent's user
+    this.userId = trigger.agent.user.id;
+    
+    // Start the execution timer
+    const startTime = Date.now();
+    const triggerData = { 
+      id: trigger.id, 
+      agentId: trigger.agentId, 
+      name: trigger.name, 
+      functionName: trigger.functionName 
+    };
+    
+    // Log trigger start
+    console.log(`Processing trigger: ${trigger.name} (ID: ${trigger.id})`);
+    const startLog = await TriggerLogService.logTriggerLifecycle(
+      triggerData,
+      this.userId,
+      "Starting",
+      {
+        step: "init",
+        status: "pending",
+        message: `Starting to process trigger: ${trigger.name}`,
+      }
+    );
+    
     try {
-      console.log(`Processing trigger: ${trigger.name} (ID: ${trigger.id})`);
-
       // Get function details
       const functionDetails = await this.getFunctionDetails(trigger.functionName);
       if (!functionDetails) {
@@ -115,14 +162,23 @@ export class TriggerSchedulerService {
       await this.initializeTwitterService(trigger.agentId);
 
       // Execute the function using OpenAI function calling
+      console.log(`Executing trigger function: ${trigger.functionName}`);
       const result = await this.executeWithAI(trigger);
-
+      
       // Update the trigger's last run and next run times
       await this.updateTriggerSchedule(trigger);
+      
+      // Log successful execution and calculate execution time
+      const executionTime = Date.now() - startTime;
+      await TriggerLogService.updateLogExecutionTime(startLog.id, executionTime);
+      await TriggerLogService.updateLogResponse(startLog.id, result as Record<string, unknown>);
 
-      console.log(`Successfully processed trigger ${trigger.id} with result:`, result);
+      console.log(`Successfully processed trigger ${trigger.id}`);
     } catch (error) {
       console.error(`Error processing trigger ${trigger.id}:`, error);
+      
+      // Log error
+      await TriggerLogService.updateLogError(startLog.id, error instanceof Error ? error.message : String(error));
 
       // Update next run time even if there was an error
       await this.updateTriggerSchedule(trigger);
@@ -158,7 +214,7 @@ export class TriggerSchedulerService {
   /**
    * Execute the function using OpenAI function calling
    */
-  private async executeWithAI(trigger: AgentTrigger & { agent: Agent }): Promise<any> {
+  private async executeWithAI(triggerWithAgent: AgentTrigger & { agent: Agent & { user: { id: number } } }): Promise<any> {
     if (!this.twitterService) {
       throw new Error("Twitter service not initialized");
     }
@@ -167,28 +223,33 @@ export class TriggerSchedulerService {
     const agentTools = await this.getAgentTools();
     
     // Define the trigger tool (the function that needs to be executed)
-    const triggerTool = await this.getTriggerTool(trigger.functionName);
+    const triggerTool = await this.getTriggerTool(triggerWithAgent.functionName);
     
     // Combine all tools
     const tools = [...agentTools, triggerTool];
 
     // Prepare the context
     const context = {
-      agentName: trigger.agent.name,
-      agentGoal: trigger.agent.information?.goal || "",
-      agentDescription: trigger.agent.information?.description || "",
-      triggerName: trigger.name,
-      triggerDescription: trigger.description,
-      informationSource: trigger.informationSource,
+      agentName: triggerWithAgent.agent.name,
+      agentGoal: triggerWithAgent.agent.information?.goal || "",
+      agentDescription: triggerWithAgent.agent.information?.description || "",
+      triggerName: triggerWithAgent.name,
+      triggerDescription: triggerWithAgent.description,
+      informationSource: triggerWithAgent.informationSource,
     };
 
     // Start the conversation with OpenAI
-    const { toolCallsData } = await this.startConversation(trigger, tools, context);
+    console.log("Starting conversation with OpenAI");
+    const { toolCallsData } = await this.startConversation(triggerWithAgent, tools, context);
+    console.log(`Completed conversation with ${toolCallsData.length} tool calls`);
 
     // Process the final trigger tool call
-    if (toolCallsData.length > 0 && toolCallsData[toolCallsData.length - 1].name === trigger.functionName) {
+    if (toolCallsData.length > 0 && toolCallsData[toolCallsData.length - 1].name === triggerWithAgent.functionName) {
       const triggerArgs = toolCallsData[toolCallsData.length - 1].args;
-      return await this.executeTriggerFunction(trigger.functionName, triggerArgs);
+      
+      // Execute the trigger function
+      console.log(`Executing trigger function: ${triggerWithAgent.functionName}`);
+      return await this.executeTriggerFunction(triggerWithAgent.functionName, triggerArgs);
     }
 
     throw new Error("OpenAI did not call the trigger function as expected");
@@ -244,7 +305,7 @@ export class TriggerSchedulerService {
    * Start conversation with OpenAI and handle multiple tool calls
    */
   private async startConversation(
-    trigger: AgentTrigger & { agent: Agent },
+    triggerWithAgent: AgentTrigger & { agent: Agent & { user: { id: number } } },
     tools: FunctionTool[],
     context: Record<string, string>
   ): Promise<{ toolCallsData: { name: string; args: any }[] }> {
@@ -266,13 +327,13 @@ export class TriggerSchedulerService {
         Information Source: ${context.informationSource}
         
         You can call agent functions to gather information before executing the trigger function.
-        The trigger function to execute is: ${trigger.functionName}
+        The trigger function to execute is: ${triggerWithAgent.functionName}
         
         First, call any agent functions needed to gather information, then call the trigger function with the appropriate arguments.`,
       },
       {
         role: "user",
-        content: `Please help execute the '${trigger.functionName}' trigger for agent '${context.agentName}'. 
+        content: `Please help execute the '${triggerWithAgent.functionName}' trigger for agent '${context.agentName}'. 
         Make sure to gather any necessary information using agent functions before calling the trigger function.`,
       },
     ];
@@ -282,7 +343,11 @@ export class TriggerSchedulerService {
     let keepConversation = true;
     
     // Continue conversation until all tool calls are processed
+    let conversationTurn = 0;
     while (keepConversation) {
+      conversationTurn++;
+      console.log(`Processing conversation turn ${conversationTurn}`);
+      
       // Call OpenAI with current conversation history
       const response = await this.openai.chat.completions.create({
         model: "gpt-4-turbo",
@@ -303,14 +368,37 @@ export class TriggerSchedulerService {
 
       // Process tool calls
       if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
+        console.log(`Processing ${responseMessage.tool_calls.length} tool calls`);
+        
         // Process each tool call
         for (const toolCall of responseMessage.tool_calls) {
           try {
             // Parse arguments
             const args = JSON.parse(toolCall.function.arguments);
+            console.log(`Executing tool call: ${toolCall.function.name}`);
             
             // Execute the function
             const result = await this.executeFunctionByName(toolCall.function.name, args);
+            
+            // Log important function calls to database
+            if (toolCall.function.name === triggerWithAgent.functionName) {
+              await TriggerLogService.logTriggerLifecycle(
+                { 
+                  id: triggerWithAgent.id, 
+                  agentId: triggerWithAgent.agentId, 
+                  name: triggerWithAgent.name, 
+                  functionName: triggerWithAgent.functionName 
+                },
+                this.userId,
+                "Trigger Function Called",
+                {
+                  step: "trigger_function_called",
+                  status: "success",
+                  message: `AI called trigger function: ${triggerWithAgent.functionName}`,
+                  requestData: args as Record<string, unknown>,
+                }
+              );
+            }
             
             // Record the tool call
             toolCallsData.push({ name: toolCall.function.name, args });
@@ -325,12 +413,30 @@ export class TriggerSchedulerService {
             conversationHistory.push(toolMessage);
             
             // If this was the trigger function, end the conversation
-            if (toolCall.function.name === trigger.functionName) {
+            if (toolCall.function.name === triggerWithAgent.functionName) {
               keepConversation = false;
             }
           } catch (err) {
             const error = err as Error;
             console.error(`Error executing function ${toolCall.function.name}:`, error);
+            
+            // Log errors to database
+            await TriggerLogService.logTriggerLifecycle(
+              { 
+                id: triggerWithAgent.id, 
+                agentId: triggerWithAgent.agentId, 
+                name: triggerWithAgent.name, 
+                functionName: triggerWithAgent.functionName 
+              },
+              this.userId,
+              "Tool Call Error",
+              {
+                step: `tool_call_error_${toolCall.function.name}`,
+                status: "error",
+                message: `Error executing tool call: ${toolCall.function.name}`,
+                errorDetails: error.message,
+              }
+            );
             
             const toolMessage: ToolMessage = {
               role: "tool",
@@ -344,6 +450,7 @@ export class TriggerSchedulerService {
       } else {
         // If no tool calls, end the conversation
         keepConversation = false;
+        console.log("AI response contained no tool calls");
       }
     }
 
@@ -397,6 +504,8 @@ export class TriggerSchedulerService {
     } else if (trigger.runEvery === "hours") {
       nextRunAt.setHours(now.getHours() + trigger.interval);
     }
+    
+    console.log(`Updating trigger schedule: next run at ${nextRunAt.toISOString()}`);
 
     // Update the trigger record
     await db
