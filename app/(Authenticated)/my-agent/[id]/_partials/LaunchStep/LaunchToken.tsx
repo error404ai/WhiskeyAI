@@ -2,7 +2,7 @@
 import ImageInput from "@/components/MyUi/ImageInput/ImageInput";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,7 +15,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
+import { AlertTriangle, CheckCircle2, PartyPopper, Twitter } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -28,7 +29,8 @@ type Props = {
 const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
   "use no memo";
   const agentUuid = useParams().id as string;
-  const twitterPlatform = platforms?.find((platform) => platform.name === "twitter");
+  const router = useRouter();
+  const twitterPlatform = platforms?.find((platform) => platform.type === "twitter");
 
   const { data: agent, refetch } = useQuery({
     queryKey: ["getAgentByUuid"],
@@ -38,7 +40,9 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
   const { publicKey, signTransaction, connected } = useWallet();
   const [txSignature, setTxSignature] = useState<string | null>(null);
   const [agentDeployStatus, setAgentDeployStatus] = useState<StatusType>("initial");
-  // const [txLinkUploaded, setTxLinkUploaded] = useState<boolean>(false);
+  const [showDeploySuccessModal, setShowDeploySuccessModal] = useState(false);
+  const [showValidationErrorModal, setShowValidationErrorModal] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   const methods = useForm<z.infer<typeof tokenMetadataSchema>>({
     mode: "onTouched",
@@ -70,10 +74,22 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
   };
 
   const handleDeployAgent = async () => {
+    // Use the shared validation function
+    const validationResult = await AgentController.validateAgentReadiness(agentUuid);
+    
+    if (!validationResult.isValid) {
+      setValidationErrors(validationResult.errors);
+      setShowValidationErrorModal(true);
+      return;
+    }
+
     setAgentDeployStatus("loading");
     const res = await AgentController.deployAgent(agentUuid);
     if (res) {
       setAgentDeployStatus("success");
+      setShowDeploySuccessModal(true);
+      // Refresh the agent data to show updated status
+      refetch();
     } else {
       setAgentDeployStatus("error");
     }
@@ -179,7 +195,7 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
         </form>
       </FormProvider>
       {/* Deploy agent button */}
-      {(agent?.txLink || methods.getValues("launchType") === "no_token") && twitterPlatform && (
+      {(agent?.txLink || methods.getValues("launchType") === "no_token") && !platformLoading && (
         <Button onClick={handleDeployAgent} loading={agentDeployStatus === "loading"} disabled={agent?.status === "running" || agentDeployStatus === "success"} className="w-full">
           {agent?.status === "running" ? "Deployed" : "Deploy Agent"}
         </Button>
@@ -205,6 +221,87 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
               <Button parentClass="w-fit">View on Solscan</Button>
             </a>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Agent Deployment Success Modal */}
+      <Dialog open={showDeploySuccessModal} onOpenChange={setShowDeploySuccessModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-center gap-2 text-xl font-bold text-center">
+              <PartyPopper className="h-6 w-6 text-primary" />
+              Agent Successfully Deployed!
+            </DialogTitle>
+            <DialogDescription className="text-center pt-2">
+              Your Twitter agent is now up and running
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="bg-muted/50 p-4 rounded-lg my-4">
+            <div className="flex flex-col space-y-3">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-green-600" />
+                <span>Agent is active and ready to run</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-green-600" />
+                <span>Triggers will execute on their scheduled intervals</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-green-600" />
+                <span>Your agent will now post to Twitter automatically</span>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter className="flex-col sm:flex-row gap-3 sm:gap-0">
+            <Button onClick={() => setShowDeploySuccessModal(false)} variant="outline">
+              Close
+            </Button>
+            <Button 
+              variant="default" 
+              className="gap-2"
+              onClick={() => {
+                setShowDeploySuccessModal(false);
+                router.push("/my-agent");
+              }}
+            >
+              <Twitter className="h-4 w-4" />
+              Go to My Agents
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Validation Error Modal */}
+      <Dialog open={showValidationErrorModal} onOpenChange={setShowValidationErrorModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-center gap-2 text-xl font-bold text-center">
+              <AlertTriangle className="h-6 w-6 text-amber-500" />
+              Cannot Deploy Agent
+            </DialogTitle>
+            <DialogDescription className="text-center pt-2">
+              Please resolve the following issues before deploying:
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-lg my-4">
+            <ul className="list-disc pl-5 space-y-2 text-amber-800">
+              {validationErrors.map((error, index) => (
+                <li key={index}>{error}</li>
+              ))}
+            </ul>
+          </div>
+          
+          <DialogFooter className="flex justify-end">
+            <Button 
+              onClick={() => setShowValidationErrorModal(false)} 
+              variant="outline"
+            >
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

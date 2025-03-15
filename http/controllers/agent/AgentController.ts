@@ -1,7 +1,7 @@
 "use server";
 
 import { AgentPlatformList } from "@/db/schema";
-import { AgentService } from "@/http/services/agent/AgentService";
+import { AgentService, ValidationResult } from "@/http/services/agent/AgentService";
 import { agentCreateSchema } from "@/http/zodSchema/agentCreateSchema";
 import { agentInformationSchema } from "@/http/zodSchema/agentInformationSchema";
 import { z, ZodError } from "zod";
@@ -51,4 +51,8 @@ export const deployAgent = async (agentUuid: string): Promise<boolean> => {
 
 export const toggleAgentStatus = async (agentUuid: string): Promise<boolean> => {
   return await AgentService.toggleAgentStatus(agentUuid);
+};
+
+export const validateAgentReadiness = async (agentUuid: string): Promise<ValidationResult> => {
+  return await AgentService.validateAgentReadiness(agentUuid);
 };
