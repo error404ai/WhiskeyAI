@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, User2 } from "lucide-react";
+import { User2 } from "lucide-react";
 
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Link } from "next-view-transitions";
@@ -9,11 +9,6 @@ import Logo from "../Common/Logo";
 
 // Menu items.
 const items = [
-  {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: Home,
-  },
   {
     title: "My Agent",
     url: "/my-agent",

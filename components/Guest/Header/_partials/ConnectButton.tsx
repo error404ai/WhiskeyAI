@@ -45,8 +45,7 @@ const ConnectButton = ({ ...props }) => {
     }
 
     console.log("logged in");
-    window.location.href = "/my-agent";
-    // window.location.href = "/dashboard";
+    window.location.href = "/my-agent"; // Previously redirected to "/dashboard"
   };
 
   return (
