@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { integer, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
+import { integer, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 import { agentsTable } from "./agentsTable";
 
 export const agentTriggersTable = pgTable("agentTriggers", {
@@ -8,7 +8,7 @@ export const agentTriggersTable = pgTable("agentTriggers", {
     .notNull()
     .references(() => agentsTable.id, { onDelete: "cascade" }),
   name: varchar({ length: 255 }).notNull(),
-  description: varchar({ length: 255 }).notNull(),
+  description: text().notNull(),
   interval: integer().notNull(),
   runEvery: varchar({ length: 255 }).notNull().$type<"minutes" | "hours">(),
   functionName: varchar({ length: 255 }).notNull(),
