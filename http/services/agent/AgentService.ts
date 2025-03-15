@@ -1,11 +1,16 @@
 import { db } from "@/db/db";
-import { agentsTable } from "@/db/schema";
+import { agentsTable, agentTriggersTable } from "@/db/schema";
 import { Agent, AgentPlatformList } from "@/db/schema/agentsTable";
 import { agentCreateSchema } from "@/http/zodSchema/agentCreateSchema";
 import { agentInformationSchema } from "@/http/zodSchema/agentInformationSchema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import AuthService from "../authService";
+
+export interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+}
 
 export class AgentService {
   static async getAgentById(agentId: number): Promise<Agent | undefined> {
@@ -143,5 +148,42 @@ export class AgentService {
       .where(eq(agentsTable.uuid, agentUuid));
 
     return !!res;
+  }
+
+  static async validateAgentReadiness(agentUuid: string): Promise<ValidationResult> {
+    const errors: string[] = [];
+    
+    // Get complete agent data with platforms and triggers
+    const agent = await AgentService.getAgentByUuid(agentUuid);
+    
+    if (!agent) {
+      errors.push("Agent not found");
+      return { isValid: false, errors };
+    }
+    
+    // Check agent information
+    if (!agent.information || !agent.information.description || !agent.information.goal) {
+      errors.push("Agent information is incomplete. Please provide a description and goal in the Information tab.");
+    }
+    
+    // Check for Twitter platform
+    const twitterPlatform = agent.agentPlatforms?.find(platform => platform.type === "twitter");
+    if (!twitterPlatform) {
+      errors.push("Twitter account is not connected. Please connect your Twitter account.");
+    }
+    
+    // Check for triggers using separate query
+    const triggers = await db.query.agentTriggersTable.findMany({
+      where: eq(agentTriggersTable.agentId, agent.id),
+    });
+    
+    if (!triggers || triggers.length === 0) {
+      errors.push("No triggers have been set up. Please create at least one trigger in the Triggers tab.");
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
   }
 }
