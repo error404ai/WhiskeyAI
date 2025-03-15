@@ -1,9 +1,10 @@
 "use client";
 
 import NoSsr from "@/components/NoSsr/NoSsr";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import * as AgentController from "@/http/controllers/agent/AgentController";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshCw, Trash2 } from "lucide-react";
@@ -27,6 +28,13 @@ export default function YourAgentsSection() {
     refetch();
   };
 
+  const handleToggleAgentStatus = async (agentUuid: string) => {
+    const success = await AgentController.toggleAgentStatus(agentUuid);
+    if (success) {
+      refetch();
+    }
+  };
+
   const { data: session } = useSession();
   console.log("session is", session);
   return (
@@ -45,7 +53,7 @@ export default function YourAgentsSection() {
           {/* Actions */}
           <div className="flex items-start justify-between">
             <div className="flex gap-4">
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" onClick={() => refetch()}>
                 <RefreshCw className="h-4 w-4" />
                 <span className="sr-only">Refresh</span>
               </Button>
@@ -61,7 +69,7 @@ export default function YourAgentsSection() {
           {!isPending && !isFetching && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
               {agents?.map((agent) => (
-                <Card key={agent.id} className="p-6">
+                <Card key={agent.id} className={`p-6 ${agent.status === 'paused' ? 'opacity-75' : ''}`}>
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
@@ -69,10 +77,17 @@ export default function YourAgentsSection() {
                       </div>
                       <p className="text-muted-foreground text-sm">${agent.tickerSymbol}</p>
                     </div>
-                    <div className="flex">
-                      <Badge variant="secondary" className="text-xs">
-                        {agent.status}
-                      </Badge>
+                    <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2">
+                        <Switch 
+                          id={`agent-status-${agent.id}`}
+                          checked={agent.status === 'running'}
+                          onCheckedChange={() => handleToggleAgentStatus(agent.uuid)}
+                        />
+                        <Label htmlFor={`agent-status-${agent.id}`} className="text-xs">
+                          {agent.status === 'running' ? 'Running' : 'Paused'}
+                        </Label>
+                      </div>
                       <Button onClick={() => handleDeleteAgent(agent.id)} variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
                         <Trash2 className="h-4 w-4" />
                         <span className="sr-only">Delete agent</span>

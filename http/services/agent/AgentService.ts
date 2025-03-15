@@ -123,4 +123,25 @@ export class AgentService {
       return false;
     }
   }
+
+  static async toggleAgentStatus(agentUuid: string): Promise<boolean> {
+    const authUser = await AuthService.getAuthUser();
+    if (!authUser) throw new Error("User not authenticated");
+
+    const agent = await AgentService.getAgentByUuid(agentUuid);
+    if (!agent) throw new Error("Agent not found");
+    if (Number(authUser.id) !== agent.userId) throw new Error("User not authenticated");
+
+    // Toggle the status between 'running' and 'paused'
+    const newStatus = agent.status === "running" ? "paused" : "running";
+
+    const res = await db
+      .update(agentsTable)
+      .set({
+        status: newStatus,
+      })
+      .where(eq(agentsTable.uuid, agentUuid));
+
+    return !!res;
+  }
 }

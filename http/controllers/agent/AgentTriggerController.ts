@@ -17,3 +17,7 @@ export const getAgentTriggers = async (agentUuid: string) => {
 export const deleteAgentTrigger = async (triggerId: number): Promise<boolean> => {
   return await AgentTriggerService.deleteAgentTrigger(triggerId);
 };
+
+export const toggleTriggerStatus = async (triggerId: number): Promise<boolean> => {
+  return await AgentTriggerService.toggleTriggerStatus(triggerId);
+};

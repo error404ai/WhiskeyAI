@@ -48,3 +48,7 @@ export const storeAgentTxLink = async (agentUuid: string, txLink: string): Promi
 export const deployAgent = async (agentUuid: string): Promise<boolean> => {
   return await AgentService.deployAgent(agentUuid);
 };
+
+export const toggleAgentStatus = async (agentUuid: string): Promise<boolean> => {
+  return await AgentService.toggleAgentStatus(agentUuid);
+};
