@@ -60,3 +60,40 @@ export const validateAgentReadiness = async (agentUuid: string): Promise<Validat
 export const updateAgentTwitterCredentials = async (agentUuid: string, data: { clientId: string; clientSecret: string }): Promise<boolean> => {
   return await AgentService.updateAgentTwitterCredentials(agentUuid, data);
 };
+
+/**
+ * Check if the user has already paid for agent creation
+ * @returns Boolean indicating payment status
+ */
+export const hasUserPaidForAgents = async (): Promise<boolean> => {
+  return await AgentService.hasUserPaidForAgents();
+};
+
+/**
+ * Count how many agents the user has created
+ * @returns Number of agents
+ */
+export const countUserAgents = async (): Promise<number> => {
+  return await AgentService.countUserAgents();
+};
+
+/**
+ * Mark the user as having paid for agents
+ * @param txSignature Transaction signature
+ * @param amount Amount paid
+ * @returns Success status or error object
+ */
+export const markUserAsPaid = async (txSignature: string, amount: string): Promise<boolean | { error: string }> => {
+  return await AgentService.markUserAsPaid(txSignature, amount);
+};
+
+/**
+ * Store payment information for a specific agent
+ * @param agentId Agent ID
+ * @param txSignature Transaction signature
+ * @param amount Amount paid
+ * @returns Success status
+ */
+export const storeAgentPaymentInfo = async (agentId: number, txSignature: string, amount: string): Promise<boolean> => {
+  return await AgentService.storeAgentPaymentInfo(agentId, txSignature, amount);
+};
