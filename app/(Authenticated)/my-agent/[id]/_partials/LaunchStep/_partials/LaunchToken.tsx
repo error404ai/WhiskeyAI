@@ -20,7 +20,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
-import TwitterDeveloperSetup from "../twitter-developer-setup";
+import TwitterDeveloperSetup from "./TwitterDeveloperSetup";
 
 type Props = {
   platforms: AgentPlatform[] | undefined;
@@ -98,8 +98,7 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
 
   return (
     <div className="mt-6 flex flex-col gap-4">
-
-      <TwitterDeveloperSetup/>
+      <TwitterDeveloperSetup />
       <div className="rounded-lg border p-4">
         <label className="mb-2 block">Connect Wallet</label>
         <div className="flex items-center gap-4">
@@ -231,16 +230,14 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
       <Dialog open={showDeploySuccessModal} onOpenChange={setShowDeploySuccessModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-center gap-2 text-xl font-bold text-center">
-              <PartyPopper className="h-6 w-6 text-primary" />
+            <DialogTitle className="flex items-center justify-center gap-2 text-center text-xl font-bold">
+              <PartyPopper className="text-primary h-6 w-6" />
               Agent Successfully Deployed!
             </DialogTitle>
-            <DialogDescription className="text-center pt-2">
-              Your Twitter agent is now up and running
-            </DialogDescription>
+            <DialogDescription className="pt-2 text-center">Your Twitter agent is now up and running</DialogDescription>
           </DialogHeader>
 
-          <div className="bg-muted/50 p-4 rounded-lg my-4">
+          <div className="bg-muted/50 my-4 rounded-lg p-4">
             <div className="flex flex-col space-y-3">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-green-600" />
@@ -257,7 +254,7 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
             </div>
           </div>
 
-          <DialogFooter className="flex-col sm:flex-row gap-3 sm:gap-0">
+          <DialogFooter className="flex-col gap-3 sm:flex-row sm:gap-0">
             <Button onClick={() => setShowDeploySuccessModal(false)} variant="outline">
               Close
             </Button>
@@ -280,17 +277,15 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
       <Dialog open={showValidationErrorModal} onOpenChange={setShowValidationErrorModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-center gap-2 text-xl font-bold text-center">
+            <DialogTitle className="flex items-center justify-center gap-2 text-center text-xl font-bold">
               <AlertTriangle className="h-6 w-6 text-amber-500" />
               Cannot Deploy Agent
             </DialogTitle>
-            <DialogDescription className="text-center pt-2">
-              Please resolve the following issues before deploying:
-            </DialogDescription>
+            <DialogDescription className="pt-2 text-center">Please resolve the following issues before deploying:</DialogDescription>
           </DialogHeader>
 
-          <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-lg my-4">
-            <ul className="list-disc pl-5 space-y-2 text-amber-800">
+          <div className="my-4 rounded-lg border-l-4 border-amber-500 bg-amber-50 p-4">
+            <ul className="list-disc space-y-2 pl-5 text-amber-800">
               {validationErrors.map((error, index) => (
                 <li key={index}>{error}</li>
               ))}
@@ -298,10 +293,7 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
           </div>
 
           <DialogFooter className="flex justify-end">
-            <Button
-              onClick={() => setShowValidationErrorModal(false)}
-              variant="outline"
-            >
+            <Button onClick={() => setShowValidationErrorModal(false)} variant="outline">
               Close
             </Button>
           </DialogFooter>
