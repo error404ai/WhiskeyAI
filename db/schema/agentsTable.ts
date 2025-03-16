@@ -43,7 +43,13 @@ export const agentsTable = pgTable("agents", {
   txLink: varchar({ length: 255 }),
   twitterClientId: varchar({ length: 255 }),
   twitterClientSecret: varchar({ length: 255 }),
+  // Payment tracking fields
+  paymentTxSignature: varchar({ length: 255 }),
+  paymentAmount: varchar({ length: 50 }),
+  paymentTimestamp: varchar({ length: 255 }),
 });
+
+export type Agent = typeof agentsTable.$inferSelect;
 
 export const agentsRelations = relations(agentsTable, ({ one, many }) => ({
   user: one(usersTable, {
@@ -53,5 +59,3 @@ export const agentsRelations = relations(agentsTable, ({ one, many }) => ({
   triggers: many(agentTriggersTable),
   agentPlatforms: many(agentPlatformsTable),
 }));
-
-export type Agent = typeof agentsTable.$inferSelect;
