@@ -20,6 +20,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
+import TwitterDeveloperSetup from "../twitter-developer-setup";
 
 type Props = {
   platforms: AgentPlatform[] | undefined;
@@ -76,7 +77,7 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
   const handleDeployAgent = async () => {
     // Use the shared validation function
     const validationResult = await AgentController.validateAgentReadiness(agentUuid);
-    
+
     if (!validationResult.isValid) {
       setValidationErrors(validationResult.errors);
       setShowValidationErrorModal(true);
@@ -97,6 +98,8 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
 
   return (
     <div className="mt-6 flex flex-col gap-4">
+
+      <TwitterDeveloperSetup/>
       <div className="rounded-lg border p-4">
         <label className="mb-2 block">Connect Wallet</label>
         <div className="flex items-center gap-4">
@@ -125,7 +128,7 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
                 <select {...methods.register("launchType")} className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50">
                   <option value="no_token">no_token</option>
                   <option value="new_token">new_token</option>
-                  <option value="existing_token">existing_token</option>
+                  {/* <option value="existing_token">existing_token</option> */}
                 </select>
                 <p className="text-red-500">{methods.formState.errors.launchType?.message}</p>
               </div>
@@ -133,12 +136,12 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
 
             {(methods.getValues("launchType") === "new_token" || methods.getValues("launchType") === "existing_token") && (
               <div className="space-y-4">
-                {methods.getValues("launchType") === "existing_token" && (
+                {/* {methods.getValues("launchType") === "existing_token" && (
                   <div className="space-y-2">
                     <Label>Token Mint</Label>
                     <Input name="tokenMint" placeholder="Enter token mint" />
                   </div>
-                )}
+                )} */}
 
                 <div className="space-y-2">
                   <Label>Token Name</Label>
@@ -236,7 +239,7 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
               Your Twitter agent is now up and running
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="bg-muted/50 p-4 rounded-lg my-4">
             <div className="flex flex-col space-y-3">
               <div className="flex items-center gap-2">
@@ -253,13 +256,13 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
               </div>
             </div>
           </div>
-          
+
           <DialogFooter className="flex-col sm:flex-row gap-3 sm:gap-0">
             <Button onClick={() => setShowDeploySuccessModal(false)} variant="outline">
               Close
             </Button>
-            <Button 
-              variant="default" 
+            <Button
+              variant="default"
               className="gap-2"
               onClick={() => {
                 setShowDeploySuccessModal(false);
@@ -285,7 +288,7 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
               Please resolve the following issues before deploying:
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-lg my-4">
             <ul className="list-disc pl-5 space-y-2 text-amber-800">
               {validationErrors.map((error, index) => (
@@ -293,10 +296,10 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
               ))}
             </ul>
           </div>
-          
+
           <DialogFooter className="flex justify-end">
-            <Button 
-              onClick={() => setShowValidationErrorModal(false)} 
+            <Button
+              onClick={() => setShowValidationErrorModal(false)}
               variant="outline"
             >
               Close
