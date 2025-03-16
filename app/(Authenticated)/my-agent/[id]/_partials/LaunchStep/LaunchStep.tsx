@@ -11,8 +11,17 @@ import { Trash2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
-import LaunchToken from "./LaunchToken";
-import TwitterAgentTest from "./TwitterAgentTest";
+import LaunchToken from "./_partials/LaunchToken";
+import TwitterAgentTest from "./_partials/TwitterAgentTest";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 type TabType = "memory" | "simulation" | "connect" | "launch" | "custom_texts" | "post_id";
 
@@ -29,18 +38,34 @@ function LaunchStep() {
   });
 
   const [connecting, setConnecting] = useState(false);
+  const [warningOpen, setWarningOpen] = useState(false);
 
   const handleAddTwitter = async () => {
     setConnecting(true);
-    await PlatformController.connectTwitter({
-      agentUuid,
-      url: `/my-agent/${agentUuid}?tab=launch`,
-    });
-    platformRefetch();
+    try {
+      // Check if Twitter credentials exist before connecting
+      const hasCredentials = await PlatformController.checkTwitterCredentials(agentUuid);
+      
+      if (!hasCredentials) {
+        setWarningOpen(true);
+        setConnecting(false);
+        return;
+      }
+      
+      await PlatformController.connectTwitter({
+        agentUuid,
+        url: `/my-agent/${agentUuid}?tab=launch`,
+      });
+      platformRefetch();
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setConnecting(false);
+    }
   };
 
   const handleDeletePlatform = async (platform: AgentPlatform) => {
-    await PlatformController.deleteAgentPlatform(agentUuid, platform.id);
+    await PlatformController.deleteAgentPlatform(agentUuid, String(platform.id));
     platformRefetch();
   };
 
@@ -101,6 +126,22 @@ function LaunchStep() {
           <TwitterAgentTest />
         </div>
       </div>
+
+      <Dialog open={warningOpen} onOpenChange={setWarningOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Twitter Credentials Required</DialogTitle>
+            <DialogDescription>
+              Please set up your Twitter Developer credentials first. You need to enter both the Client ID and Client Secret in the &quot;Setup Twitter Developer&quot; section before connecting to Twitter.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setWarningOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

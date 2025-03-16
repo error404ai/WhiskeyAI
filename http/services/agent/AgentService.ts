@@ -150,6 +150,23 @@ export class AgentService {
     return !!res;
   }
 
+  static async updateAgentTwitterCredentials(agentUuid: string, data: { clientId: string; clientSecret: string }): Promise<boolean> {
+    const agent = await AgentService.getAgentByUuid(agentUuid);
+    const authUser = await AuthService.getAuthUser();
+    if (!agent || !authUser) throw new Error("User not authenticated");
+    if (Number(authUser.id) !== agent.userId) throw new Error("User not authenticated");
+    
+    const res = await db
+      .update(agentsTable)
+      .set({
+        twitterClientId: data.clientId,
+        twitterClientSecret: data.clientSecret,
+      })
+      .where(eq(agentsTable.uuid, agentUuid));
+    
+    return !!res;
+  }
+
   static async validateAgentReadiness(agentUuid: string): Promise<ValidationResult> {
     const errors: string[] = [];
     
@@ -170,6 +187,11 @@ export class AgentService {
     const twitterPlatform = agent.agentPlatforms?.find(platform => platform.type === "twitter");
     if (!twitterPlatform) {
       errors.push("Twitter account is not connected. Please connect your Twitter account.");
+    }
+
+    // Check for Twitter client credentials
+    if (!agent.twitterClientId || !agent.twitterClientSecret) {
+      errors.push("Twitter client credentials are missing. Please provide your Twitter API client ID and client secret.");
     }
     
     // Check for triggers using separate query

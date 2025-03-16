@@ -4,9 +4,16 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getRedirectUriParams, OAuthProvider, OAuthTokens, OAuthUser } from "../OAuthProvider";
 
+interface TwitterCredentials {
+  clientId: string;
+  clientSecret: string;
+}
+
 export class TwitterProvider extends OAuthProvider {
-  constructor() {
-    super(process.env.TWITTER_CLIENT_ID!, process.env.TWITTER_CLIENT_SECRET!, process.env.TWITTER_REDIRECT_URI!);
+  constructor(credentials?: TwitterCredentials) {
+    const clientId = credentials?.clientId || process.env.TWITTER_CLIENT_ID!;
+    const clientSecret = credentials?.clientSecret || process.env.TWITTER_CLIENT_SECRET!;
+    super(clientId, clientSecret, process.env.TWITTER_REDIRECT_URI!);
     this.authUrl = "https://x.com/i/oauth2/authorize";
     this.tokenUrl = "https://api.twitter.com/2/oauth2/token";
     this.userInfoUrl = "https://api.twitter.com/2/users/me";
@@ -79,8 +86,6 @@ export class TwitterProvider extends OAuthProvider {
         },
       });
 
-      console.log("data is", response.data);
-
       return {
         accessToken: response.data.access_token,
         refreshToken: response.data.refresh_token,
@@ -112,8 +117,6 @@ export class TwitterProvider extends OAuthProvider {
       });
 
       const userData = response.data.data;
-
-      console.log("user data is", userData);
 
       return {
         id: userData.id,

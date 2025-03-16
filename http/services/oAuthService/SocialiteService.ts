@@ -2,22 +2,30 @@
 import { OAuthProvider } from "./OAuthProvider";
 import { TwitterProvider } from "./providers/TwitterProvider";
 
+interface TwitterCredentials {
+  clientId: string;
+  clientSecret: string;
+}
+
 export class SocialiteService {
   private providers: Map<string, OAuthProvider>;
+  private twitterCredentials?: TwitterCredentials;
 
-  constructor() {
+  constructor(twitterCredentials?: TwitterCredentials) {
+    this.twitterCredentials = twitterCredentials;
     this.providers = new Map();
-    this.providers.set("twitter", new TwitterProvider());
+    this.providers.set("twitter", new TwitterProvider(twitterCredentials));
   }
 
   /**
    * Get the OAuth provider instance based on the driver name.
    */
-  driver(driverName: string): OAuthProvider {
-    if (!this.providers.has(driverName)) {
-      throw new Error(`Provider ${driverName} not supported.`);
+  driver(name: string): OAuthProvider {
+    const provider = this.providers.get(name.toLowerCase());
+    if (!provider) {
+      throw new Error(`OAuth provider [${name}] is not supported.`);
     }
-    return this.providers.get(driverName)!;
+    return provider;
   }
 }
 

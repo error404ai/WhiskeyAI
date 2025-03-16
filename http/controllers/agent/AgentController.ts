@@ -56,3 +56,7 @@ export const toggleAgentStatus = async (agentUuid: string): Promise<boolean> => 
 export const validateAgentReadiness = async (agentUuid: string): Promise<ValidationResult> => {
   return await AgentService.validateAgentReadiness(agentUuid);
 };
+
+export const updateAgentTwitterCredentials = async (agentUuid: string, data: { clientId: string; clientSecret: string }): Promise<boolean> => {
+  return await AgentService.updateAgentTwitterCredentials(agentUuid, data);
+};
