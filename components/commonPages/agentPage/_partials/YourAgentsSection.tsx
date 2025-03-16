@@ -30,9 +30,17 @@ export default function YourAgentsSection() {
   const [currentAgentUuid, setCurrentAgentUuid] = useState<string | null>(null);
 
   const handleDeleteAgent = async (agentId: number) => {
-    await AgentController.deleteAgent(agentId);
-    refetch();
+    const confirmDelete = window.confirm("Are you sure you want to delete this agent?");
+    if (confirmDelete) {
+      await AgentController.deleteAgent(agentId);
+      refetch();
+    }
   };
+
+  // const handleDeleteAgent = async (agentId: number) => {
+  //   await AgentController.deleteAgent(agentId);
+  //   refetch();
+  // };
 
   const handleToggleAgentStatus = async (agentUuid: string) => {
     // Only validate when attempting to set status to active
@@ -40,7 +48,7 @@ export default function YourAgentsSection() {
     if (agent && agent.status === "paused") {
       // Validate agent readiness
       const validationResult = await AgentController.validateAgentReadiness(agentUuid);
-      
+
       if (!validationResult.isValid) {
         setValidationErrors(validationResult.errors);
         setCurrentAgentUuid(agentUuid);
@@ -99,7 +107,7 @@ export default function YourAgentsSection() {
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="flex items-center space-x-2">
-                        <Switch 
+                        <Switch
                           id={`agent-status-${agent.id}`}
                           checked={agent.status === 'running'}
                           onCheckedChange={() => handleToggleAgentStatus(agent.uuid)}
@@ -138,7 +146,7 @@ export default function YourAgentsSection() {
               Please resolve the following issues before activating:
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-lg my-4">
             <ul className="list-disc pl-5 space-y-2 text-amber-800">
               {validationErrors.map((error, index) => (
@@ -146,16 +154,16 @@ export default function YourAgentsSection() {
               ))}
             </ul>
           </div>
-          
+
           <DialogFooter className="sm:justify-between">
-            <Button 
-              onClick={() => setShowValidationErrorModal(false)} 
+            <Button
+              onClick={() => setShowValidationErrorModal(false)}
               variant="outline"
             >
               Close
             </Button>
             {currentAgentUuid && (
-              <Button 
+              <Button
                 variant="default"
                 onClick={() => {
                   setShowValidationErrorModal(false);
