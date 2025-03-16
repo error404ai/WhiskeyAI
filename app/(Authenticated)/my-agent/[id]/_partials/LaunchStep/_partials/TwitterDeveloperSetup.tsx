@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 export default function TwitterDeveloperSetup() {
+  "use no memo";
+
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const agentUuid = useParams().id as string;
 
@@ -35,15 +37,13 @@ export default function TwitterDeveloperSetup() {
     },
   });
 
-  // Update form values when agent data is loaded
   useEffect(() => {
     if (agent) {
-      methods.reset({
-        clientId: agent.twitterClientId || "",
-        clientSecret: agent.twitterClientSecret || "",
-      });
+      methods.setValue("clientId", agent.twitterClientId || "");
+      methods.setValue("clientSecret", agent.twitterClientSecret || "");
     }
-  }, [agent, methods]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agent]);
 
   const onSubmit = async (data: z.infer<typeof twitterCredentialsSchema>) => {
     try {
@@ -77,11 +77,11 @@ export default function TwitterDeveloperSetup() {
               <DialogTitle>How to get Twitter Developer Credentials</DialogTitle>
               <DialogDescription>Follow this tutorial to set up your Twitter Developer account and get your Client ID and Client Secret.</DialogDescription>
             </DialogHeader>
-            <div className="bg-muted aspect-video overflow-hidden rounded-md">
+            {/* <div className="bg-muted aspect-video overflow-hidden rounded-md">
               <div className="flex h-full w-full items-center justify-center">
                 <iframe className="h-full w-full" src="https://www.youtube.com/embed/KNgg7a47y6g" title="Twitter Developer Setup Tutorial" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
               </div>
-            </div>
+            </div> */}
             <div className="mt-4 space-y-2 text-sm">
               <h3 className="font-medium">Quick Steps:</h3>
               <ol className="list-decimal space-y-1 pl-5">
@@ -104,10 +104,10 @@ export default function TwitterDeveloperSetup() {
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Input id="clientId" label="Client ID" placeholder="Enter Client ID" />
+            <Input name="clientId" label="Client ID" placeholder="Enter Client ID" />
           </div>
           <div className="space-y-2">
-            <Input id="clientSecret" label="Client Secret" type="password" placeholder="Enter Client Secret" />
+            <Input name="clientSecret" label="Client Secret" type="password" placeholder="Enter Client Secret" />
           </div>
           <div className="flex items-center gap-4">
             <Button type="submit" loading={methods.formState.isSubmitting}>
