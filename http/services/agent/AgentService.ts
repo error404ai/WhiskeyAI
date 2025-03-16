@@ -3,9 +3,10 @@ import { agentsTable, agentTriggersTable } from "@/db/schema";
 import { Agent, AgentPlatformList } from "@/db/schema/agentsTable";
 import { agentCreateSchema } from "@/http/zodSchema/agentCreateSchema";
 import { agentInformationSchema } from "@/http/zodSchema/agentInformationSchema";
-import { eq } from "drizzle-orm";
+import { eq, count } from "drizzle-orm";
 import { z } from "zod";
 import AuthService from "../authService";
+import { usersTable } from "@/db/schema/usersTable";
 
 export interface ValidationResult {
   isValid: boolean;
@@ -207,5 +208,102 @@ export class AgentService {
       isValid: errors.length === 0,
       errors
     };
+  }
+
+  /**
+   * Check if the current user has already paid for agent creation
+   * @returns Boolean indicating if the user has already paid
+   */
+  static async hasUserPaidForAgents(): Promise<boolean> {
+    const user = await AuthService.getAuthUser();
+    if (!user) throw new Error("User not authenticated");
+
+    const result = await db
+      .select({ hasPaidForAgents: usersTable.hasPaidForAgents })
+      .from(usersTable)
+      .where(eq(usersTable.id, Number(user.id)))
+      .limit(1);
+
+    return result.length > 0 && result[0].hasPaidForAgents;
+  }
+
+  /**
+   * Mark user as having paid for agent creation, but only after verifying the transaction
+   * @param txSignature Transaction signature from the payment
+   * @param amount Amount paid
+   * @returns Success boolean or error message
+   */
+  static async markUserAsPaid(txSignature: string, amount: string): Promise<boolean | { error: string }> {
+    const user = await AuthService.getAuthUser();
+    if (!user) throw new Error("User not authenticated");
+
+    // First verify the transaction on the Solana blockchain
+    const { verifyPaymentTransaction } = await import("@/lib/solanaPaymentUtils");
+    const verification = await verifyPaymentTransaction(txSignature);
+    
+    if (!verification.isValid) {
+      return { error: verification.error || "Invalid transaction" };
+    }
+
+    // First, record payment info for the user's first agent
+    try {
+      // Find the user's first agent using db.query syntax
+      const agent = await db.query.agentsTable.findFirst({
+        where: eq(agentsTable.userId, Number(user.id))
+      });
+      
+      if (agent) {
+        // Store payment info in the agent record
+        await AgentService.storeAgentPaymentInfo(agent.id, txSignature, amount);
+      }
+    } catch (error) {
+      console.error("Error storing payment info:", error);
+      // Continue even if this fails, as marking the user as paid is more important
+    }
+
+    // Update user payment status
+    const result = await db
+      .update(usersTable)
+      .set({ hasPaidForAgents: true })
+      .where(eq(usersTable.id, Number(user.id)));
+
+    return !!result;
+  }
+
+  /**
+   * Count how many agents the current user has
+   * @returns Number of agents the user has
+   */
+  static async countUserAgents(): Promise<number> {
+    const user = await AuthService.getAuthUser();
+    if (!user) throw new Error("User not authenticated");
+
+    const result = await db
+      .select({ count: count() })
+      .from(agentsTable)
+      .where(eq(agentsTable.userId, Number(user.id)));
+
+    return result[0]?.count || 0;
+  }
+
+  /**
+   * Store payment information for an agent
+   * @param agentId Agent ID
+   * @param txSignature Transaction signature
+   * @param amount Amount paid
+   * @returns Success boolean
+   */
+  static async storeAgentPaymentInfo(agentId: number, txSignature: string, amount: string): Promise<boolean> {
+    const timestamp = new Date().toISOString();
+    const result = await db
+      .update(agentsTable)
+      .set({ 
+        paymentTxSignature: txSignature,
+        paymentAmount: amount,
+        paymentTimestamp: timestamp
+      })
+      .where(eq(agentsTable.id, agentId));
+
+    return !!result;
   }
 }

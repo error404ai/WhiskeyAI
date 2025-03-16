@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { date, integer, pgTable, varchar } from "drizzle-orm/pg-core";
+import { boolean, date, integer, pgTable, varchar } from "drizzle-orm/pg-core";
 import { rolesTable } from "./rolesTable";
 
 export const usersTable = pgTable("users", {
@@ -14,6 +14,7 @@ export const usersTable = pgTable("users", {
     .notNull()
     .references(() => rolesTable.id),
   emailVerified: date(),
+  hasPaidForAgents: boolean().default(false).notNull(),
   created_at: varchar({ length: 255 }).notNull().default("CURRENT_TIMESTAMP"),
   updated_at: varchar({ length: 255 }).notNull().default("CURRENT_TIMESTAMP"),
 });
