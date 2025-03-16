@@ -4,11 +4,6 @@ import { eq } from "drizzle-orm";
 import { AgentPlatformService } from "../services/agent/AgentPlatformService";
 import { SocialiteService } from "../services/oAuthService/SocialiteService";
 
-interface ConnectTwitterParams {
-  agentUuid: string;
-  url: string;
-}
-
 export async function checkTwitterCredentials(agentUuid: string): Promise<boolean> {
   const agent = await db.query.agentsTable.findFirst({
     where: (agents) => eq(agents.uuid, agentUuid),
@@ -21,12 +16,11 @@ export async function checkTwitterCredentials(agentUuid: string): Promise<boolea
   return !!(agent?.twitterClientId && agent?.twitterClientSecret);
 }
 
-export async function connectTwitter(params: ConnectTwitterParams | string) {
-  const agentUuid = typeof params === "string" ? params : params.agentUuid;
-  const returnUrl = typeof params === "string" ? undefined : params.url;
-
+export const connectTwitter = async (state: { agentUuid: string; url: string }) => {
+  const stateString = JSON.stringify(state);
+  const base64StateString = btoa(stateString);
   const agent = await db.query.agentsTable.findFirst({
-    where: (agents) => eq(agents.uuid, agentUuid),
+    where: (agents) => eq(agents.uuid, state.agentUuid),
     columns: {
       twitterClientId: true,
       twitterClientSecret: true,
@@ -42,18 +36,11 @@ export async function connectTwitter(params: ConnectTwitterParams | string) {
     clientSecret: agent.twitterClientSecret,
   });
 
-  const state = Buffer.from(
-    JSON.stringify({
-      agentUuid,
-      returnUrl,
-    }),
-  ).toString("base64");
-
   return socialite.driver("twitter").redirect({
     scopes: ["tweet.read", "tweet.write", "users.read", "offline.access"],
-    state,
+    state: base64StateString,
   });
-}
+};
 
 export async function getAgentPlatformsByAgentUuid(agentUuid: string) {
   return AgentPlatformService.getAgentPlatformsByAgentUuid(agentUuid);
