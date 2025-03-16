@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CopyableText } from "@/components/ui/copyable-text";
 import * as AgentController from "@/http/controllers/agent/AgentController";
 import { twitterCredentialsSchema } from "@/http/zodSchema/twitterCredentialsSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
-import { InfoIcon } from "lucide-react";
+import { InfoIcon, LinkIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -59,9 +60,12 @@ export default function TwitterDeveloperSetup() {
     }
   };
 
+  // Construct the callback URL with the actual agent UUID
+  const callbackUrl = `https://thewhiskey.io/api/socialite/twitter`;
+
   return (
     <div className="rounded-lg border p-4">
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-between">
         <Label className="text-base font-medium">Setup Twitter Developer</Label>
         <Dialog open={tutorialOpen} onOpenChange={setTutorialOpen}>
           <DialogTrigger asChild>
@@ -101,6 +105,26 @@ export default function TwitterDeveloperSetup() {
           </DialogContent>
         </Dialog>
       </div>
+
+      <div className="mb-6 rounded-lg border bg-blue-50 dark:bg-blue-950 p-4">
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 rounded-full bg-blue-100 dark:bg-blue-900 p-1.5">
+            <LinkIcon className="h-4 w-4 text-blue-700 dark:text-blue-300" />
+          </div>
+          <div className="space-y-2">
+            <h4 className="font-medium text-blue-900 dark:text-blue-200">Callback URL Configuration</h4>
+            <p className="text-sm text-blue-700 dark:text-blue-300">
+              When setting up your Twitter App, use the callback URL below in your Twitter Developer Portal.
+            </p>
+            <CopyableText 
+              text={callbackUrl}
+              className="mt-2"
+              successMessage="Callback URL copied to clipboard!"
+            />
+          </div>
+        </div>
+      </div>
+
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
