@@ -1,7 +1,8 @@
 import { AgentPlatform } from "@/db/schema";
 import { TwitterApi } from "twitter-api-v2";
 import { AgentPlatformService } from "./agent/AgentPlatformService";
-import { SocialiteService } from "./oAuthService/SocialiteService";
+import SocialiteService from "./oAuthService/SocialiteService";
+import { AgentService } from "./agent/AgentService";
 
 class TwitterService {
   private twitterApi: TwitterApi;
@@ -80,7 +81,17 @@ class TwitterService {
       // Set a promise to prevent multiple concurrent refresh attempts
       this.refreshTokenPromise = (async () => {
         try {
-          const twitterProvider = new SocialiteService().driver("twitter");
+          const agent = await AgentService.getAgentById(this.platform.agentId);
+          if (!agent?.twitterClientId || !agent?.twitterClientSecret) {
+            throw new Error("Twitter credentials not found for this agent");
+          }
+          
+          const twitterCredentials = {
+            clientId: agent.twitterClientId,
+            clientSecret: agent.twitterClientSecret
+          };
+          
+          const twitterProvider = new SocialiteService(twitterCredentials).driver("twitter");
           const tokens = await twitterProvider.refreshToken(this.platform.credentials.refreshToken);
 
           // Update local properties

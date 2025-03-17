@@ -10,9 +10,12 @@ interface TwitterCredentials {
 }
 
 export class TwitterProvider extends OAuthProvider {
-  constructor(credentials?: TwitterCredentials) {
-    const clientId = credentials?.clientId || process.env.TWITTER_CLIENT_ID!;
-    const clientSecret = credentials?.clientSecret || process.env.TWITTER_CLIENT_SECRET!;
+  constructor(credentials: TwitterCredentials) {
+    if (!credentials?.clientId || !credentials?.clientSecret) {
+      throw new Error("Twitter credentials are required");
+    }
+    const clientId = credentials.clientId;
+    const clientSecret = credentials.clientSecret;
     super(clientId, clientSecret, process.env.TWITTER_REDIRECT_URI!);
     this.authUrl = "https://x.com/i/oauth2/authorize";
     this.tokenUrl = "https://api.twitter.com/2/oauth2/token";
