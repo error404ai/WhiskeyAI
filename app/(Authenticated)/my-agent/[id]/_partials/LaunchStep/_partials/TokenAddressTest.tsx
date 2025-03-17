@@ -5,6 +5,7 @@ import { CopyableText } from "@/components/ui/copyable-text";
 import { getTokenAddressFromSignature } from "@/lib/solanaPaymentUtils";
 import { ExternalLink } from "lucide-react";
 import { useState } from "react";
+import { SOCIAL_CONFIG } from "@/config";
 
 export default function TokenAddressTest() {
   const [signature, setSignature] = useState("");
@@ -31,6 +32,8 @@ export default function TokenAddressTest() {
       setLoading(false);
     }
   };
+
+  const getPumpFunUrl = (address: string) => `${SOCIAL_CONFIG.PUMP_FUN_COIN_URL}${address}`;
 
   return (
     <div className="mt-4 space-y-4 rounded-xl border p-4">
@@ -70,7 +73,7 @@ export default function TokenAddressTest() {
             <div className="flex justify-between items-center">
               <div className="text-sm font-medium text-muted-foreground">Pump.fun Link</div>
               <a 
-                href={`https://pump.fun/coin/${tokenAddress}`} 
+                href={getPumpFunUrl(tokenAddress)} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-1 text-xs rounded-md font-medium transition-colors hover:bg-primary/90 hover:text-primary-foreground px-2 py-1 border"
@@ -80,8 +83,8 @@ export default function TokenAddressTest() {
               </a>
             </div>
             <CopyableText 
-              text={`https://pump.fun/coin/${tokenAddress}`}
-              displayText={`https://pump.fun/coin/${tokenAddress}`}
+              text={getPumpFunUrl(tokenAddress)}
+              displayText={getPumpFunUrl(tokenAddress)}
               successMessage="Pump.fun link copied to clipboard!"
             />
           </div>
