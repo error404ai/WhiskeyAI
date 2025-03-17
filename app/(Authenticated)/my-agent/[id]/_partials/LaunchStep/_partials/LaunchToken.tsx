@@ -1,6 +1,8 @@
 "use client";
-import { Badge } from "@/components/ui/badge";
+import PaymentDialog from "@/components/commonPages/agentPage/_partials/PaymentDialog";
+import ImageInput from "@/components/MyUi/ImageInput/ImageInput";
 import { Button } from "@/components/ui/button";
+import { CopyableText } from "@/components/ui/copyable-text";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +12,6 @@ import * as PumpportailController from "@/http/controllers/pumpportalController"
 import { tokenMetadataSchema } from "@/http/zodSchema/tokenMetadataSchema";
 import { sendWalletCreateTx } from "@/lib/pumpportalUtils";
 import { getTokenAddressFromSignature } from "@/lib/solanaPaymentUtils";
-import { CopyableText } from "@/components/ui/copyable-text";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
@@ -21,8 +22,6 @@ import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import TwitterDeveloperSetup from "./TwitterDeveloperSetup";
-import PaymentDialog from "@/components/commonPages/agentPage/_partials/PaymentDialog";
-import ImageInput from "@/components/MyUi/ImageInput/ImageInput";
 
 type Props = {
   platformLoading: boolean;
@@ -66,10 +65,10 @@ const LaunchToken: React.FC<Props> = ({ platformLoading }) => {
       const metadataJSON = await PumpportailController.uploadMetadata(formData);
       const signature = await sendWalletCreateTx(publicKey, signTransaction, metadataJSON, data.buyAmount);
       const txLink = `https://solscan.io/tx/${signature}`;
-      
+
       // First save the transaction signature
       await AgentController.storeAgentTxLink(agentUuid, txLink, "");
-      
+
       // Try to get token address but don't fail if it doesn't work
       try {
         const tokenAddress = await getTokenAddressFromSignature(signature);
@@ -80,7 +79,7 @@ const LaunchToken: React.FC<Props> = ({ platformLoading }) => {
         console.error("Failed to get token address:", error);
         // Don't throw error here, just log it
       }
-      
+
       refetch();
       setTxSignature(signature);
     } catch (error) {
@@ -229,12 +228,6 @@ const LaunchToken: React.FC<Props> = ({ platformLoading }) => {
         </Button>
       )}
 
-      {!platformLoading && (
-        <Badge className="h-12 w-full" variant={"destructive"}>
-          You need to add platform first
-        </Badge>
-      )}
-
       {/* Modal Showing TxLink */}
       <Dialog open={Boolean(txSignature)} onOpenChange={() => setTxSignature("")}>
         <DialogContent className="space-y-4">
@@ -260,23 +253,14 @@ const LaunchToken: React.FC<Props> = ({ platformLoading }) => {
               <PartyPopper className="h-6 w-6 text-green-500" />
               Agent Deployed Successfully!
             </DialogTitle>
-            <DialogDescription className="pt-2 text-center">
-              Your agent has been deployed and is now ready to run.
-            </DialogDescription>
+            <DialogDescription className="pt-2 text-center">Your agent has been deployed and is now ready to run.</DialogDescription>
           </DialogHeader>
 
           <div className="my-4 rounded-lg border-l-4 border-green-500 bg-green-50 p-4">
-            <p className="text-green-800">
-              Your agent is now live and running. You can monitor its performance and manage its settings from the dashboard.
-            </p>
+            <p className="text-green-800">Your agent is now live and running. You can monitor its performance and manage its settings from the dashboard.</p>
             {agent?.tokenAddress && (
               <div className="mt-4">
-                <CopyableText
-                  text={agent.tokenAddress}
-                  label="Token Address"
-                  className="mt-2"
-                  successMessage="Token address copied to clipboard!"
-                />
+                <CopyableText text={agent.tokenAddress} label="Token Address" className="mt-2" successMessage="Token address copied to clipboard!" />
               </div>
             )}
           </div>
@@ -290,13 +274,7 @@ const LaunchToken: React.FC<Props> = ({ platformLoading }) => {
       </Dialog>
 
       {/* Payment Dialog */}
-      <PaymentDialog
-        open={showPaymentDialog}
-        onOpenChange={setShowPaymentDialog}
-        onPaymentSuccess={handlePaymentSuccess}
-        title="Deploy Your Agent"
-        description="A one-time payment is required to deploy your agent. After payment, you can deploy up to 50 agents."
-      />
+      <PaymentDialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog} onPaymentSuccess={handlePaymentSuccess} title="Deploy Your Agent" description="A one-time payment is required to deploy your agent. After payment, you can deploy up to 50 agents." />
 
       {/* Validation Error Modal */}
       <Dialog open={showValidationErrorModal} onOpenChange={setShowValidationErrorModal}>
@@ -306,9 +284,7 @@ const LaunchToken: React.FC<Props> = ({ platformLoading }) => {
               <AlertTriangle className="h-6 w-6 text-amber-500" />
               Cannot Deploy Agent
             </DialogTitle>
-            <DialogDescription className="pt-2 text-center">
-              Please resolve the following issues before deploying:
-            </DialogDescription>
+            <DialogDescription className="pt-2 text-center">Please resolve the following issues before deploying:</DialogDescription>
           </DialogHeader>
 
           <div className="my-4 rounded-lg border-l-4 border-amber-500 bg-amber-50 p-4">
