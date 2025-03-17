@@ -21,6 +21,7 @@ import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import TwitterDeveloperSetup from "./TwitterDeveloperSetup";
+import PaymentDialog from "@/components/commonPages/agentPage/_partials/PaymentDialog";
 
 type Props = {
   platforms: AgentPlatform[] | undefined;
@@ -44,6 +45,7 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
   const [showDeploySuccessModal, setShowDeploySuccessModal] = useState(false);
   const [showValidationErrorModal, setShowValidationErrorModal] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
   const methods = useForm<z.infer<typeof tokenMetadataSchema>>({
     mode: "onTouched",
@@ -75,6 +77,13 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
   };
 
   const handleDeployAgent = async () => {
+    // Check if user has paid
+    const hasPaid = await AgentController.hasUserPaidForAgents();
+    if (!hasPaid) {
+      setShowPaymentDialog(true);
+      return;
+    }
+
     // Use the shared validation function
     const validationResult = await AgentController.validateAgentReadiness(agentUuid);
 
@@ -94,6 +103,11 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
     } else {
       setAgentDeployStatus("error");
     }
+  };
+
+  const handlePaymentSuccess = () => {
+    setShowPaymentDialog(false);
+    handleDeployAgent();
   };
 
   return (
@@ -273,6 +287,15 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
         </DialogContent>
       </Dialog>
 
+      {/* Payment Dialog */}
+      <PaymentDialog
+        open={showPaymentDialog}
+        onOpenChange={setShowPaymentDialog}
+        onPaymentSuccess={handlePaymentSuccess}
+        title="Deploy Your Agent"
+        description="A one-time payment is required to deploy your agent. After payment, you can deploy up to 50 agents."
+      />
+
       {/* Validation Error Modal */}
       <Dialog open={showValidationErrorModal} onOpenChange={setShowValidationErrorModal}>
         <DialogContent className="sm:max-w-md">
@@ -281,7 +304,9 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
               <AlertTriangle className="h-6 w-6 text-amber-500" />
               Cannot Deploy Agent
             </DialogTitle>
-            <DialogDescription className="pt-2 text-center">Please resolve the following issues before deploying:</DialogDescription>
+            <DialogDescription className="pt-2 text-center">
+              Please resolve the following issues before deploying:
+            </DialogDescription>
           </DialogHeader>
 
           <div className="my-4 rounded-lg border-l-4 border-amber-500 bg-amber-50 p-4">

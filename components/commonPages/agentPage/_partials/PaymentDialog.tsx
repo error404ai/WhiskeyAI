@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import * as AgentController from "@/http/controllers/agent/AgentController";
 import { AGENT_CREATION_FEE, sendAgentPaymentTx } from "@/lib/solanaPaymentUtils";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -12,40 +12,50 @@ type PaymentDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onPaymentSuccess: () => void;
+  title?: string;
+  description?: string;
 };
 
 enum PaymentStatus {
-  INITIAL,
-  PROCESSING,
-  SUCCESS,
-  ERROR
+  INITIAL = "initial",
+  PROCESSING = "processing",
+  SUCCESS = "success",
+  ERROR = "error",
 }
 
-const PaymentDialog: React.FC<PaymentDialogProps> = ({ open, onOpenChange, onPaymentSuccess }) => {
-  const { publicKey, signTransaction, connected, connecting, select, wallets } = useWallet();
+const PaymentDialog: React.FC<PaymentDialogProps> = ({ 
+  open, 
+  onOpenChange, 
+  onPaymentSuccess,
+  title = "Create Your First AI Agent",
+  description = `A one-time payment of ${AGENT_CREATION_FEE} SOL is required to create your first agent. After payment, you can create up to 50 agents.`
+}) => {
+  const { publicKey, signTransaction, connect, connected, connecting } = useWallet();
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(PaymentStatus.INITIAL);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [txSignature, setTxSignature] = useState<string | null>(null);
+  const [isPhantomAvailable, setIsPhantomAvailable] = useState(false);
 
-  // Check if Phantom wallet is available
-  const phantomWallet = wallets.find(wallet => wallet.adapter.name === 'Phantom');
-  const isPhantomAvailable = !!phantomWallet;
+  useEffect(() => {
+    // Check if Phantom wallet is available
+    const checkPhantom = () => {
+      const isPhantomInstalled = window.solana && window.solana.isPhantom;
+      setIsPhantomAvailable(isPhantomInstalled);
+    };
 
-  // Handle connecting to Phantom wallet
-  const connectPhantom = () => {
-    if (phantomWallet) {
-      select(phantomWallet.adapter.name);
-    } else {
-      setPaymentError("Phantom wallet not detected. Please install Phantom wallet extension.");
+    checkPhantom();
+    window.addEventListener("load", checkPhantom);
+    return () => window.removeEventListener("load", checkPhantom);
+  }, []);
+
+  const connectPhantom = async () => {
+    try {
+      await connect();
+    } catch (error) {
+      console.error("Error connecting to Phantom:", error);
+      setPaymentError("Failed to connect to Phantom wallet");
     }
   };
-
-  // Check if wallet connection is successful
-  useEffect(() => {
-    if (connected && paymentError === "Please connect your wallet first") {
-      setPaymentError(null);
-    }
-  }, [connected, paymentError]);
 
   const handlePayment = async () => {
     if (!connected || !publicKey || !signTransaction) {
@@ -87,10 +97,9 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({ open, onOpenChange, onPay
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create Your First AI Agent</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            A one-time payment of {AGENT_CREATION_FEE} SOL is required to create your first agent. 
-            After payment, you can create up to 50 agents.
+            {description}
           </DialogDescription>
         </DialogHeader>
 
@@ -178,29 +187,18 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({ open, onOpenChange, onPay
           )}
 
           {paymentStatus === PaymentStatus.ERROR && (
-            <div className="flex flex-col gap-4">
-              <div className="rounded-lg bg-red-50 p-4 text-red-800">
-                <p className="flex items-start gap-2">
-                  <AlertCircle className="h-5 w-5 mt-0.5" />
-                  <span>
-                    <strong>Payment Failed</strong>
-                    <br />
-                    {paymentError || "An unknown error occurred. Please try again."}
-                  </span>
-                </p>
-              </div>
-              <Button onClick={handlePayment} disabled={!connected}>Try Again</Button>
+            <div className="flex flex-col items-center justify-center gap-4 py-8">
+              <AlertCircle className="h-12 w-12 text-red-500" />
+              <p className="text-center text-lg font-medium">Payment Failed</p>
+              <p className="text-muted-foreground text-center text-sm">
+                {paymentError || "An error occurred while processing your payment. Please try again."}
+              </p>
+              <Button onClick={() => setPaymentStatus(PaymentStatus.INITIAL)} className="w-full">
+                Try Again
+              </Button>
             </div>
           )}
         </div>
-
-        <DialogFooter className="gap-2 sm:gap-0">
-          {paymentStatus === PaymentStatus.INITIAL && (
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-          )}
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
