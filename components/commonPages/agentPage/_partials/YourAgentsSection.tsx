@@ -7,10 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import * as AgentController from "@/http/controllers/agent/AgentController";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, RefreshCw, Trash2 } from "lucide-react";
+import { AlertTriangle, ExternalLink, RefreshCw, Trash2 } from "lucide-react";
 import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import AgentCreate from "./AgentCreate";
+import { CopyableText } from "@/components/ui/copyable-text";
 import {
   Dialog,
   DialogContent,
@@ -153,7 +154,33 @@ export default function YourAgentsSection() {
                       </Button>
                     </div>
                   </div>
-                  <div className="mt-12 mb-2">
+                  
+                  {agent.tokenAddress && (
+                    <div className="mt-4 mb-2">
+                      <div className="flex flex-col gap-2 text-sm">
+                        <CopyableText 
+                          text={agent.tokenAddress}
+                          label="Token Address"
+                          className="text-xs"
+                          successMessage="Token address copied to clipboard!"
+                        />
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-medium text-muted-foreground">Pump.fun</span>
+                          <a 
+                            href={`https://pump.fun/coin/${agent.tokenAddress}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center gap-1 text-xs rounded-md font-medium transition-colors hover:bg-primary/90 hover:text-primary-foreground px-2 py-1 border"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            Open
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="mt-4 mb-2">
                     <Button variant="outline" className="w-full" link={`/my-agent/${agent.uuid}`}>
                       Configure
                     </Button>
