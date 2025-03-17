@@ -1,11 +1,14 @@
 "use server";
 import { Metaplex } from "@metaplex-foundation/js";
 import { Connection, PublicKey } from "@solana/web3.js";
+import { SOLANA_CONFIG, API_CONFIG, SOCIAL_CONFIG } from "@/config";
 
-const RPC_ENDPOINT = "https://kelcey-184ipf-fast-mainnet.helius-rpc.com";
+const RPC_ENDPOINT = SOLANA_CONFIG.RPC_ENDPOINT;
+const PUMP_FUN_API = API_CONFIG.PUMP_FUN_API;
+const SOLSCAN_TX_URL = SOCIAL_CONFIG.SOLSCAN_TX_URL;
 
 export const uploadMetadata = async (formData: FormData) => {
-  const metadataResponse = await fetch("https://pump.fun/api/ipfs", {
+  const metadataResponse = await fetch(`${PUMP_FUN_API}/ipfs`, {
     method: "POST",
     body: formData,
   });
@@ -52,7 +55,7 @@ export const fetchTokenDetails = async (mintAddress: string) => {
     let txLink = "";
     if (signatures.length > 0) {
       const oldestSignature = signatures[signatures.length - 1].signature; // Oldest tx
-      txLink = `https://solscan.io/tx/${oldestSignature}`;
+      txLink = `${SOLSCAN_TX_URL}${oldestSignature}`;
     }
 
     return {
