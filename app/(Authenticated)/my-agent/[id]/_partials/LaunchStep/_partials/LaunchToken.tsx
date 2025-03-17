@@ -1,38 +1,36 @@
 "use client";
-import ImageInput from "@/components/MyUi/ImageInput/ImageInput";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { AgentPlatform } from "@/db/schema";
 import * as AgentController from "@/http/controllers/agent/AgentController";
 import * as PumpportailController from "@/http/controllers/pumpportalController";
 import { tokenMetadataSchema } from "@/http/zodSchema/tokenMetadataSchema";
 import { sendWalletCreateTx } from "@/lib/pumpportalUtils";
+import { getTokenAddressFromSignature } from "@/lib/solanaPaymentUtils";
+import { CopyableText } from "@/components/ui/copyable-text";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, CheckCircle2, PartyPopper, Twitter } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
+import { AlertTriangle, PartyPopper } from "lucide-react";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import TwitterDeveloperSetup from "./TwitterDeveloperSetup";
 import PaymentDialog from "@/components/commonPages/agentPage/_partials/PaymentDialog";
+import ImageInput from "@/components/MyUi/ImageInput/ImageInput";
 
 type Props = {
-  platforms: AgentPlatform[] | undefined;
   platformLoading: boolean;
 };
 
-const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
+const LaunchToken: React.FC<Props> = ({ platformLoading }) => {
   "use no memo";
   const agentUuid = useParams().id as string;
-  const router = useRouter();
-  const twitterPlatform = platforms?.find((platform) => platform.type === "twitter");
 
   const { data: agent, refetch } = useQuery({
     queryKey: ["getAgentByUuid"],
@@ -68,7 +66,21 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
       const metadataJSON = await PumpportailController.uploadMetadata(formData);
       const signature = await sendWalletCreateTx(publicKey, signTransaction, metadataJSON, data.buyAmount);
       const txLink = `https://solscan.io/tx/${signature}`;
-      await AgentController.storeAgentTxLink(agentUuid, txLink);
+      
+      // First save the transaction signature
+      await AgentController.storeAgentTxLink(agentUuid, txLink, "");
+      
+      // Try to get token address but don't fail if it doesn't work
+      try {
+        const tokenAddress = await getTokenAddressFromSignature(signature);
+        if (tokenAddress) {
+          await AgentController.updateAgentTokenAddress(agentUuid, tokenAddress);
+        }
+      } catch (error) {
+        console.error("Failed to get token address:", error);
+        // Don't throw error here, just log it
+      }
+      
       refetch();
       setTxSignature(signature);
     } catch (error) {
@@ -94,8 +106,8 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
     }
 
     setAgentDeployStatus("loading");
-    const res = await AgentController.deployAgent(agentUuid);
-    if (res) {
+    const success = await AgentController.deployAgent(agentUuid);
+    if (success) {
       setAgentDeployStatus("success");
       setShowDeploySuccessModal(true);
       // Refresh the agent data to show updated status
@@ -203,7 +215,7 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
             )}
           </div>
 
-          {!agent?.txLink && methods.getValues("launchType") !== "no_token" && twitterPlatform && (
+          {!agent?.txLink && methods.getValues("launchType") !== "no_token" && (
             <Button variant={"outline"} className="mt-4 w-full" loading={methods.formState.isSubmitting}>
               Launch Token
             </Button>
@@ -217,9 +229,9 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
         </Button>
       )}
 
-      {!twitterPlatform && !platformLoading && (
+      {!platformLoading && (
         <Badge className="h-12 w-full" variant={"destructive"}>
-          You need to add twitter platform first
+          You need to add platform first
         </Badge>
       )}
 
@@ -240,48 +252,38 @@ const LaunchToken: React.FC<Props> = ({ platforms, platformLoading }) => {
         </DialogContent>
       </Dialog>
 
-      {/* Agent Deployment Success Modal */}
+      {/* Deploy Success Modal */}
       <Dialog open={showDeploySuccessModal} onOpenChange={setShowDeploySuccessModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-center gap-2 text-center text-xl font-bold">
-              <PartyPopper className="text-primary h-6 w-6" />
-              Agent Successfully Deployed!
+              <PartyPopper className="h-6 w-6 text-green-500" />
+              Agent Deployed Successfully!
             </DialogTitle>
-            <DialogDescription className="pt-2 text-center">Your Twitter agent is now up and running</DialogDescription>
+            <DialogDescription className="pt-2 text-center">
+              Your agent has been deployed and is now ready to run.
+            </DialogDescription>
           </DialogHeader>
 
-          <div className="bg-muted/50 my-4 rounded-lg p-4">
-            <div className="flex flex-col space-y-3">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
-                <span>Agent is active and ready to run</span>
+          <div className="my-4 rounded-lg border-l-4 border-green-500 bg-green-50 p-4">
+            <p className="text-green-800">
+              Your agent is now live and running. You can monitor its performance and manage its settings from the dashboard.
+            </p>
+            {agent?.tokenAddress && (
+              <div className="mt-4">
+                <CopyableText
+                  text={agent.tokenAddress}
+                  label="Token Address"
+                  className="mt-2"
+                  successMessage="Token address copied to clipboard!"
+                />
               </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
-                <span>Triggers will execute on their scheduled intervals</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
-                <span>Your agent will now post to Twitter automatically</span>
-              </div>
-            </div>
+            )}
           </div>
 
-          <DialogFooter className="flex-col gap-3 sm:flex-row sm:gap-0">
+          <DialogFooter className="flex justify-end">
             <Button onClick={() => setShowDeploySuccessModal(false)} variant="outline">
               Close
-            </Button>
-            <Button
-              variant="default"
-              className="gap-2"
-              onClick={() => {
-                setShowDeploySuccessModal(false);
-                router.push("/my-agent");
-              }}
-            >
-              <Twitter className="h-4 w-4" />
-              Go to My Agents
             </Button>
           </DialogFooter>
         </DialogContent>
