@@ -138,6 +138,14 @@ export class AgentService {
     if (!agent) throw new Error("Agent not found");
     if (Number(authUser.id) !== agent.userId) throw new Error("User not authenticated");
 
+    // If changing from paused to running, check payment status
+    if (agent.status === "paused") {
+      const hasPaid = await AgentService.hasUserPaidForAgents();
+      if (!hasPaid) {
+        throw new Error("Payment required to activate agent");
+      }
+    }
+
     // Toggle the status between 'running' and 'paused'
     const newStatus = agent.status === "running" ? "paused" : "running";
 
