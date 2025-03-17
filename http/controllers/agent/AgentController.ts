@@ -41,8 +41,8 @@ export const storeAgentPlatformList = async (agentUuid: string, data: AgentPlatf
   return await AgentService.storeAgentPlatformList(agentUuid, data);
 };
 
-export const storeAgentTxLink = async (agentUuid: string, txLink: string): Promise<boolean> => {
-  return await AgentService.storeAgentTxLink(agentUuid, txLink);
+export const storeAgentTxLink = async (agentUuid: string, txLink: string, tokenAddress: string): Promise<boolean> => {
+  return await AgentService.storeAgentTxLink(agentUuid, txLink, tokenAddress);
 };
 
 export const deployAgent = async (agentUuid: string): Promise<boolean> => {
@@ -96,4 +96,14 @@ export const markUserAsPaid = async (txSignature: string, amount: string): Promi
  */
 export const storeAgentPaymentInfo = async (agentId: number, txSignature: string, amount: string): Promise<boolean> => {
   return await AgentService.storeAgentPaymentInfo(agentId, txSignature, amount);
+};
+
+/**
+ * Update agent's token address after launch
+ * @param agentUuid Agent UUID
+ * @param tokenAddress Token address
+ * @returns Success boolean
+ */
+export const updateAgentTokenAddress = async (agentUuid: string, tokenAddress: string): Promise<boolean> => {
+  return await AgentService.updateAgentTokenAddress(agentUuid, tokenAddress);
 };
