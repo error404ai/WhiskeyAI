@@ -13,6 +13,7 @@ import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import LaunchToken from "./_partials/LaunchToken";
 import TwitterAgentTest from "./_partials/TwitterAgentTest";
+import TokenAddressTest from "./_partials/TokenAddressTest";
 import {
   Dialog,
   DialogContent,
@@ -119,11 +120,12 @@ function LaunchStep() {
               </div>
             )}
 
-            <LaunchToken platforms={platforms} platformLoading={isPlatformFetching || isPlatformPending} />
+            <LaunchToken platformLoading={isPlatformFetching || isPlatformPending} />
           </div>
         </div>
         <div>
           <TwitterAgentTest />
+          <TokenAddressTest />
         </div>
       </div>
 
