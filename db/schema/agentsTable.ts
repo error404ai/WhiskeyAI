@@ -41,6 +41,7 @@ export const agentsTable = pgTable("agents", {
   status: varchar({ length: 255 }).notNull().$type<"paused" | "running">(),
   agentPlatformList: json().$type<AgentPlatformList[]>(),
   txLink: varchar({ length: 255 }),
+  tokenAddress: varchar({ length: 255 }),
   twitterClientId: varchar({ length: 255 }),
   twitterClientSecret: varchar({ length: 255 }),
   // Payment tracking fields

@@ -180,3 +180,30 @@ export const verifyPaymentTransaction = async (txSignature: string, payerPublicK
     };
   }
 };
+
+export async function getTokenAddressFromSignature(signature: string): Promise<string | null> {
+  try {
+    // Fetch transaction details using signature
+    const connection = new Connection(RPC_ENDPOINT, "confirmed");
+    const transaction = await connection.getTransaction(signature, {
+      commitment: "confirmed",
+      maxSupportedTransactionVersion: 0,
+    });
+
+    if (!transaction) {
+      throw new Error("Transaction not found");
+    }
+
+    // Extract Token Address (Mint Address) from `postTokenBalances`
+    const tokenAddress = transaction.meta?.postTokenBalances?.[0]?.mint;
+
+    if (!tokenAddress) {
+      throw new Error("No token address found in transaction");
+    }
+
+    return tokenAddress;
+  } catch (error) {
+    console.error("Error fetching token address:", error);
+    return null;
+  }
+}
