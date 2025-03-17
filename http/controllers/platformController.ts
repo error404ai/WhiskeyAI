@@ -2,7 +2,7 @@
 import { db } from "@/db/db";
 import { eq } from "drizzle-orm";
 import { AgentPlatformService } from "../services/agent/AgentPlatformService";
-import { SocialiteService } from "../services/oAuthService/SocialiteService";
+import SocialiteService from "../services/oAuthService/SocialiteService";
 
 export async function checkTwitterCredentials(agentUuid: string): Promise<boolean> {
   const agent = await db.query.agentsTable.findFirst({

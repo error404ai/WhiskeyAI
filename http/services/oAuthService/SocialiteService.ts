@@ -7,14 +7,14 @@ interface TwitterCredentials {
   clientSecret: string;
 }
 
-export class SocialiteService {
+export default class SocialiteService {
   private providers: Map<string, OAuthProvider>;
-  private twitterCredentials?: TwitterCredentials;
+  private twitterCredentials: TwitterCredentials;
 
-  constructor(twitterCredentials?: TwitterCredentials) {
+  constructor(twitterCredentials: TwitterCredentials) {
     this.twitterCredentials = twitterCredentials;
     this.providers = new Map();
-    this.providers.set("twitter", new TwitterProvider(twitterCredentials));
+    this.providers.set("twitter", new TwitterProvider(this.twitterCredentials));
   }
 
   /**
@@ -28,5 +28,3 @@ export class SocialiteService {
     return provider;
   }
 }
-
-export const Socialite = new SocialiteService();
