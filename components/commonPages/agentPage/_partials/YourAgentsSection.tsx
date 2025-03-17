@@ -3,7 +3,6 @@
 import NoSsr from "@/components/NoSsr/NoSsr";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import * as AgentController from "@/http/controllers/agent/AgentController";
@@ -13,15 +12,14 @@ import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import AgentCreate from "./AgentCreate";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import PaymentDialog from "./PaymentDialog";
 
 export default function YourAgentsSection() {
   const {
@@ -36,10 +34,12 @@ export default function YourAgentsSection() {
 
   const [showValidationErrorModal, setShowValidationErrorModal] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
-  const [currentAgentUuid, setCurrentAgentUuid] = useState<string | null>(null);
   const [agentToDelete, setAgentToDelete] = useState<{ id: number; name: string } | null>(null);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [pendingAgentUuid, setPendingAgentUuid] = useState<string | null>(null);
 
   const handleDeleteAgent = async (agentId: number) => {
+    if (!agentId) return;
     await AgentController.deleteAgent(agentId);
     setAgentToDelete(null);
     refetch();
@@ -49,12 +49,20 @@ export default function YourAgentsSection() {
     // Only validate when attempting to set status to active
     const agent = agents?.find(a => a.uuid === agentUuid);
     if (agent && agent.status === "paused") {
+      // Check if user has paid
+      const hasPaid = await AgentController.hasUserPaidForAgents();
+      if (!hasPaid) {
+        setPendingAgentUuid(agentUuid);
+        setShowPaymentDialog(true);
+        return;
+      }
+
       // Validate agent readiness
       const validationResult = await AgentController.validateAgentReadiness(agentUuid);
 
       if (!validationResult.isValid) {
         setValidationErrors(validationResult.errors);
-        setCurrentAgentUuid(agentUuid);
+        setPendingAgentUuid(agentUuid);
         setShowValidationErrorModal(true);
         return;
       }
@@ -63,6 +71,13 @@ export default function YourAgentsSection() {
     const success = await AgentController.toggleAgentStatus(agentUuid);
     if (success) {
       refetch();
+    }
+  };
+
+  const handlePaymentSuccess = async () => {
+    if (pendingAgentUuid) {
+      await handleToggleAgentStatus(pendingAgentUuid);
+      setPendingAgentUuid(null);
     }
   };
 
@@ -150,64 +165,62 @@ export default function YourAgentsSection() {
         </div>
       </div>
 
-      {/* Delete Agent Confirmation Dialog */}
-      <AlertDialog open={!!agentToDelete} onOpenChange={(open) => !open && setAgentToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Agent</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete {agentToDelete?.name}? This action cannot be undone and all associated data will be permanently deleted.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              onClick={() => agentToDelete && handleDeleteAgent(agentToDelete.id)}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Payment Dialog */}
+      <PaymentDialog
+        open={showPaymentDialog}
+        onOpenChange={setShowPaymentDialog}
+        onPaymentSuccess={handlePaymentSuccess}
+        title="Activate Your Agent"
+        description="A one-time payment is required to activate your agent. After payment, you can activate up to 50 agents."
+      />
 
       {/* Validation Error Modal */}
       <Dialog open={showValidationErrorModal} onOpenChange={setShowValidationErrorModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-center gap-2 text-xl font-bold text-center">
+            <DialogTitle className="flex items-center justify-center gap-2 text-center text-xl font-bold">
               <AlertTriangle className="h-6 w-6 text-amber-500" />
               Cannot Activate Agent
             </DialogTitle>
-            <DialogDescription className="text-center pt-2">
-              Please resolve the following issues before activating:
-            </DialogDescription>
+            <DialogDescription className="pt-2 text-center">Please resolve the following issues before activating:</DialogDescription>
           </DialogHeader>
 
-          <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-lg my-4">
-            <ul className="list-disc pl-5 space-y-2 text-amber-800">
+          <div className="my-4 rounded-lg border-l-4 border-amber-500 bg-amber-50 p-4">
+            <ul className="list-disc space-y-2 pl-5 text-amber-800">
               {validationErrors.map((error, index) => (
                 <li key={index}>{error}</li>
               ))}
             </ul>
           </div>
 
-          <DialogFooter className="sm:justify-between">
-            <Button
-              onClick={() => setShowValidationErrorModal(false)}
-              variant="outline"
-            >
+          <DialogFooter className="flex justify-end">
+            <Button onClick={() => setShowValidationErrorModal(false)} variant="outline">
               Close
             </Button>
-            {currentAgentUuid && (
-              <Button
-                variant="default"
-                onClick={() => {
-                  setShowValidationErrorModal(false);
-                  window.location.href = `/my-agent/${currentAgentUuid}`;
-                }}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!agentToDelete} onOpenChange={() => setAgentToDelete(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Agent</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {agentToDelete?.name}? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setAgentToDelete(null)}>
+              Cancel
+            </Button>
+            {agentToDelete && (
+              <Button 
+                variant="destructive" 
+                onClick={() => handleDeleteAgent(agentToDelete.id)}
               >
-                Configure Agent
+                Delete
               </Button>
             )}
           </DialogFooter>
