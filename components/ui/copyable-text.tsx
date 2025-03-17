@@ -31,14 +31,14 @@ export function CopyableText({ text, displayText, className, label, successMessa
   return (
     <div className={cn("flex flex-col space-y-2", className)}>
       {label && <div className="text-sm font-medium text-muted-foreground">{label}</div>}
-      <div className="flex items-center gap-2">
-        <div className="bg-muted overflow-hidden overflow-ellipsis whitespace-nowrap rounded-md border px-3 py-2 text-sm flex-1">
+      <div className="flex items-center gap-2 w-full">
+        <div className="bg-muted rounded-md border px-3 py-2 text-sm flex-1 overflow-hidden break-all">
           {displayText || text}
         </div>
         <button
           type="button"
           onClick={handleCopy}
-          className="bg-background text-muted-foreground hover:text-foreground flex h-8 w-8 items-center justify-center rounded-md border transition-colors"
+          className="bg-background text-muted-foreground hover:text-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-md border transition-colors"
           aria-label="Copy to clipboard"
         >
           {copied ? <CheckIcon className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}

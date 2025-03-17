@@ -96,6 +96,8 @@ export class TwitterProvider extends OAuthProvider {
         state: state,
       };
     } catch (error) {
+  
+      
       if (axios.isAxiosError(error) && error.response) {
         const statusCode = error.response.status;
         const errorData = error.response.data;
@@ -129,6 +131,8 @@ export class TwitterProvider extends OAuthProvider {
         avatar: userData.profile_image_url,
       };
     } catch (error) {
+   
+      
       if (axios.isAxiosError(error) && error.response) {
         const statusCode = error.response.status;
         const errorData = error.response.data;
@@ -172,6 +176,10 @@ export class TwitterProvider extends OAuthProvider {
         expiresIn: response.data.expires_in,
       };
     } catch (error) {
+      if ((error as Error).message === 'NEXT_REDIRECT') {
+        return {} as OAuthTokens;
+      }
+      
       if (axios.isAxiosError(error) && error.response) {
         const statusCode = error.response.status;
         const errorData = error.response.data;

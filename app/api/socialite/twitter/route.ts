@@ -16,7 +16,8 @@ interface TwitterApiError {
   };
 }
 
-export const GET = async (request: Request): Promise<Response> => {
+export const GET = async (request: Request) => {
+  let state = null;
   try {
     // Decode state from URL parameter
     const url = new URL(request.url);
@@ -28,7 +29,7 @@ export const GET = async (request: Request): Promise<Response> => {
     
     const base64StateString = stateParam;
     const stateString = atob(base64StateString);
-    const state = JSON.parse(stateString);
+     state = JSON.parse(stateString);
 
     // Get agent information including Twitter credentials
     const agent = await AgentService.getAgentByUuid(state.agentUuid);
@@ -71,7 +72,7 @@ export const GET = async (request: Request): Promise<Response> => {
           account: profile,
         });
         
-        return redirect(state.url);
+
       } catch (error) {
         const userInfoError = error as TwitterApiError;
         console.error("User info request failed:", userInfoError);
@@ -89,14 +90,20 @@ export const GET = async (request: Request): Promise<Response> => {
         return createErrorResponse(`Failed to fetch user info: ${userInfoError.message || JSON.stringify(userInfoError)}`);
       }
     } catch (error) {
+      
       const tokenError = error as TwitterApiError;
       console.error("Token exchange failed:", tokenError);
       return createErrorResponse(`Failed to exchange token: ${tokenError.message || JSON.stringify(tokenError)}`);
     }
   } catch (error) {
+    
     const genericError = error as Error;
     console.error("Twitter OAuth callback error:", genericError);
     return createErrorResponse(`Twitter authentication failed: ${genericError.message || JSON.stringify(genericError)}`);
+  }
+
+  if(state){
+    return redirect(state.url);
   }
 };
 
