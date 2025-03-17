@@ -133,6 +133,15 @@ export class TwitterProvider extends OAuthProvider {
         const statusCode = error.response.status;
         const errorData = error.response.data;
         console.error(`User info request failed (${statusCode}):`, errorData);
+        
+        if (statusCode === 403 && errorData.reason === "client-not-enrolled") {
+          throw new Error(
+            `Your Twitter app needs to be attached to a Project in the Twitter developer portal. ` +
+            `Please visit ${errorData.registration_url || 'https://developer.twitter.com/en/docs/projects/overview'} ` +
+            `to create a project and attach your app to it.`
+          );
+        }
+        
         throw new Error(`Failed to fetch user info: ${statusCode} - ${JSON.stringify(errorData)}`);
       } else {
         console.error("User info network error:", error);
