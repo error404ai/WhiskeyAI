@@ -21,6 +21,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import PaymentDialog from "./PaymentDialog";
+import { SOCIAL_CONFIG } from "@/config";
 
 export default function YourAgentsSection() {
   const {
@@ -167,7 +168,7 @@ export default function YourAgentsSection() {
                         <div className="flex justify-between items-center">
                           <span className="text-xs font-medium text-muted-foreground">Pump.fun</span>
                           <a 
-                            href={`https://pump.fun/coin/${agent.tokenAddress}`} 
+                            href={`${SOCIAL_CONFIG.PUMP_FUN_COIN_URL}${agent.tokenAddress}`} 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="inline-flex items-center justify-center gap-1 text-xs rounded-md font-medium transition-colors hover:bg-primary/90 hover:text-primary-foreground px-2 py-1 border"
