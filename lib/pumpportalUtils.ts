@@ -1,11 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Connection, Keypair, PublicKey, SendOptions, Transaction, VersionedTransaction } from "@solana/web3.js";
-const RPC_ENDPOINT = "https://kelcey-184ipf-fast-mainnet.helius-rpc.com";
+import { SOLANA_CONFIG, API_CONFIG } from "@/config";
+
+const RPC_ENDPOINT = SOLANA_CONFIG.RPC_ENDPOINT;
+const PUMP_PORTAL_API = API_CONFIG.PUMP_PORTAL_API;
+const TOKEN_CREATION_PRIORITY_FEE = API_CONFIG.TOKEN_CREATION_PRIORITY_FEE;
 
 export const sendWalletCreateTx = async (publicKey: PublicKey, signTransaction: (transaction: Transaction | VersionedTransaction) => Promise<Transaction | VersionedTransaction>, metadataResponseJSON: any, amount: string) => {
   const web3Connection = new Connection(RPC_ENDPOINT, "confirmed");
   const mintKeypair = Keypair.generate();
-  const response = await fetch(`https://pumpportal.fun/api/trade-local`, {
+  const response = await fetch(`${PUMP_PORTAL_API}/trade-local`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -22,7 +26,7 @@ export const sendWalletCreateTx = async (publicKey: PublicKey, signTransaction: 
       denominatedInSol: "true",
       amount: amount,
       slippage: 10,
-      priorityFee: 0.0005,
+      priorityFee: TOKEN_CREATION_PRIORITY_FEE,
       pool: "pump",
     }),
   });

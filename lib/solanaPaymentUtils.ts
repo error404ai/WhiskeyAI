@@ -1,14 +1,13 @@
 import { Connection, PublicKey, SendOptions, SystemProgram, Transaction, VersionedTransaction, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { SOLANA_CONFIG, PAYMENT_CONFIG } from "@/config";
 
-// Use a reliable RPC endpoint
-const RPC_ENDPOINT = "https://kelcey-184ipf-fast-mainnet.helius-rpc.com";
-
-const RECIPIENT_WALLET = "ASzaZmbQoNCAyvi7PKQauAiKvHosEXkoXyWCj2UzvtFp";
-
-export const AGENT_CREATION_FEE = 0.0001;
-
-// Minimum rent-exempt balance for a new account
-const MINIMUM_RENT_EXEMPT_BALANCE = 0.00203928; // 2,039,280 lamports
+// Use configuration values
+const RPC_ENDPOINT = SOLANA_CONFIG.RPC_ENDPOINT;
+const RECIPIENT_WALLET = SOLANA_CONFIG.RECIPIENT_WALLET;
+export const AGENT_CREATION_FEE = PAYMENT_CONFIG.AGENT_CREATION_FEE;
+const MINIMUM_RENT_EXEMPT_BALANCE = PAYMENT_CONFIG.MINIMUM_RENT_EXEMPT_BALANCE;
+const TRANSACTION_FEE_BUFFER = PAYMENT_CONFIG.TRANSACTION_FEE_BUFFER;
+const MAX_TRANSACTION_AGE_MS = PAYMENT_CONFIG.MAX_TRANSACTION_AGE_MS;
 
 export const sendAgentPaymentTx = async (publicKey: PublicKey, signTransaction: (transaction: Transaction | VersionedTransaction) => Promise<Transaction | VersionedTransaction>): Promise<string> => {
   const connection = new Connection(RPC_ENDPOINT, {
@@ -63,8 +62,8 @@ export const sendAgentPaymentTx = async (publicKey: PublicKey, signTransaction: 
     console.log("Transaction fee:", fee.value / LAMPORTS_PER_SOL, "SOL");
     console.log("Rent-exempt balance needed:", MINIMUM_RENT_EXEMPT_BALANCE, "SOL");
 
-    // Add a small buffer for transaction fees (0.001 SOL)
-    const minimumRequiredBalance = totalAmountWithFees + (0.001 * LAMPORTS_PER_SOL);
+    // Add a small buffer for transaction fees
+    const minimumRequiredBalance = totalAmountWithFees + (TRANSACTION_FEE_BUFFER * LAMPORTS_PER_SOL);
     
     if (balance < minimumRequiredBalance) {
       throw new Error(`Insufficient balance. Required: ${minimumRequiredBalance / LAMPORTS_PER_SOL} SOL (including fees and buffer)`);
@@ -164,9 +163,8 @@ export const verifyPaymentTransaction = async (txSignature: string, payerPublicK
 
     const txTimestamp = transaction.blockTime * 1000;
     const currentTime = Date.now();
-    const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
-    if (currentTime - txTimestamp > ONE_DAY_MS) {
+    if (currentTime - txTimestamp > MAX_TRANSACTION_AGE_MS) {
       return { isValid: false, error: "Transaction is too old (more than 24 hours)" };
     }
 
