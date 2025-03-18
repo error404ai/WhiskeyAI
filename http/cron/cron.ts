@@ -3,7 +3,7 @@ import { TriggerSchedulerService } from "../services/agent/TriggerSchedulerServi
 
 const runTask = async () => {
   try {
-    console.log("Running scheduled trigger check...");
+    console.log("Started processing pending triggers ================================================");
     const triggerScheduler = new TriggerSchedulerService();
     await triggerScheduler.processPendingTriggers();
   } catch (error) {
