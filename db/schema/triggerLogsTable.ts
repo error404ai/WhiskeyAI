@@ -10,14 +10,12 @@ export const triggerLogsTable = pgTable("trigger_logs", {
   agentId: integer("agent_id").references(() => agentsTable.id, { onDelete: "set null" }),
   triggerId: integer("trigger_id").references(() => agentTriggersTable.id, { onDelete: "set null" }),
   functionName: text("function_name").notNull(),
-  step: text("step").notNull(), // e.g., "init", "execution_start", "tool_call", "execution_complete", "error"
-  status: text("status").notNull(), // e.g., "success", "error", "pending"
-  message: text("message"),
-  requestData: json("request_data"), // Store function arguments, etc.
-  responseData: json("response_data"), // Store function results
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  status: text("status").notNull(), // "success", "error", "no_trigger"
   executionTime: integer("execution_time"), // in milliseconds
-  errorDetails: text("error_details"),
+  errorDetails: text("error_details"), // Details if there was an error
+  conversationData: json("conversation_data"), // Store AI chat conversation
+  functionData: json("function_data"), // Store function call and response
+  createdAt: timestamp("created_at").defaultNow().notNull(),
   metadata: json("metadata"), // For any additional data we might want to store
 });
 
