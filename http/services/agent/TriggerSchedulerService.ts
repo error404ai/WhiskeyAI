@@ -61,6 +61,10 @@ export class TriggerSchedulerService {
   private twitterService: TwitterService | null = null;
   private userId: number = 0;
   private _isSecondExecution = false;
+  private loggedTriggers = new Set<number>(); // Track which triggers have been logged
+  
+  // Static flag to prevent concurrent executions
+  private static isProcessing = false;
 
   constructor() {
     // Initialize OpenAI client
@@ -74,6 +78,14 @@ export class TriggerSchedulerService {
    * This will be called from the cron job
    */
   public async processPendingTriggers(): Promise<void> {
+    // Prevent multiple concurrent executions
+    if (TriggerSchedulerService.isProcessing) {
+      console.log("Another trigger processing job is already running, skipping");
+      return;
+    }
+    
+    TriggerSchedulerService.isProcessing = true;
+    
     try {
       // Log process starting
       console.log("Starting to process pending triggers");
@@ -97,18 +109,18 @@ export class TriggerSchedulerService {
     } catch (error) {
       console.error("Error processing pending triggers:", error);
       
-      // Log critical errors to database
-      await TriggerLogService.logTriggerLifecycle(
-        { id: 0, agentId: 0, name: "System", functionName: "processPendingTriggers" },
-        this.userId,
-        "Error",
+      // Log critical errors
+      await TriggerLogService.logNoTriggersFound(
+        this.userId, 
         {
-          step: "error",
-          status: "error",
-          message: "Error processing pending triggers",
-          errorDetails: error instanceof Error ? error.message : String(error),
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+          timestamp: new Date().toISOString()
         }
       );
+    } finally {
+      // Reset processing flag
+      TriggerSchedulerService.isProcessing = false;
     }
   }
 
@@ -152,22 +164,17 @@ export class TriggerSchedulerService {
       functionName: trigger.functionName 
     };
     
-    // Log trigger start
+    // Check if we've already logged this trigger in this run
+    if (this.loggedTriggers.has(trigger.id)) {
+      console.log(`[Trigger] Trigger ${trigger.id} has already been logged, skipping duplicate logging`);
+      return;
+    }
+    
+    // Log trigger start in console for debugging
     console.log(`\n-----------------------------------------------`);
     console.log(`[Trigger] Processing trigger: ${trigger.name} (ID: ${trigger.id})`);
     console.log(`[Trigger] Agent ID: ${trigger.agentId}, Function: ${trigger.functionName}`);
     console.log(`-----------------------------------------------`);
-    
-    const startLog = await TriggerLogService.logTriggerLifecycle(
-      triggerData,
-      this.userId,
-      "Starting",
-      {
-        step: "init",
-        status: "pending",
-        message: `Starting to process trigger: ${trigger.name}`,
-      }
-    );
     
     try {
       // Get function details
@@ -188,10 +195,30 @@ export class TriggerSchedulerService {
       // Update the trigger's last run and next run times
       await this.updateTriggerSchedule(trigger);
       
-      // Log successful execution and calculate execution time
+      // Calculate execution time
       const executionTime = Date.now() - startTime;
-      await TriggerLogService.updateLogExecutionTime(startLog.id, executionTime);
-      await TriggerLogService.updateLogResponse(startLog.id, result as Record<string, unknown>);
+      
+      // Prepare conversation data
+      const conversationData = this.prepareConversationData(result);
+      
+      // Prepare function data
+      const functionData = {
+        name: trigger.functionName,
+        result: result,
+        executedAt: new Date().toISOString()
+      };
+      
+      // Log successful execution with all relevant data
+      await TriggerLogService.logSuccessfulTrigger(
+        triggerData,
+        this.userId,
+        executionTime,
+        conversationData,
+        functionData
+      );
+      
+      // Mark this trigger as logged
+      this.loggedTriggers.add(trigger.id);
 
       console.log(`[Trigger] Successfully processed trigger ${trigger.id}`);
       console.log(`-----------------------------------------------\n`);
@@ -202,8 +229,19 @@ export class TriggerSchedulerService {
       console.error(`[Trigger] Error details:`, error);
       console.error(`-----------------------------------------------\n`);
       
-      // Log error
-      await TriggerLogService.updateLogError(startLog.id, error instanceof Error ? error.message : String(error));
+      // Calculate execution time
+      const executionTime = Date.now() - startTime;
+      
+      // Log error with details
+      await TriggerLogService.logFailedTrigger(
+        triggerData,
+        this.userId,
+        error instanceof Error ? error.message : String(error),
+        executionTime
+      );
+      
+      // Mark this trigger as logged
+      this.loggedTriggers.add(trigger.id);
 
       // Update next run time even if there was an error
       await this.updateTriggerSchedule(trigger);
@@ -315,23 +353,7 @@ export class TriggerSchedulerService {
           // Check if result is an error object (for handled errors like duplicate tweets)
           if (result && typeof result === 'object' && result.success === false && result.error) {
             console.error(`[AI] Trigger function returned error: ${result.error}`);
-            await TriggerLogService.logTriggerLifecycle(
-              { 
-                id: triggerWithAgent.id, 
-                agentId: triggerWithAgent.agentId, 
-                name: triggerWithAgent.name, 
-                functionName: triggerWithAgent.functionName 
-              },
-              this.userId,
-              "Execution Error",
-              {
-                step: "execution_error",
-                status: "error",
-                message: result.error,
-                requestData: lastCall.args as Record<string, unknown>,
-                errorDetails: JSON.stringify(result.originalError || {}),
-              }
-            );
+            
             throw new Error(result.error);
           }
           
@@ -345,45 +367,11 @@ export class TriggerSchedulerService {
         console.error(`[AI] Expected last tool call to be ${triggerWithAgent.functionName} but was ${lastCall.name}`);
         const errorMessage = `AI did not call the expected trigger function. Expected ${triggerWithAgent.functionName} but got ${lastCall.name}`;
         
-        // Log this error
-        await TriggerLogService.logTriggerLifecycle(
-          { 
-            id: triggerWithAgent.id, 
-            agentId: triggerWithAgent.agentId, 
-            name: triggerWithAgent.name, 
-            functionName: triggerWithAgent.functionName 
-          },
-          this.userId,
-          "Execution Error",
-          {
-            step: "execution_error",
-            status: "error",
-            message: errorMessage,
-          }
-        );
-        
         throw new Error(errorMessage);
       }
     } else {
       console.error(`[AI] No tool calls were made during the conversation`);
       const errorMessage = "AI did not make any tool calls during the conversation";
-      
-      // Log this error
-      await TriggerLogService.logTriggerLifecycle(
-        { 
-          id: triggerWithAgent.id, 
-          agentId: triggerWithAgent.agentId, 
-          name: triggerWithAgent.name, 
-          functionName: triggerWithAgent.functionName 
-        },
-        this.userId,
-        "Execution Error",
-        {
-          step: "execution_error",
-          status: "error",
-          message: errorMessage,
-        }
-      );
       
       throw new Error(errorMessage);
     }
@@ -554,24 +542,6 @@ export class TriggerSchedulerService {
               if (result && typeof result === 'object' && result.success === false && result.error) {
                 console.warn(`[Conv] Function ${toolCall.function.name} returned handled error: ${result.error}`);
                 
-                // Log the error but don't throw - allow the conversation to continue
-                await TriggerLogService.logTriggerLifecycle(
-                  { 
-                    id: triggerWithAgent.id, 
-                    agentId: triggerWithAgent.agentId, 
-                    name: triggerWithAgent.name, 
-                    functionName: triggerWithAgent.functionName 
-                  },
-                  this.userId,
-                  "Tool Call Warning",
-                  {
-                    step: `tool_call_warning_${toolCall.function.name}`,
-                    status: "warning",
-                    message: `Warning executing tool call: ${toolCall.function.name} - ${result.error}`,
-                    requestData: args as Record<string, unknown>,
-                  }
-                );
-                
                 // Add the error response to the conversation so AI can try something else
                 const toolMessage: ToolMessage = {
                   role: "tool",
@@ -590,25 +560,8 @@ export class TriggerSchedulerService {
               
               console.log(`[Conv] Function executed successfully: ${toolCall.function.name}`);
               
-              // Log important function calls to database
+              // Mark successful trigger function execution
               if (toolCall.function.name === triggerWithAgent.functionName) {
-                await TriggerLogService.logTriggerLifecycle(
-                  { 
-                    id: triggerWithAgent.id, 
-                    agentId: triggerWithAgent.agentId, 
-                    name: triggerWithAgent.name, 
-                    functionName: triggerWithAgent.functionName 
-                  },
-                  this.userId,
-                  "Trigger Function Called",
-                  {
-                    step: "trigger_function_called",
-                    status: "success",
-                    message: `AI called trigger function: ${triggerWithAgent.functionName}`,
-                    requestData: args as Record<string, unknown>,
-                  }
-                );
-                
                 // Mark that the trigger function was successfully executed
                 successfulTriggerExecution = true;
               }
@@ -635,24 +588,6 @@ export class TriggerSchedulerService {
               errorCount++;
               const error = err as Error;
               console.error(`[Conv] Error executing function ${toolCall.function.name}:`, error);
-              
-              // Log errors to database
-              await TriggerLogService.logTriggerLifecycle(
-                { 
-                  id: triggerWithAgent.id, 
-                  agentId: triggerWithAgent.agentId, 
-                  name: triggerWithAgent.name, 
-                  functionName: triggerWithAgent.functionName 
-                },
-                this.userId,
-                "Tool Call Error",
-                {
-                  step: `tool_call_error_${toolCall.function.name}`,
-                  status: "error",
-                  message: `Error executing tool call: ${toolCall.function.name}`,
-                  errorDetails: error.message,
-                }
-              );
               
               // If this is a rate limit error or another non-fatal error, let the conversation continue
               const isRateLimitError = error.message.includes('429') || error.message.includes('rate limit');
@@ -690,24 +625,6 @@ export class TriggerSchedulerService {
       } catch (error: any) {
         // Handle errors in the conversation itself (like OpenAI API errors)
         console.error(`[Conv] Error in conversation:`, error);
-        
-        // Log the error
-        await TriggerLogService.logTriggerLifecycle(
-          { 
-            id: triggerWithAgent.id, 
-            agentId: triggerWithAgent.agentId, 
-            name: triggerWithAgent.name, 
-            functionName: triggerWithAgent.functionName 
-          },
-          this.userId,
-          "Conversation Error",
-          {
-            step: "conversation_error",
-            status: "error",
-            message: `Error in conversation: ${error.message}`,
-            errorDetails: error.stack,
-          }
-        );
         
         throw error;
       }
@@ -976,5 +893,40 @@ export class TriggerSchedulerService {
         nextRunAt: nextRunAt,
       })
       .where(eq(agentTriggersTable.id, trigger.id));
+  }
+
+  /**
+   * Prepare conversation data from the AI chat result
+   */
+  private prepareConversationData(result: any): Record<string, unknown> {
+    try {
+      // Try to extract conversation data
+      if (result && result.conversation) {
+        return {
+          messages: result.conversation.messages || [],
+          toolCalls: result.conversation.toolCalls || []
+        };
+      }
+      
+      // If result has messages directly
+      if (result && Array.isArray(result.messages)) {
+        return {
+          messages: result.messages,
+          toolCalls: result.toolCalls || []
+        };
+      }
+      
+      // Fallback
+      return { 
+        result: result,
+        note: "Unable to extract structured conversation data"
+      };
+    } catch (error) {
+      console.error("Error preparing conversation data:", error);
+      return { 
+        error: "Failed to extract conversation data",
+        rawResult: JSON.stringify(result).substring(0, 1000) + "..." // Limited to prevent very large logs
+      };
+    }
   }
 }
