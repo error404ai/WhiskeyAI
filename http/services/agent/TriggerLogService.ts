@@ -7,36 +7,10 @@ import { eq, desc } from "drizzle-orm";
  */
 export class TriggerLogService {
   /**
-   * Create a new log entry with duplicate protection
+   * Create a new log entry
    */
   static async createLog(logData: NewTriggerLog): Promise<TriggerLog> {
     try {
-      // If this is a trigger log (has a triggerId), check for recent duplicates
-      if (logData.triggerId) {
-        try {
-          // Check for recent logs for this trigger (within 5 seconds)
-          const recentLogs = await db.select()
-            .from(triggerLogsTable)
-            .where(eq(triggerLogsTable.triggerId, logData.triggerId))
-            .orderBy(desc(triggerLogsTable.createdAt))
-            .limit(3);
-            
-          // If we found a very recent log (less than 5 seconds old), don't create a new one
-          const recentLog = recentLogs.find(log => 
-            new Date().getTime() - new Date(log.createdAt).getTime() < 5000
-          );
-          
-          if (recentLog) {
-            console.log(`Found very recent log (${recentLog.id}) for trigger ${logData.triggerId}, avoiding duplicate`);
-            return recentLog;
-          }
-        } catch (err) {
-          // If checking for duplicates fails, just continue with creating the log
-          console.error("Error checking for duplicate logs:", err);
-        }
-      }
-      
-      // Create the new log
       const [result] = await db.insert(triggerLogsTable).values(logData).returning();
       return result;
     } catch (error) {
@@ -208,7 +182,7 @@ export class TriggerLogService {
       metadata?: Record<string, unknown>;
     }
   ): Promise<TriggerLog> {
-    // Map to new format based on status
+    // Map old format to new format
     if (details.status === "error" || details.step.includes("error")) {
       return await this.logFailedTrigger(
         trigger,
