@@ -51,7 +51,7 @@ const TriggersStep = () => {
   const onSubmit = async (data: z.infer<typeof agentTriggerCreateSchema>) => {
     console.log("data is", data);
     let res;
-    
+
     if (editingTriggerId) {
       // Update existing trigger
       res = await AgentTriggerController.updateAgentTrigger(editingTriggerId, data);
@@ -59,20 +59,20 @@ const TriggersStep = () => {
       // Create new trigger
       res = await AgentTriggerController.createAgentTrigger(data);
     }
-    
+
     if (res) {
       setShowTriggerDialog(false);
       refetchAgentTriggers();
       resetForm();
     }
   };
-  
+
   const resetForm = () => {
     methods.reset();
     setEditingTriggerId(null);
     setActiveTab("basic");
   };
-  
+
   const handleEditTrigger = async (triggerId: number) => {
     const trigger = await AgentTriggerController.getTriggerById(triggerId);
     if (trigger) {
@@ -89,7 +89,7 @@ const TriggersStep = () => {
       setShowTriggerDialog(true);
     }
   };
-  
+
   const handleDeleteTrigger = async (triggerId: number) => {
     const res = await AgentTriggerController.deleteAgentTrigger(triggerId);
     if (res) {
@@ -104,13 +104,22 @@ const TriggersStep = () => {
   };
   const [showTriggerDialog, setShowTriggerDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
-  
+  const [minInterval, setMinInterval] = useState(1);
+  useEffect(() => {
+    const runEvery = methods.getValues("runEvery");
+    if (runEvery === "minutes") {
+      setMinInterval(30); // Set min to 30 when "minutes" is selected
+    } else {
+      setMinInterval(1); // Otherwise, min is 1
+    }
+  }, [methods.watch("runEvery")]); // Reacts to changes in "runEvery"
+
   useEffect(() => {
     if (!showTriggerDialog) {
       resetForm();
     }
   }, [showTriggerDialog]);
-  
+
   useEffect(() => {
     if (methods.formState.errors.description || methods.formState.errors.name || methods.formState.errors.interval || methods.formState.errors.description) {
       setActiveTab("basic");
@@ -146,7 +155,7 @@ const TriggersStep = () => {
                   <h3 className="truncate text-lg font-semibold">{trigger.name}</h3>
                   <div className="flex items-center space-x-2">
                     <div className="flex items-center space-x-2">
-                      <Switch 
+                      <Switch
                         id={`trigger-status-${trigger.id}`}
                         checked={trigger.status === 'active'}
                         onCheckedChange={() => handleToggleTriggerStatus(trigger.id)}
@@ -155,18 +164,18 @@ const TriggersStep = () => {
                         {trigger.status === 'active' ? 'Active' : 'Paused'}
                       </Label>
                     </div>
-                    <Button 
-                      onClick={() => handleEditTrigger(trigger.id)} 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      onClick={() => handleEditTrigger(trigger.id)}
+                      variant="ghost"
+                      size="icon"
                       className="text-primary hover:bg-primary/10"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      onClick={() => handleDeleteTrigger(trigger.id)} 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      onClick={() => handleDeleteTrigger(trigger.id)}
+                      variant="ghost"
+                      size="icon"
                       className="text-destructive hover:bg-destructive/10"
                     >
                       <X className="h-4 w-4" />
@@ -215,24 +224,57 @@ const TriggersStep = () => {
                       <TabsContent value="basic">
                         <div className="space-y-4">
                           <div className="space-y-2">
-                            <Input 
-                              label="Trigger Name" 
-                              required 
-                              name="name" 
-                              placeholder="Enter Trigger Name" 
+                            <Input
+                              label="Trigger Name"
+                              required
+                              name="name"
+                              placeholder="Enter Trigger Name"
                               defaultValue={methods.getValues("name") || ""}
                             />
                           </div>
                           <div className="space-y-2">
-                            <Textarea 
-                              name="description" 
-                              label="Trigger Description" 
-                              required 
-                              placeholder="What does this trigger do?" 
+                            <Textarea
+                              name="description"
+                              label="Trigger Description"
+                              required
+                              placeholder="What does this trigger do?"
                               defaultValue={methods.getValues("description") || ""}
                             />
                           </div>
+
+
                           <div className="space-y-2">
+                            <Label>How Often Should The Trigger Run?</Label>
+                            <div className="flex gap-2">
+                              <Input
+                                name="interval"
+                                type="number"
+                                min={minInterval}
+                                className="w-24"
+                                defaultValue={methods.getValues("interval")?.toString() || ""}
+                              // {...methods.register("interval", {
+                              //   min: { value: minInterval, message: `Minimum interval is ${minInterval}` },
+                              // })}
+                              />
+                              <div>
+                                <select
+                                  {...methods.register("runEvery")}
+                                  className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                  defaultValue={methods.getValues("runEvery") || ""}
+                                >
+                                  <option value="" disabled>Select a unit</option>
+                                  <option value="minutes">minutes</option>
+                                  <option value="hours">hours</option>
+                                  <option value="days">days</option>
+                                </select>
+                                {methods.formState.errors.runEvery && (
+                                  <p className="text-sm text-red-500">{methods.formState.errors.runEvery.message}</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* <div className="space-y-2">
                             <Label>How Often Should The Trigger Run?</Label>
                             <div className="flex gap-2">
                               <Input 
@@ -254,7 +296,8 @@ const TriggersStep = () => {
                                 {methods.formState.errors.runEvery && <p className="text-sm text-red-500">{methods.formState.errors.runEvery.message}</p>}
                               </div>
                             </div>
-                          </div>
+                          </div> */}
+
                         </div>
                       </TabsContent>
                       <TabsContent value="function" className="space-y-4">
