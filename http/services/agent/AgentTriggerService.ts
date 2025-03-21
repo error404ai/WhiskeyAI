@@ -24,6 +24,8 @@ export class AgentTriggerService {
       nextRunAt.setMinutes(now.getMinutes() + Number(triggerData.interval));
     } else if (triggerData.runEvery === "hours") {
       nextRunAt.setHours(now.getHours() + Number(triggerData.interval));
+    } else if (triggerData.runEvery === "days") {
+      nextRunAt.setDate(now.getDate() + Number(triggerData.interval));
     }
     
     const res = await db.insert(agentTriggersTable).values({

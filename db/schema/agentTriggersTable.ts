@@ -10,7 +10,7 @@ export const agentTriggersTable = pgTable("agentTriggers", {
   name: varchar({ length: 255 }).notNull(),
   description: text().notNull(),
   interval: integer().notNull(),
-  runEvery: varchar({ length: 255 }).notNull().$type<"minutes" | "hours">(),
+  runEvery: varchar({ length: 255 }).notNull().$type<"minutes" | "hours" | "days">(),
   functionName: varchar({ length: 255 }).notNull(),
   informationSource: varchar({ length: 255 }).notNull(),
   lastRunAt: timestamp(),

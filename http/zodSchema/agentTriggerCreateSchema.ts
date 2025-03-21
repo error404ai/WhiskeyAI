@@ -12,7 +12,7 @@ export const agentTriggerCreateSchema = z.object({
     { message: "Interval must be a positive integer" },
   ),
 
-  runEvery: z.enum(["minutes", "hours"]),
+  runEvery: z.enum(["minutes", "hours", "days"]),
   functionName: z.string().nonempty({ message: "Function Name is required" }),
   informationSource: z.string().nonempty({ message: "Information Source is required" }),
 });
