@@ -4,8 +4,8 @@ import { Agent, type Function, agentPlatformsTable, agentTriggersTable, function
 import { AgentTrigger } from "@/db/schema/agentTriggersTable";
 import TwitterService from "@/http/services/TwitterService";
 import { and, eq, lte } from "drizzle-orm";
-import { TriggerLogService } from "./TriggerLogService";
 import { OpenAIService } from "../OpenAIService";
+import { TriggerLogService } from "./TriggerLogService";
 
 interface FunctionTool {
   type: "function";
@@ -22,10 +22,8 @@ export class TriggerSchedulerService {
   private userId: number = 0;
 
   constructor() {
-
     this.openAIService = new OpenAIService();
   }
-
 
   public async processPendingTriggers(): Promise<void> {
     try {
@@ -42,64 +40,58 @@ export class TriggerSchedulerService {
       for (const trigger of pendingTriggers) {
         await this.processTrigger(trigger);
       }
-      
+
       console.log("Successfully processed all pending triggers");
     } catch (error) {
       console.error("Error processing pending triggers:", error);
-      
+
       // Log critical errors
-      await TriggerLogService.logNoTriggersFound(
-        this.userId, 
-        {
-          error: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined,
-          timestamp: new Date().toISOString()
-        }
-      );
+      await TriggerLogService.logNoTriggersFound(this.userId, {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
+      });
     }
   }
-
 
   private async getPendingTriggers() {
     const now = new Date();
 
-    return await db.query.agentTriggersTable.findMany({
-      where: and(
-        eq(agentTriggersTable.status, "active"), 
-        lte(agentTriggersTable.nextRunAt || new Date(0), now)
-      ),
-      with: {
-        agent: {
-          with: {
-            user: true
-          }
+    return await db.query.agentTriggersTable
+      .findMany({
+        where: and(eq(agentTriggersTable.status, "active"), lte(agentTriggersTable.nextRunAt || new Date(0), now)),
+        with: {
+          agent: {
+            with: {
+              user: true,
+            },
+          },
         },
-      },
-    }).then(triggers => {
-      // Filter out triggers whose agent is paused
-      return triggers.filter(trigger => trigger.agent.status === "running");
-    });
+      })
+      .then((triggers) => {
+        // Filter out triggers whose agent is paused
+        return triggers.filter((trigger) => trigger.agent.status === "running");
+      });
   }
 
- 
   private async processTrigger(trigger: AgentTrigger & { agent: Agent & { user: { id: number } } }): Promise<void> {
     this.userId = trigger.agent.user.id;
     this.openAIService.setUserId(this.userId);
-    
+
     // Start the execution timer
     const startTime = Date.now();
-    const triggerData = { 
-      id: trigger.id, 
-      agentId: trigger.agentId, 
-      name: trigger.name, 
-      functionName: trigger.functionName 
+    const triggerData = {
+      id: trigger.id,
+      agentId: trigger.agentId,
+      name: trigger.name,
+      functionName: trigger.functionName,
     };
-    
+
     console.log(`\n-----------------------------------------------`);
     console.log(`[Trigger] Processing trigger: ${trigger.name} (ID: ${trigger.id})`);
     console.log(`[Trigger] Agent ID: ${trigger.agentId}, Function: ${trigger.functionName}`);
     console.log(`-----------------------------------------------`);
-    
+
     try {
       // Get function details
       const functionDetails = await this.getFunctionDetails(trigger.functionName);
@@ -114,59 +106,49 @@ export class TriggerSchedulerService {
 
       // Execute the function using OpenAI function calling
       console.log(`[Trigger] Executing trigger function: ${trigger.functionName}`);
-      
+
       // Get agent tools and trigger tool
       const agentTools = await this.getAgentTools();
       const triggerTool = await this.getTriggerTool(trigger.functionName);
-      const tools = [...agentTools, triggerTool];
-      
+      const rpcTools = await this.getRpcTools(trigger.functionName);
+      const tools = [...agentTools, ...rpcTools, triggerTool];
+
       // Execute with AI
       const result = await this.openAIService.executeWithAI(trigger, tools);
-      
+
       // Update the trigger's last run and next run times
       await this.updateTriggerSchedule(trigger);
-      
+
       // Calculate execution time
       const executionTime = Date.now() - startTime;
-      
+
       // Prepare conversation data
       const conversationData = this.openAIService.prepareConversationData(result);
-      
+
       // Prepare function data
       const functionData = {
         name: trigger.functionName,
         result: result,
-        executedAt: new Date().toISOString()
+        executedAt: new Date().toISOString(),
       };
-      
+
       // Log successful execution with all relevant data
-      await TriggerLogService.logSuccessfulTrigger(
-        triggerData,
-        this.userId,
-        executionTime,
-        conversationData,
-        functionData
-      );
+      await TriggerLogService.logSuccessfulTrigger(triggerData, this.userId, executionTime, conversationData, functionData);
 
       console.log(`[Trigger] Successfully processed trigger ${trigger.id}`);
       console.log(`-----------------------------------------------\n`);
     } catch (error: any) {
       console.error(`[Trigger] *** ERROR PROCESSING TRIGGER ${trigger.id} ***`);
-      console.error(`[Trigger] Error type: ${error.name || 'Unknown'}`);
+      console.error(`[Trigger] Error type: ${error.name || "Unknown"}`);
       console.error(`[Trigger] Error message: ${error.message}`);
       console.error(`[Trigger] Error details:`, error);
       console.error(`-----------------------------------------------\n`);
-      
+
       // Calculate execution time
       const executionTime = Date.now() - startTime;
-      
+
       // Log error with details
-      await TriggerLogService.logFailedTrigger(
-        triggerData,
-        this.userId,
-        error instanceof Error ? error.message : String(error),
-        executionTime
-      );
+      await TriggerLogService.logFailedTrigger(triggerData, this.userId, error instanceof Error ? error.message : String(error), executionTime);
 
       // Update next run time even if there was an error
       await this.updateTriggerSchedule(trigger);
@@ -196,10 +178,10 @@ export class TriggerSchedulerService {
     // Initialize Twitter service
     try {
       this.twitterService = new TwitterService(platform);
-      
+
       // Set the Twitter service in the OpenAI service
       this.openAIService.setTwitterService(this.twitterService);
-      
+
       console.log(`[Twitter] Successfully initialized Twitter service for agent ${agentId}`);
     } catch (error) {
       console.error(`[Twitter] Failed to initialize Twitter service for agent ${agentId}:`, error);
@@ -242,10 +224,7 @@ export class TriggerSchedulerService {
   private async getTriggerTool(functionName: string): Promise<FunctionTool> {
     // Get the trigger function from the database
     const triggerFunction = await db.query.functionsTable.findFirst({
-      where: and(
-        eq(functionsTable.name, functionName),
-        eq(functionsTable.type, "trigger")
-      ),
+      where: and(eq(functionsTable.name, functionName), eq(functionsTable.type, "trigger")),
     });
 
     if (!triggerFunction) {
@@ -263,6 +242,30 @@ export class TriggerSchedulerService {
   }
 
   /**
+   * Get Rpc tool
+   */
+  private async getRpcTools(functionName: string): Promise<FunctionTool[]> {
+    // Get the trigger function from the database
+    const rpcFunctions = await db.query.functionsTable.findMany({
+      where: and(eq(functionsTable.name, functionName), eq(functionsTable.type, "rpc")),
+    });
+
+    if (!rpcFunctions) {
+      throw new Error(`Trigger function ${functionName} not found in database`);
+    }
+
+    // Convert to tools format
+    return rpcFunctions.map((func) => ({
+      type: "function" as const,
+      function: {
+        name: func.name,
+        description: func.description || "",
+        parameters: func.parameters || {},
+      },
+    }));
+  }
+
+  /**
    * Update the trigger's last run time and calculate the next run time
    */
   private async updateTriggerSchedule(trigger: AgentTrigger): Promise<void> {
@@ -275,7 +278,7 @@ export class TriggerSchedulerService {
     } else if (trigger.runEvery === "hours") {
       nextRunAt.setHours(now.getHours() + trigger.interval);
     }
-    
+
     console.log(`Updating trigger schedule: next run at ${nextRunAt.toISOString()}`);
 
     // Update the trigger record

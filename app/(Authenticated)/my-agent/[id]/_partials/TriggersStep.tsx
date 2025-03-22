@@ -53,10 +53,8 @@ const TriggersStep = () => {
     let res;
 
     if (editingTriggerId) {
-      // Update existing trigger
       res = await AgentTriggerController.updateAgentTrigger(editingTriggerId, data);
     } else {
-      // Create new trigger
       res = await AgentTriggerController.createAgentTrigger(data);
     }
 
@@ -150,34 +148,20 @@ const TriggersStep = () => {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {/* Existing trigger cards */}
             {agentTriggers?.map((trigger) => (
-              <Card key={trigger.id} className={`h-[180px] transition-shadow duration-300 hover:shadow-lg ${trigger.status === 'paused' ? 'opacity-60' : ''}`}>
+              <Card key={trigger.id} className={`h-[180px] transition-shadow duration-300 hover:shadow-lg ${trigger.status === "paused" ? "opacity-60" : ""}`}>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <h3 className="truncate text-lg font-semibold">{trigger.name}</h3>
                   <div className="flex items-center space-x-2">
                     <div className="flex items-center space-x-2">
-                      <Switch
-                        id={`trigger-status-${trigger.id}`}
-                        checked={trigger.status === 'active'}
-                        onCheckedChange={() => handleToggleTriggerStatus(trigger.id)}
-                      />
+                      <Switch id={`trigger-status-${trigger.id}`} checked={trigger.status === "active"} onCheckedChange={() => handleToggleTriggerStatus(trigger.id)} />
                       <Label htmlFor={`trigger-status-${trigger.id}`} className="text-xs">
-                        {trigger.status === 'active' ? 'Active' : 'Paused'}
+                        {trigger.status === "active" ? "Active" : "Paused"}
                       </Label>
                     </div>
-                    <Button
-                      onClick={() => handleEditTrigger(trigger.id)}
-                      variant="ghost"
-                      size="icon"
-                      className="text-primary hover:bg-primary/10"
-                    >
+                    <Button onClick={() => handleEditTrigger(trigger.id)} variant="ghost" size="icon" className="text-primary hover:bg-primary/10">
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button
-                      onClick={() => handleDeleteTrigger(trigger.id)}
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive hover:bg-destructive/10"
-                    >
+                    <Button onClick={() => handleDeleteTrigger(trigger.id)} variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10">
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
@@ -193,10 +177,13 @@ const TriggersStep = () => {
             ))}
 
             {/* Add Trigger card */}
-            <Dialog open={showTriggerDialog} onOpenChange={(open) => {
-              setShowTriggerDialog(open);
-              if (!open) resetForm();
-            }}>
+            <Dialog
+              open={showTriggerDialog}
+              onOpenChange={(open) => {
+                setShowTriggerDialog(open);
+                if (!open) resetForm();
+              }}
+            >
               <DialogTrigger asChild>
                 <Card className="hover:bg-muted/50 flex h-[180px] cursor-pointer items-center justify-center border-dashed">
                   <div className="flex flex-col items-center space-y-2 text-center">
@@ -224,24 +211,11 @@ const TriggersStep = () => {
                       <TabsContent value="basic">
                         <div className="space-y-4">
                           <div className="space-y-2">
-                            <Input
-                              label="Trigger Name"
-                              required
-                              name="name"
-                              placeholder="Enter Trigger Name"
-                              defaultValue={methods.getValues("name") || ""}
-                            />
+                            <Input label="Trigger Name" required name="name" placeholder="Enter Trigger Name" defaultValue={methods.getValues("name") || ""} />
                           </div>
                           <div className="space-y-2">
-                            <Textarea
-                              name="description"
-                              label="Trigger Description"
-                              required
-                              placeholder="What does this trigger do?"
-                              defaultValue={methods.getValues("description") || ""}
-                            />
+                            <Textarea name="description" label="Trigger Description" required placeholder="What does this trigger do?" defaultValue={methods.getValues("description") || ""} />
                           </div>
-
 
                           <div className="space-y-2">
                             <Label>How Often Should The Trigger Run?</Label>
@@ -252,24 +226,20 @@ const TriggersStep = () => {
                                 min={minInterval}
                                 className="w-24"
                                 defaultValue={methods.getValues("interval")?.toString() || ""}
-                              // {...methods.register("interval", {
-                              //   min: { value: minInterval, message: `Minimum interval is ${minInterval}` },
-                              // })}
+                                // {...methods.register("interval", {
+                                //   min: { value: minInterval, message: `Minimum interval is ${minInterval}` },
+                                // })}
                               />
                               <div>
-                                <select
-                                  {...methods.register("runEvery")}
-                                  className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                                  defaultValue={methods.getValues("runEvery") || ""}
-                                >
-                                  <option value="" disabled>Select a unit</option>
+                                <select {...methods.register("runEvery")} className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50" defaultValue={methods.getValues("runEvery") || ""}>
+                                  <option value="" disabled>
+                                    Select a unit
+                                  </option>
                                   <option value="minutes">minutes</option>
                                   <option value="hours">hours</option>
                                   <option value="days">days</option>
                                 </select>
-                                {methods.formState.errors.runEvery && (
-                                  <p className="text-sm text-red-500">{methods.formState.errors.runEvery.message}</p>
-                                )}
+                                {methods.formState.errors.runEvery && <p className="text-sm text-red-500">{methods.formState.errors.runEvery.message}</p>}
                               </div>
                             </div>
                           </div>
@@ -297,7 +267,6 @@ const TriggersStep = () => {
                               </div>
                             </div>
                           </div> */}
-
                         </div>
                       </TabsContent>
                       <TabsContent value="function" className="space-y-4">
@@ -329,10 +298,13 @@ const TriggersStep = () => {
                       </TabsContent>
                     </Tabs>
                     <div className="mt-6 flex justify-end gap-2">
-                      <Button variant="outline" onClick={() => {
-                        setShowTriggerDialog(false);
-                        resetForm();
-                      }}>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowTriggerDialog(false);
+                          resetForm();
+                        }}
+                      >
                         Cancel
                       </Button>
                       <Button type="submit" loading={methods.formState.isSubmitting}>
