@@ -87,7 +87,6 @@ export class OpenAIService {
 
     console.log(`[AI] Starting AI execution for function: ${triggerWithAgent.functionName}`);
 
-    // Prepare the context
     const context = {
       agentName: triggerWithAgent.agent.name,
       agentGoal: triggerWithAgent.agent.information?.goal || "",
@@ -198,13 +197,8 @@ export class OpenAIService {
     }
   }
 
-  /**
-   * Start conversation with OpenAI and handle multiple tool calls
-   */
   private async startConversation(triggerWithAgent: AgentTrigger & { agent: Agent & { user: { id: number } } }, tools: FunctionTool[], context: Record<string, string>): Promise<{ toolCallsData: ToolCallData[]; successfulTriggerExecution: boolean }> {
     console.log(`[Conv] Starting OpenAI conversation for trigger: ${triggerWithAgent.name}`);
-
-    // Initialize conversation
     const conversationHistory: ChatMessage[] = [
       {
         role: "system",
@@ -237,26 +231,21 @@ export class OpenAIService {
     ];
     console.log(`[Conv] Initialized conversation with system and user prompts`);
 
-    // Track all tool calls
     const toolCallsData: ToolCallData[] = [];
     let keepConversation = true;
 
-    // Track if the trigger function was successfully executed
     let successfulTriggerExecution = false;
 
-    // Track conversation errors
     let conversationError = false;
     let errorCount = 0;
     const MAX_ERRORS = 3;
 
-    // Continue conversation until all tool calls are processed
     let conversationTurn = 0;
     while (keepConversation && !conversationError) {
       conversationTurn++;
       console.log(`[Conv] Processing conversation turn ${conversationTurn}`);
 
       try {
-        // Call OpenAI with current conversation history
         console.log(`[Conv] Sending request to OpenAI API`);
         const response = await this.openai.chat.completions.create({
           model: this.model,
@@ -266,7 +255,6 @@ export class OpenAIService {
         });
         console.log(`[Conv] Received response from OpenAI API`);
 
-        // Get the response message
         const responseMessage = response.choices[0].message;
         console.log(`[Conv] AI response:`, {
           hasContent: !!responseMessage.content,
@@ -275,23 +263,19 @@ export class OpenAIService {
           toolCallCount: responseMessage.tool_calls?.length || 0,
         });
 
-        // Add the AI response to the conversation history
         conversationHistory.push({
           role: responseMessage.role,
           content: responseMessage.content || "",
           tool_calls: responseMessage.tool_calls,
         } as AssistantMessage);
 
-        // Process tool calls
         if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
           console.log(`[Conv] Processing ${responseMessage.tool_calls.length} tool calls`);
 
-          // Process each tool call
           for (const toolCall of responseMessage.tool_calls) {
             console.log(`[Conv] Processing tool call: ${toolCall.function.name}`);
 
             try {
-              // Parse arguments
               let args;
               try {
                 args = JSON.parse(toolCall.function.arguments);
@@ -302,15 +286,12 @@ export class OpenAIService {
                 throw new Error(`Failed to parse arguments: ${parseError.message}`);
               }
 
-              // Execute the function
               console.log(`[Conv] Executing function: ${toolCall.function.name}`);
               const result = await this.executeFunctionByName(toolCall.function.name, args);
 
-              // Check if result is an error object (for handled errors like duplicate tweets)
               if (result && typeof result === "object" && result.success === false && result.error) {
                 console.warn(`[Conv] Function ${toolCall.function.name} returned handled error: ${result.error}`);
 
-                // Log the error but don't throw - allow the conversation to continue
                 await TriggerLogService.logTriggerLifecycle(
                   {
                     id: triggerWithAgent.id,
@@ -328,7 +309,6 @@ export class OpenAIService {
                   },
                 );
 
-                // Add the error response to the conversation so AI can try something else
                 const toolMessage: ToolMessage = {
                   role: "tool",
                   tool_call_id: toolCall.id,
@@ -338,15 +318,13 @@ export class OpenAIService {
                 conversationHistory.push(toolMessage);
                 console.log(`[Conv] Added error result to conversation to let AI try again`);
 
-                // Record the tool call with error result
                 toolCallsData.push({ name: toolCall.function.name, args, result });
 
-                continue; // Skip to the next tool call
+                continue;
               }
 
               console.log(`[Conv] Function executed successfully: ${toolCall.function.name}`);
 
-              // Log important function calls to database
               if (toolCall.function.name === triggerWithAgent.functionName) {
                 await TriggerLogService.logTriggerLifecycle(
                   {
@@ -365,14 +343,11 @@ export class OpenAIService {
                   },
                 );
 
-                // Mark that the trigger function was successfully executed
                 successfulTriggerExecution = true;
               }
 
-              // Record the tool call with its result
               toolCallsData.push({ name: toolCall.function.name, args, result });
 
-              // Add the function response to the conversation
               const toolMessage: ToolMessage = {
                 role: "tool",
                 tool_call_id: toolCall.id,
@@ -382,7 +357,6 @@ export class OpenAIService {
               conversationHistory.push(toolMessage);
               console.log(`[Conv] Added function result to conversation`);
 
-              // If this was the trigger function, end the conversation
               if (toolCall.function.name === triggerWithAgent.functionName) {
                 console.log(`[Conv] Found trigger function call, ending conversation`);
                 keepConversation = false;
@@ -392,7 +366,6 @@ export class OpenAIService {
               const error = err as Error;
               console.error(`[Conv] Error executing function ${toolCall.function.name}:`, error);
 
-              // Log errors to database
               await TriggerLogService.logTriggerLifecycle(
                 {
                   id: triggerWithAgent.id,
@@ -410,7 +383,6 @@ export class OpenAIService {
                 },
               );
 
-              // If this is a rate limit error or another non-fatal error, let the conversation continue
               const isRateLimitError = error.message.includes("429") || error.message.includes("rate limit");
               const isTriggerFunction = toolCall.function.name === triggerWithAgent.functionName;
 
@@ -421,13 +393,11 @@ export class OpenAIService {
                 break;
               }
 
-              // Add error response to the conversation
               const toolMessage: ToolMessage = {
                 role: "tool",
                 tool_call_id: toolCall.id,
                 content: JSON.stringify({
                   error: `Error: ${error.message}`,
-                  // Provide guidance to the AI on how to proceed
                   guidance: isRateLimitError ? "Rate limit reached. Please continue with available information or try a different approach." : "An error occurred. Please try a different approach or parameters.",
                 }),
               };
@@ -437,15 +407,12 @@ export class OpenAIService {
             }
           }
         } else {
-          // If no tool calls, end the conversation
           keepConversation = false;
           console.log(`[Conv] AI response contained no tool calls, ending conversation`);
         }
       } catch (error: any) {
-        // Handle errors in the conversation itself (like OpenAI API errors)
         console.error(`[Conv] Error in conversation:`, error);
 
-        // Log the error
         await TriggerLogService.logTriggerLifecycle(
           {
             id: triggerWithAgent.id,
@@ -471,7 +438,6 @@ export class OpenAIService {
       console.error(`[Conv] Conversation ended with errors after ${toolCallsData.length} tool calls`);
     } else {
       console.log(`[Conv] Conversation completed with ${toolCallsData.length} total tool calls`);
-      // Log the sequence of tool calls
       toolCallsData.forEach((call, index) => {
         console.log(`[Conv] Tool call ${index + 1}: ${call.name}`);
       });
@@ -480,9 +446,6 @@ export class OpenAIService {
     return { toolCallsData, successfulTriggerExecution };
   }
 
-  /**
-   * Execute a function by name with provided arguments
-   */
   public async executeFunctionByName(functionName: string, args: any): Promise<any> {
     if (!this.twitterService) {
       console.error(`[Twitter] Twitter service not initialized before calling ${functionName}`);
@@ -491,8 +454,6 @@ export class OpenAIService {
 
     console.log(`[Twitter] Executing function: ${functionName}`, { arguments: args });
 
-    // For post_tweet, check if we're calling it from executeWithAI as a second execution
-    // This prevents duplicate tweet errors by skipping the second call
     if (functionName === "post_tweet" && this._isSecondExecution) {
       console.log(`[Twitter] Skipping second execution of post_tweet to avoid duplicate content error`);
       return {
@@ -501,7 +462,6 @@ export class OpenAIService {
       };
     }
 
-    // Map function names to their implementations
     try {
       let result;
       switch (functionName) {
@@ -512,8 +472,6 @@ export class OpenAIService {
             console.log(`[Twitter] Successfully fetched home timeline`);
             return result;
           } catch (error: any) {
-            // For rate limit errors on timeline fetch, we can return an empty timeline
-            // This allows the conversation to continue even if we can't get the timeline
             if (error.code === 429) {
               console.warn(`[Twitter] Rate limit exceeded when fetching timeline. Returning empty timeline.`);
               return { data: [] };
@@ -528,11 +486,9 @@ export class OpenAIService {
             console.log(`[Twitter] Successfully posted tweet`);
             return result;
           } catch (error: any) {
-            // Handle duplicate content error specifically
             if (error.code === 403 && error.data?.detail?.includes("duplicate content")) {
               const errorMessage = "Cannot post duplicate tweet content. Please try with different content.";
               console.error(`[Twitter] ${errorMessage}`);
-              // Return a structured error that can be handled by the caller
               return {
                 success: false,
                 error: errorMessage,
@@ -550,7 +506,6 @@ export class OpenAIService {
             console.log(`[Twitter] Successfully replied to tweet ${args.tweetId}`);
             return result;
           } catch (error: any) {
-            // Handle specific tweet reply errors
             if (error.code === 404) {
               const errorMessage = `Tweet ${args.tweetId} not found. It may have been deleted.`;
               console.error(`[Twitter] ${errorMessage}`);
@@ -580,7 +535,6 @@ export class OpenAIService {
             console.log(`[Twitter] Successfully liked tweet ${args.tweetId}`);
             return result;
           } catch (error: any) {
-            // Handle specific like tweet errors
             if (error.code === 404) {
               const errorMessage = `Tweet ${args.tweetId} not found. It may have been deleted.`;
               console.error(`[Twitter] ${errorMessage}`);
@@ -610,7 +564,6 @@ export class OpenAIService {
             console.log(`[Twitter] Successfully quoted tweet ${args.quotedTweetId}`);
             return result;
           } catch (error: any) {
-            // Handle specific quote tweet errors
             if (error.code === 404) {
               const errorMessage = `Tweet ${args.quotedTweetId} not found. It may have been deleted.`;
               console.error(`[Twitter] ${errorMessage}`);
@@ -640,7 +593,6 @@ export class OpenAIService {
             console.log(`[Twitter] Successfully retweeted tweet ${args.tweetId}`);
             return result;
           } catch (error: any) {
-            // Handle specific retweet errors
             if (error.code === 404) {
               const errorMessage = `Tweet ${args.tweetId} not found. It may have been deleted.`;
               console.error(`[Twitter] ${errorMessage}`);
@@ -696,7 +648,6 @@ export class OpenAIService {
           throw new Error(`Unknown function: ${functionName}`);
       }
     } catch (error: any) {
-      // Detailed error logging
       console.error(`[Twitter] Error executing function ${functionName}:`, {
         errorName: error.name,
         errorMessage: error.message,
@@ -715,31 +666,21 @@ export class OpenAIService {
         });
       }
 
-      // Rethrow the error for the caller to handle
       throw error;
     }
   }
 
-  /**
-   * Execute a trigger function with provided arguments
-   */
   private async executeTriggerFunction(functionName: string, args: any): Promise<any> {
-    // Mark this as a second execution to avoid duplicate tweets
     this._isSecondExecution = true;
     try {
       return await this.executeFunctionByName(functionName, args);
     } finally {
-      // Reset the flag after execution
       this._isSecondExecution = false;
     }
   }
 
-  /**
-   * Prepare conversation data from the AI chat result
-   */
   public prepareConversationData(result: any): Record<string, unknown> {
     try {
-      // Try to extract conversation data
       if (result && result.conversation) {
         return {
           messages: result.conversation.messages || [],
@@ -747,15 +688,12 @@ export class OpenAIService {
         };
       }
 
-      // If result has messages directly
       if (result && Array.isArray(result.messages)) {
         return {
           messages: result.messages,
           toolCalls: result.toolCalls || [],
         };
       }
-
-      // Fallback
       return {
         result: result,
         note: "Unable to extract structured conversation data",
@@ -764,7 +702,7 @@ export class OpenAIService {
       console.error("Error preparing conversation data:", error);
       return {
         error: "Failed to extract conversation data",
-        rawResult: JSON.stringify(result).substring(0, 1000) + "...", // Limited to prevent very large logs
+        rawResult: JSON.stringify(result).substring(0, 1000) + "...",
       };
     }
   }
