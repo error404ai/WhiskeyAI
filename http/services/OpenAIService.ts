@@ -202,7 +202,7 @@ export class OpenAIService {
     const conversationHistory: ChatMessage[] = [
       {
         role: "system",
-        content: `You are an AI assistant helping to manage a Twitter account for an agent. 
+        content: `You are an AI assistant helping to manage a Twitter account. 
         The agent has a specific goal and description, and you need to help execute a trigger function.
         
         Agent information:
@@ -215,21 +215,23 @@ export class OpenAIService {
         Description: ${context.triggerDescription}
         Information Source: ${context.informationSource}
         
-        You can call functions to gather information before executing the trigger function.
+        You can call nessaray tools / functions to gather information before executing the trigger function.
         The trigger function to execute is: ${triggerWithAgent.functionName}
         
         IMPORTANT: If you encounter a error or any other error , 
         proceed with the best information you have available. If a function call fails, simply
         try to complete the task with the available information. If not possible to proceed then exit.
         
-        First, call  functions or tools needed to gather information, then call the trigger function with the appropriate arguments. Trigger function is final function to execute.`,
+        First, call functions or tools needed to gather information, must follow agent description, goal, trigger description and call appropriate function to retrive data, then call the trigger function with the appropriate arguments. Trigger function is final function to execute.`,
       },
       {
         role: "user",
-        content: `Please help execute the '${triggerWithAgent.functionName}' trigger for agent '${context.agentName}'. If you need to gather any information for calling the '${triggerWithAgent.functionName}' function, Make sure to gather any necessary information using tools functions before calling the trigger function.`,
+        content: `Please help execute the '${triggerWithAgent.functionName}'. If you need to gather any information for calling the '${triggerWithAgent.functionName}' function, Make sure to gather any necessary information using tools functions before calling the trigger function.`,
       },
     ];
     console.log(`[Conv] Initialized conversation with system and user prompts`);
+
+    console.log("tools are", tools);
 
     const toolCallsData: ToolCallData[] = [];
     let keepConversation = true;
