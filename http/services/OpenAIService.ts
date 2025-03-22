@@ -2,8 +2,9 @@
 import { Agent } from "@/db/schema";
 import { AgentTrigger } from "@/db/schema/agentTriggersTable";
 import { OpenAI } from "openai";
-import TwitterService from "./TwitterService";
 import { TriggerLogService } from "./agent/TriggerLogService";
+import rpcService from "./Rpc/RpcService";
+import TwitterService from "./TwitterService";
 
 // Define OpenAI function calling interfaces
 interface FunctionTool {
@@ -665,6 +666,16 @@ export class OpenAIService {
                 originalError: error.data,
               };
             }
+            throw error;
+          }
+
+        case "RPC_getAccountInfo":
+          console.log(`[RPC] Getting account info`);
+          try {
+            result = await rpcService.getAccountInfo(args.publicKey);
+            console.log(`[Twitter] Successfully retweeted tweet ${args.publicKey}`);
+            return result;
+          } catch (error: any) {
             throw error;
           }
 
