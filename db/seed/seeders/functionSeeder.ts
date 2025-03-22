@@ -100,7 +100,7 @@ export class FunctionsSeeder implements Seeder {
     },
     {
       name: functionEnum.RPC_getAccountInfo,
-      description: "Returns all information associated with the account of provided Pubkey",
+      description: "This Rpc method Returns all information associated with the account of provided Pubkey",
       parameters: {
         type: "object",
         properties: {
@@ -110,6 +110,36 @@ export class FunctionsSeeder implements Seeder {
           },
         },
         required: ["publicKey"],
+      },
+      type: "rpc",
+    },
+    {
+      name: functionEnum.RPC_getBalance,
+      description: "This Rpc method Returns the balance of the account of provided Pubkey",
+      parameters: {
+        type: "object",
+        properties: {
+          publicKey: {
+            type: "string",
+            description: "The public key of the account",
+          },
+        },
+        required: ["publicKey"],
+      },
+      type: "rpc",
+    },
+    {
+      name: functionEnum.RPC_getBlock,
+      description: "This Rpc method Returns identity and transaction information about a confirmed block in the ledger.",
+      parameters: {
+        type: "object",
+        properties: {
+          slot: {
+            type: "number",
+            description: "The slot number of the block to retrieve encoded as u64 (64-bit unsigned integer) integer",
+          },
+        },
+        required: ["slot"],
       },
       type: "rpc",
     },

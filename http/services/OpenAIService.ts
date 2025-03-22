@@ -667,7 +667,25 @@ export class OpenAIService {
           console.log(`[RPC] Getting account info`);
           try {
             result = await rpcService.getAccountInfo(args.publicKey);
-            console.log(`[Twitter] Successfully retweeted tweet ${args.publicKey}`);
+            console.log(`[Twitter] Successfully get account info ${args.publicKey}`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+        case functionEnum.RPC_getBalance:
+          console.log(`[RPC] Getting balance`);
+          try {
+            result = await rpcService.getBalance(args.publicKey);
+            console.log(`[Twitter] Successfully get balance ${args.publicKey}`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+        case functionEnum.RPC_getBlock:
+          console.log(`[RPC] Getting block`);
+          try {
+            result = await rpcService.getBlock(args.slot);
+            console.log(`[Twitter] Successfully get block ${args.slot}`);
             return result;
           } catch (error: any) {
             throw error;

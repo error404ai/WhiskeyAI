@@ -6,4 +6,6 @@ export enum functionEnum {
   quote_tweet = "quote_tweet",
   retweet = "retweet",
   RPC_getAccountInfo = "RPC_getAccountInfo",
+  RPC_getBalance = "RPC_getBalance",
+  RPC_getBlock = "RPC_getBlock",
 }
