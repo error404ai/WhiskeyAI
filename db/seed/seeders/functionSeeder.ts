@@ -115,6 +115,8 @@ export class FunctionsSeeder implements Seeder {
   ];
 
   async seed(): Promise<void> {
+    // truncate the table
+    await db.delete(functionsTable);
     await db.insert(functionsTable).values(this.functions);
   }
 }
