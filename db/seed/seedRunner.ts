@@ -4,21 +4,17 @@ import { FunctionsSeeder } from "./seeders/functionSeeder";
 import { RoleSeeder } from "./seeders/roleSeeder";
 import { UserSeeder } from "./seeders/userSeeder";
 
-// Parse command line arguments
 const args = process.argv.slice(2);
 const isFresh = args.includes("--fresh");
 
-// Map of all available seeders
 const seedersMap: Record<string, new () => Seeder> = {
   roles: RoleSeeder,
   users: UserSeeder,
   functions: FunctionsSeeder,
 };
 
-// Determine which seeders to run
 let seedersToRun: Seeder[] = [];
 
-// If specific seeders are specified, run only those
 console.log("args are", args);
 const specifiedSeeders = args.filter((arg) => !arg.startsWith("--"));
 if (specifiedSeeders.length > 0) {
@@ -33,7 +29,6 @@ if (specifiedSeeders.length > 0) {
     }
   }
 } else {
-  // Run all seeders if none specified
   seedersToRun = Object.values(seedersMap).map((SeederClass) => new SeederClass());
 }
 
