@@ -1,11 +1,12 @@
 import { db } from "@/db/db";
 import { Function, functionsTable } from "@/db/schema/functionsTable";
+import { functionEnum } from "@/http/enum/functionEnum";
 import { Seeder } from "../SeederInterface";
 
 export class FunctionsSeeder implements Seeder {
   private functions: Omit<Function, "id">[] = [
     {
-      name: "get_home_timeline",
+      name: functionEnum.get_home_timeline,
       description: "Get the most recent tweets from the home timeline of the Twitter account",
       parameters: {
         type: "object",
@@ -15,7 +16,7 @@ export class FunctionsSeeder implements Seeder {
       type: "agent",
     },
     {
-      name: "post_tweet",
+      name: functionEnum.post_tweet,
       description: "Create and publish a new tweet on Twitter",
       parameters: {
         type: "object",
@@ -30,7 +31,7 @@ export class FunctionsSeeder implements Seeder {
       type: "trigger",
     },
     {
-      name: "reply_tweet",
+      name: functionEnum.reply_tweet,
       description: "Reply to an existing tweet on Twitter",
       parameters: {
         type: "object",
@@ -49,7 +50,7 @@ export class FunctionsSeeder implements Seeder {
       type: "trigger",
     },
     {
-      name: "like_tweet",
+      name: functionEnum.like_tweet,
       description: "Like a specific tweet on Twitter",
       parameters: {
         type: "object",
@@ -64,7 +65,7 @@ export class FunctionsSeeder implements Seeder {
       type: "trigger",
     },
     {
-      name: "quote_tweet",
+      name: functionEnum.quote_tweet,
       description: "Quote and comment on a tweet on Twitter",
       parameters: {
         type: "object",
@@ -83,7 +84,7 @@ export class FunctionsSeeder implements Seeder {
       type: "trigger",
     },
     {
-      name: "retweet",
+      name: functionEnum.retweet,
       description: "Retweet an existing tweet on Twitter",
       parameters: {
         type: "object",
@@ -98,7 +99,7 @@ export class FunctionsSeeder implements Seeder {
       type: "trigger",
     },
     {
-      name: "RPC_getAccountInfo",
+      name: functionEnum.RPC_getAccountInfo,
       description: "Returns all information associated with the account of provided Pubkey",
       parameters: {
         type: "object",
@@ -115,7 +116,6 @@ export class FunctionsSeeder implements Seeder {
   ];
 
   async seed(): Promise<void> {
-    // truncate the table
     await db.delete(functionsTable);
     await db.insert(functionsTable).values(this.functions);
   }
