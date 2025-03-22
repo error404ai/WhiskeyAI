@@ -4,7 +4,7 @@ import { usersTable } from "./usersTable";
 
 export const rolesTable = pgTable("roles", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  name: varchar({ length: 255 }).notNull(),
+  name: varchar({ length: 255 }).notNull().unique(),
 });
 
 export const rolesRelations = relations(rolesTable, ({ many }) => ({
