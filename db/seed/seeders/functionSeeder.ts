@@ -10,7 +10,7 @@ export class FunctionsSeeder implements Seeder {
       parameters: {
         type: "object",
         properties: {},
-        required: []
+        required: [],
       },
       type: "agent",
     },
@@ -22,10 +22,10 @@ export class FunctionsSeeder implements Seeder {
         properties: {
           text: {
             type: "string",
-            description: "The content of the tweet to post"
-          }
+            description: "The content of the tweet to post",
+          },
         },
-        required: ["text"]
+        required: ["text"],
       },
       type: "trigger",
     },
@@ -37,14 +37,14 @@ export class FunctionsSeeder implements Seeder {
         properties: {
           text: {
             type: "string",
-            description: "The content of the reply"
+            description: "The content of the reply",
           },
           tweetId: {
             type: "string",
-            description: "The ID of the tweet to reply to"
-          }
+            description: "The ID of the tweet to reply to",
+          },
         },
-        required: ["text", "tweetId"]
+        required: ["text", "tweetId"],
       },
       type: "trigger",
     },
@@ -56,10 +56,10 @@ export class FunctionsSeeder implements Seeder {
         properties: {
           tweetId: {
             type: "string",
-            description: "The ID of the tweet to like"
-          }
+            description: "The ID of the tweet to like",
+          },
         },
-        required: ["tweetId"]
+        required: ["tweetId"],
       },
       type: "trigger",
     },
@@ -71,14 +71,14 @@ export class FunctionsSeeder implements Seeder {
         properties: {
           quotedTweetId: {
             type: "string",
-            description: "The ID of the tweet to quote"
+            description: "The ID of the tweet to quote",
           },
           comment: {
             type: "string",
-            description: "The content of your quote"
-          }
+            description: "The content of your quote",
+          },
         },
-        required: ["quotedTweetId", "comment"]
+        required: ["quotedTweetId", "comment"],
       },
       type: "trigger",
     },
@@ -90,12 +90,27 @@ export class FunctionsSeeder implements Seeder {
         properties: {
           tweetId: {
             type: "string",
-            description: "The ID of the tweet to retweet"
-          }
+            description: "The ID of the tweet to retweet",
+          },
         },
-        required: ["tweetId"]
+        required: ["tweetId"],
       },
       type: "trigger",
+    },
+    {
+      name: "RPC_getAccountInfo",
+      description: "Returns all information associated with the account of provided Pubkey",
+      parameters: {
+        type: "object",
+        properties: {
+          publicKey: {
+            type: "string",
+            description: "The public key of the account",
+          },
+        },
+        required: ["publicKey"],
+      },
+      type: "rpc",
     },
   ];
 
