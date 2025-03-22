@@ -1,8 +1,8 @@
 import { freshDb } from "./freshDb";
+import { Seeder } from "./SeederInterface";
 import { FunctionsSeeder } from "./seeders/functionSeeder";
 import { RoleSeeder } from "./seeders/roleSeeder";
 import { UserSeeder } from "./seeders/userSeeder";
-import { Seeder } from "./SeederInterface";
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -10,17 +10,19 @@ const isFresh = args.includes("--fresh");
 
 // Map of all available seeders
 const seedersMap: Record<string, new () => Seeder> = {
-  "roles": RoleSeeder,
-  "users": UserSeeder,
-  "functions": FunctionsSeeder,
+  roles: RoleSeeder,
+  users: UserSeeder,
+  functions: FunctionsSeeder,
 };
 
 // Determine which seeders to run
 let seedersToRun: Seeder[] = [];
 
 // If specific seeders are specified, run only those
-const specifiedSeeders = args.filter(arg => !arg.startsWith("--"));
+console.log("args are", args);
+const specifiedSeeders = args.filter((arg) => !arg.startsWith("--"));
 if (specifiedSeeders.length > 0) {
+  console.log(`Running seeders: ${specifiedSeeders.join(", ")}`);
   for (const seederName of specifiedSeeders) {
     const SeederClass = seedersMap[seederName];
     if (SeederClass) {
@@ -32,7 +34,7 @@ if (specifiedSeeders.length > 0) {
   }
 } else {
   // Run all seeders if none specified
-  seedersToRun = Object.values(seedersMap).map(SeederClass => new SeederClass());
+  seedersToRun = Object.values(seedersMap).map((SeederClass) => new SeederClass());
 }
 
 async function runSeeders() {
@@ -46,7 +48,7 @@ async function runSeeders() {
   }
 
   console.log(`Running ${seedersToRun.length} seeder(s)...`);
-  
+
   for (const seeder of seedersToRun) {
     const seederName = seeder.constructor.name;
     console.log(`Running ${seederName}...`);
