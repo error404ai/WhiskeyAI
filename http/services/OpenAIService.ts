@@ -2,6 +2,7 @@
 import { Agent } from "@/db/schema";
 import { AgentTrigger } from "@/db/schema/agentTriggersTable";
 import { OpenAI } from "openai";
+import { functionEnum } from "../enum/functionEnum";
 import { TriggerLogService } from "./agent/TriggerLogService";
 import rpcService from "./Rpc/RpcService";
 import TwitterService from "./TwitterService";
@@ -101,24 +102,20 @@ export class OpenAIService {
       informationSource: context.informationSource,
     });
 
-    // Start the conversation with OpenAI
     console.log(`[AI] Starting conversation with OpenAI for function: ${triggerWithAgent.functionName}`);
     const { toolCallsData, successfulTriggerExecution } = await this.startConversation(triggerWithAgent, tools, context);
     console.log(`[AI] Completed conversation with ${toolCallsData.length} tool calls`);
 
-    // Process the final trigger tool call
     if (toolCallsData.length > 0) {
       const lastCall = toolCallsData[toolCallsData.length - 1];
       console.log(`[AI] Last tool call was: ${lastCall.name}`);
 
       if (lastCall.name === triggerWithAgent.functionName) {
-        // Check if the trigger function was already successfully executed during the conversation
         if (successfulTriggerExecution) {
           console.log(`[AI] Trigger function ${triggerWithAgent.functionName} was already successfully executed during conversation`);
           return lastCall.result;
         }
 
-        // Execute the trigger function
         console.log(`[AI] Executing trigger function: ${triggerWithAgent.functionName} with args:`, lastCall.args);
         try {
           const result = await this.executeTriggerFunction(triggerWithAgent.functionName, lastCall.args);
@@ -224,21 +221,18 @@ export class OpenAIService {
         Description: ${context.triggerDescription}
         Information Source: ${context.informationSource}
         
-        You can call agent functions to gather information before executing the trigger function.
+        You can call functions to gather information before executing the trigger function.
         The trigger function to execute is: ${triggerWithAgent.functionName}
         
-        IMPORTANT: If you encounter a rate limit error or any other error when fetching data, 
+        IMPORTANT: If you encounter a error or any other error , 
         proceed with the best information you have available. If a function call fails, simply
         try to complete the task with the available information. If not possible to proceed then exit.
         
-        if post tweet, Each tweet must be unique and cannot be the same as previous tweets.
-        
-        First, call any agent functions needed to gather information, then call the trigger function with the appropriate arguments.`,
+        First, call  functions or tools needed to gather information, then call the trigger function with the appropriate arguments. Trigger function is final function to execute.`,
       },
       {
         role: "user",
-        content: `Please help execute the '${triggerWithAgent.functionName}' trigger for agent '${context.agentName}'. 
-        Make sure to gather any necessary information using agent functions before calling the trigger function.`,
+        content: `Please help execute the '${triggerWithAgent.functionName}' trigger for agent '${context.agentName}'. If you need to gather any information for calling the '${triggerWithAgent.functionName}' function, Make sure to gather any necessary information using tools functions before calling the trigger function.`,
       },
     ];
     console.log(`[Conv] Initialized conversation with system and user prompts`);
@@ -511,7 +505,7 @@ export class OpenAIService {
     try {
       let result;
       switch (functionName) {
-        case "get_home_timeline":
+        case functionEnum.get_home_timeline:
           console.log(`[Twitter] Fetching home timeline`);
           try {
             result = await this.twitterService.getHomeTimeLine();
@@ -527,7 +521,7 @@ export class OpenAIService {
             throw error;
           }
 
-        case "post_tweet":
+        case functionEnum.post_tweet:
           console.log(`[Twitter] Posting tweet: "${args.text.substring(0, 30)}${args.text.length > 30 ? "..." : ""}"`);
           try {
             result = await this.twitterService.postTweet(args.text);
@@ -549,7 +543,7 @@ export class OpenAIService {
             throw error;
           }
 
-        case "reply_tweet":
+        case functionEnum.reply_tweet:
           console.log(`[Twitter] Replying to tweet ${args.tweetId}`);
           try {
             result = await this.twitterService.replyTweet(args.text, args.tweetId);
@@ -579,7 +573,7 @@ export class OpenAIService {
             throw error;
           }
 
-        case "like_tweet":
+        case functionEnum.like_tweet:
           console.log(`[Twitter] Liking tweet ${args.tweetId}`);
           try {
             result = await this.twitterService.likeTweet(args.tweetId);
@@ -609,7 +603,7 @@ export class OpenAIService {
             throw error;
           }
 
-        case "quote_tweet":
+        case functionEnum.quote_tweet:
           console.log(`[Twitter] Quoting tweet ${args.quotedTweetId}`);
           try {
             result = await this.twitterService.quoteTweet(args.quotedTweetId, args.comment);
@@ -639,7 +633,7 @@ export class OpenAIService {
             throw error;
           }
 
-        case "retweet":
+        case functionEnum.retweet:
           console.log(`[Twitter] Retweeting tweet ${args.tweetId}`);
           try {
             result = await this.twitterService.reTweet(args.tweetId);
@@ -669,7 +663,7 @@ export class OpenAIService {
             throw error;
           }
 
-        case "RPC_getAccountInfo":
+        case functionEnum.RPC_getAccountInfo:
           console.log(`[RPC] Getting account info`);
           try {
             result = await rpcService.getAccountInfo(args.publicKey);
