@@ -109,9 +109,11 @@ export class TriggerSchedulerService {
 
       // Get agent tools and trigger tool
       const agentTools = await this.getAgentTools();
+      const rpcTools = await this.getRpcTools();
       const triggerTool = await this.getTriggerTool(trigger.functionName);
-      const rpcTools = await this.getRpcTools(trigger.functionName);
       const tools = [...agentTools, ...rpcTools, triggerTool];
+
+      console.log("while processing triggers, tools:", tools);
 
       // Execute with AI
       const result = await this.openAIService.executeWithAI(trigger, tools);
@@ -244,14 +246,14 @@ export class TriggerSchedulerService {
   /**
    * Get Rpc tool
    */
-  private async getRpcTools(functionName: string): Promise<FunctionTool[]> {
+  private async getRpcTools(): Promise<FunctionTool[]> {
     // Get the trigger function from the database
     const rpcFunctions = await db.query.functionsTable.findMany({
-      where: and(eq(functionsTable.name, functionName), eq(functionsTable.type, "rpc")),
+      where: eq(functionsTable.type, "rpc"),
     });
 
     if (!rpcFunctions) {
-      throw new Error(`Trigger function ${functionName} not found in database`);
+      throw new Error(`Rpc functions not found in database`);
     }
 
     // Convert to tools format
