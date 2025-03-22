@@ -8,6 +8,18 @@ export class RpcService {
     const accountInfo = await solana.getAccountInfo(publicKey);
     return accountInfo;
   }
+
+  async getBalance(publickey: string) {
+    const publicKey = new PublicKey(publickey);
+    const solana = new Connection(this.rpcEndpoint);
+    const balance = await solana.getBalance(publicKey);
+    return balance;
+  }
+  async getBlock(slot: number) {
+    const solana = new Connection(this.rpcEndpoint);
+    const block = solana.getBlock(slot, { maxSupportedTransactionVersion: 0 });
+    return block;
+  }
 }
 
 const rpcService = new RpcService();
