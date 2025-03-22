@@ -102,15 +102,6 @@ const TriggersStep = () => {
   };
   const [showTriggerDialog, setShowTriggerDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
-  const [minInterval, setMinInterval] = useState(1);
-  useEffect(() => {
-    const runEvery = methods.getValues("runEvery");
-    if (runEvery === "minutes") {
-      setMinInterval(30); // Set min to 30 when "minutes" is selected
-    } else {
-      setMinInterval(1); // Otherwise, min is 1
-    }
-  }, [methods.watch("runEvery")]); // Reacts to changes in "runEvery"
 
   useEffect(() => {
     if (!showTriggerDialog) {
@@ -223,7 +214,6 @@ const TriggersStep = () => {
                               <Input
                                 name="interval"
                                 type="number"
-                                min={minInterval}
                                 className="w-24"
                                 defaultValue={methods.getValues("interval")?.toString() || ""}
                                 // {...methods.register("interval", {
