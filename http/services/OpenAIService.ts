@@ -663,6 +663,60 @@ export class OpenAIService {
           } catch (error: any) {
             throw error;
           }
+        case functionEnum.DEX_getTopBoostedTokens:
+          console.log(`[DEX] Getting top boosted tokens`);
+          try {
+            result = await dexscreenerService.getTopBoostedTokens();
+            console.log(`[DEX] Successfully get top boosted tokens`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+        case functionEnum.DEX_getTokenOrders:
+          console.log(`[DEX] Getting token orders for ${args.chainId}/${args.tokenAddress}`);
+          try {
+            result = await dexscreenerService.getTokenOrders(args.chainId, args.tokenAddress);
+            console.log(`[DEX] Successfully get token orders`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+        case functionEnum.DEX_getPairsByChainAndPairAddress:
+          console.log(`[DEX] Getting pairs for ${args.chainId}/${args.pairId}`);
+          try {
+            result = await dexscreenerService.getPairsByChainAndPairAddress(args.chainId, args.pairId);
+            console.log(`[DEX] Successfully get pairs`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+        case functionEnum.DEX_searchPairs:
+          console.log(`[DEX] Searching pairs with query: ${args.query}`);
+          try {
+            result = await dexscreenerService.searchPairs(args.query);
+            console.log(`[DEX] Successfully searched pairs`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+        case functionEnum.DEX_getTokenPairs:
+          console.log(`[DEX] Getting token pairs for ${args.chainId}/${args.tokenAddress}`);
+          try {
+            result = await dexscreenerService.getTokenPairs(args.chainId, args.tokenAddress);
+            console.log(`[DEX] Successfully get token pairs`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+        case functionEnum.DEX_getTokensByAddress:
+          console.log(`[DEX] Getting tokens by address for ${args.chainId}/${args.tokenAddresses}`);
+          try {
+            result = await dexscreenerService.getTokensByAddress(args.chainId, args.tokenAddresses);
+            console.log(`[DEX] Successfully get tokens by address`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
 
         default:
           console.error(`[Twitter] Unknown function: ${functionName}`);
