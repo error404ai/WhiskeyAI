@@ -110,8 +110,9 @@ export class TriggerSchedulerService {
       // Get agent tools and trigger tool
       const agentTools = await this.getAgentTools();
       const rpcTools = await this.getRpcTools();
+      const dexscreenerTools = await this.getDexscreenerTools();
       const triggerTool = await this.getTriggerTool(trigger.functionName);
-      const tools = [...agentTools, ...rpcTools, triggerTool];
+      const tools = [...agentTools, ...rpcTools, ...dexscreenerTools, triggerTool];
 
       // Execute with AI
       const result = await this.openAIService.executeWithAI(trigger, tools);
@@ -264,6 +265,30 @@ export class TriggerSchedulerService {
       },
     }));
   }
+
+  /**
+   * Get Dexscreener tool
+   */
+  private async getDexscreenerTools(): Promise<FunctionTool[]> {
+    // Get the  function from the database
+    const dexscreenerFunctions = await db.query.functionsTable.findMany({
+      where: eq(functionsTable.type, "dexscreener"),
+      });
+  
+      if (!dexscreenerFunctions) {
+        throw new Error(`Rpc functions not found in database`);
+      }
+  
+      // Convert to tools format
+      return dexscreenerFunctions.map((func) => ({
+        type: "function" as const,
+        function: {
+          name: func.name,
+          description: func.description || "",
+          parameters: func.parameters || {},
+        },
+      }));
+    }
 
   /**
    * Update the trigger's last run time and calculate the next run time
