@@ -113,8 +113,6 @@ export class TriggerSchedulerService {
       const triggerTool = await this.getTriggerTool(trigger.functionName);
       const tools = [...agentTools, ...rpcTools, triggerTool];
 
-      console.log("while processing triggers, tools:", tools);
-
       // Execute with AI
       const result = await this.openAIService.executeWithAI(trigger, tools);
 
