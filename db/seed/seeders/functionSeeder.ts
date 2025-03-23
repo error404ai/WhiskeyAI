@@ -17,13 +17,13 @@ export class FunctionsSeeder implements Seeder {
     },
     {
       name: functionEnum.post_tweet,
-      description: "Create and publish a new tweet on Twitter",
+      description: "Create and publish a new tweet on Twitter. Tweet length should not exceed 280 characters",
       parameters: {
         type: "object",
         properties: {
           text: {
             type: "string",
-            description: "The content of the tweet to post",
+            description: "The content of the tweet to post, up to 280 characters",
           },
         },
         required: ["text"],
