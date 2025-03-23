@@ -182,7 +182,7 @@ export default function DexscreenerTest() {
 
       <Tabs defaultValue="latest" className="w-full">
         {/* Make the tabs more responsive with a different layout on smaller screens */}
-        <TabsList className="mb-4 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8">
+        <TabsList className="mb-4 h-fit flex flex-wrap gap-2">
           <TabsTrigger value="latest" className="text-xs sm:text-sm">Latest Profiles</TabsTrigger>
           <TabsTrigger value="boosted" className="text-xs sm:text-sm">Latest Boosted</TabsTrigger>
           <TabsTrigger value="topboosted" className="text-xs sm:text-sm">Top Boosted</TabsTrigger>
