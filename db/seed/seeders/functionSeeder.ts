@@ -143,6 +143,116 @@ export class FunctionsSeeder implements Seeder {
       },
       type: "rpc",
     },
+    //dexscreener
+    {
+      name: functionEnum.DEX_getLatestTokenProfiles,
+      description: "Get the latest token profiles",
+      parameters: {},
+      type: "dexscreener",
+    },
+    {
+      name: functionEnum.DEX_getLatestBoostedTokens,
+      description: "Get the latest boosted tokens",
+      parameters: {},
+      type: "dexscreener",
+    },
+    {
+      name: functionEnum.DEX_getTopBoostedTokens,
+      description: "Get the tokens with most active boosts",
+      parameters: {},
+      type: "dexscreener",
+    },
+    {
+      name: functionEnum.DEX_getTokenOrders,
+      description: "Check orders paid for of token",
+      parameters: {
+        type: "object",
+        properties: {
+          chainId: {
+            type: "string",
+            description: "The chain ID of the token",
+          },
+          tokenAddress: {
+            type: "string",
+            description: "The token address to check orders for",
+          },
+        },
+        required: ["chainId", "tokenAddress"],
+      },
+      type: "dexscreener",
+    },
+    {
+      name: functionEnum.DEX_getPairsByChainAndPairAddress,
+      description: "Get one or multiple pairs by chain and pair address",
+      parameters: {
+        type: "object",
+        properties: {
+          chainId: {
+            type: "string",
+            description: "The chain ID of the pair",
+          },
+          pairId: {
+            type: "string",
+            description: "The pair ID to get information for",
+          },
+        },
+        required: ["chainId", "pairId"],
+      },
+      type: "dexscreener",
+    },
+    {
+      name: functionEnum.DEX_searchPairs,
+      description: "Search for pairs matching query",
+      parameters: {
+        type: "object",
+        properties: {
+          query: {
+            type: "string",
+            description: "The search query for pairs (e.g. SOL/USDC)",
+          },
+        },
+        required: ["query"],
+      },
+      type: "dexscreener",
+    },
+    {
+      name: functionEnum.DEX_getTokenPairs,
+      description: "Get the pools of a given token address",
+      parameters: {
+        type: "object",
+        properties: {
+          chainId: {
+            type: "string",
+            description: "The chain ID of the token",
+          },
+          tokenAddress: {
+            type: "string",
+            description: "The token address to get pairs for",
+          },
+        },
+        required: ["chainId", "tokenAddress"],
+      },
+      type: "dexscreener",
+    },
+    {
+      name: functionEnum.DEX_getTokensByAddress,
+      description: "Get one or multiple pairs by token address",
+      parameters: {
+        type: "object",
+        properties: {
+          chainId: {
+            type: "string",
+            description: "The chain ID of the tokens",
+          },
+          tokenAddresses: {
+            type: "string",
+            description: "One or multiple comma-separated token addresses (up to 30 addresses)",
+          },
+        },
+        required: ["chainId", "tokenAddresses"],
+      },
+      type: "dexscreener",
+    },
   ];
 
   async seed(): Promise<void> {
