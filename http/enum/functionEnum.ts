@@ -8,4 +8,6 @@ export enum functionEnum {
   RPC_getAccountInfo = "RPC_getAccountInfo",
   RPC_getBalance = "RPC_getBalance",
   RPC_getBlock = "RPC_getBlock",
+  DEX_getLatestTokenProfiles = "DEX_getLatestTokenProfiles",
+  DEX_getLatestBoostedTokens = "DEX_getLatestBoostedTokens",
 }
