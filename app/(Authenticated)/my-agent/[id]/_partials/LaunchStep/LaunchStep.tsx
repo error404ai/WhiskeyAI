@@ -14,6 +14,8 @@ import Skeleton from "react-loading-skeleton";
 import LaunchToken from "./_partials/LaunchToken";
 import TwitterAgentTest from "./_partials/TwitterAgentTest";
 import TokenAddressTest from "./_partials/TokenAddressTest";
+import DexscreenerTest from "./_partials/DexscreenerTest";
+import RpcTest from "./_partials/RpcTest";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +25,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type TabType = "memory" | "simulation" | "connect" | "launch" | "custom_texts" | "post_id";
 
@@ -40,6 +43,7 @@ function LaunchStep() {
 
   const [connecting, setConnecting] = useState(false);
   const [warningOpen, setWarningOpen] = useState(false);
+  const [activeApiTab, setActiveApiTab] = useState<string>("twitter");
 
   const handleAddTwitter = async () => {
     setConnecting(true);
@@ -124,8 +128,25 @@ function LaunchStep() {
           </div>
         </div>
         <div>
-          <TwitterAgentTest />
-          <TokenAddressTest />
+          <Tabs value={activeApiTab} onValueChange={setActiveApiTab} className="w-full">
+            <TabsList className="mb-4 grid grid-cols-3">
+              <TabsTrigger value="twitter">Twitter API</TabsTrigger>
+              <TabsTrigger value="dexscreener">Dexscreener API</TabsTrigger>
+              <TabsTrigger value="rpc">RPC API</TabsTrigger>
+            </TabsList>
+            <TabsContent value="twitter">
+              <TwitterAgentTest />
+            </TabsContent>
+            <TabsContent value="dexscreener">
+              <DexscreenerTest />
+            </TabsContent>
+            <TabsContent value="rpc">
+              <div className="space-y-6">
+                <RpcTest />
+                <TokenAddressTest />
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 
