@@ -219,7 +219,7 @@ export class OpenAIService {
         You can call nessaray tools / functions to gather information before executing the trigger function.
         The trigger function to execute is: ${triggerWithAgent.functionName}
         
-        IMPORTANT: If you encounter a error or any other error , 
+        IMPORTANT: Tweet length should not exceed 250 characters. If you encounter a error or any other error , 
         proceed with the best information you have available. If a function call fails, simply
         try to complete the task with the available information. If not possible to proceed then exit.
         
@@ -231,8 +231,6 @@ export class OpenAIService {
       },
     ];
     console.log(`[Conv] Initialized conversation with system and user prompts`);
-
-    console.log("tools are", tools);
 
     const toolCallsData: ToolCallData[] = [];
     let keepConversation = true;
