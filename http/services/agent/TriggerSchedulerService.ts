@@ -3,7 +3,7 @@ import { db } from "@/db/db";
 import { Agent, type Function, agentPlatformsTable, agentTriggersTable, functionsTable } from "@/db/schema";
 import { AgentTrigger } from "@/db/schema/agentTriggersTable";
 import TwitterService from "@/http/services/TwitterService";
-import { and, eq, lte } from "drizzle-orm";
+import { and, eq, lte, ne } from "drizzle-orm";
 import { OpenAIService } from "../OpenAIService";
 import { TriggerLogService } from "./TriggerLogService";
 
@@ -36,7 +36,6 @@ export class TriggerSchedulerService {
 
       console.log(`Processing ${pendingTriggers.length} pending triggers`);
 
-      // Process each trigger
       for (const trigger of pendingTriggers) {
         await this.processTrigger(trigger);
       }
@@ -45,7 +44,6 @@ export class TriggerSchedulerService {
     } catch (error) {
       console.error("Error processing pending triggers:", error);
 
-      // Log critical errors
       await TriggerLogService.logNoTriggersFound(this.userId, {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
@@ -69,7 +67,6 @@ export class TriggerSchedulerService {
         },
       })
       .then((triggers) => {
-        // Filter out triggers whose agent is paused
         return triggers.filter((trigger) => trigger.agent.status === "running");
       });
   }
@@ -78,7 +75,6 @@ export class TriggerSchedulerService {
     this.userId = trigger.agent.user.id;
     this.openAIService.setUserId(this.userId);
 
-    // Start the execution timer
     const startTime = Date.now();
     const triggerData = {
       id: trigger.id,
@@ -93,7 +89,6 @@ export class TriggerSchedulerService {
     console.log(`-----------------------------------------------`);
 
     try {
-      // Get function details
       const functionDetails = await this.getFunctionDetails(trigger.functionName);
       if (!functionDetails) {
         console.error(`[Trigger] Function ${trigger.functionName} not found in database`);
@@ -101,39 +96,28 @@ export class TriggerSchedulerService {
       }
       console.log(`[Trigger] Found function details for ${trigger.functionName}`);
 
-      // Initialize Twitter service
       await this.initializeTwitterService(trigger.agentId);
 
-      // Execute the function using OpenAI function calling
       console.log(`[Trigger] Executing trigger function: ${trigger.functionName}`);
 
-      // Get agent tools and trigger tool
       const agentTools = await this.getAgentTools();
-      const rpcTools = await this.getRpcTools();
-      const dexscreenerTools = await this.getDexscreenerTools();
       const triggerTool = await this.getTriggerTool(trigger.functionName);
-      const tools = [...agentTools, ...rpcTools, ...dexscreenerTools, triggerTool];
+      const tools = [...agentTools, triggerTool];
 
-      // Execute with AI
       const result = await this.openAIService.executeWithAI(trigger, tools);
 
-      // Update the trigger's last run and next run times
       await this.updateTriggerSchedule(trigger);
 
-      // Calculate execution time
       const executionTime = Date.now() - startTime;
 
-      // Prepare conversation data
       const conversationData = this.openAIService.prepareConversationData(result);
 
-      // Prepare function data
       const functionData = {
         name: trigger.functionName,
         result: result,
         executedAt: new Date().toISOString(),
       };
 
-      // Log successful execution with all relevant data
       await TriggerLogService.logSuccessfulTrigger(triggerData, this.userId, executionTime, conversationData, functionData);
 
       console.log(`[Trigger] Successfully processed trigger ${trigger.id}`);
@@ -145,22 +129,15 @@ export class TriggerSchedulerService {
       console.error(`[Trigger] Error details:`, error);
       console.error(`-----------------------------------------------\n`);
 
-      // Calculate execution time
       const executionTime = Date.now() - startTime;
 
-      // Log error with details
       await TriggerLogService.logFailedTrigger(triggerData, this.userId, error instanceof Error ? error.message : String(error), executionTime);
 
-      // Update next run time even if there was an error
       await this.updateTriggerSchedule(trigger);
     }
   }
 
-  /**
-   * Initialize the Twitter service for the agent
-   */
   private async initializeTwitterService(agentId: number): Promise<void> {
-    // Get the agent's Twitter platform
     const platform = await db.query.agentPlatformsTable.findFirst({
       where: and(eq(agentPlatformsTable.agentId, agentId), eq(agentPlatformsTable.type, "twitter"), eq(agentPlatformsTable.enabled, true)),
     });
@@ -173,14 +150,11 @@ export class TriggerSchedulerService {
     console.log(`[Twitter] Found Twitter platform for agent ${agentId}`, {
       platformId: platform.id,
       enabled: platform.enabled,
-      // Log useful details but not sensitive tokens
     });
 
-    // Initialize Twitter service
     try {
       this.twitterService = new TwitterService(platform);
 
-      // Set the Twitter service in the OpenAI service
       this.openAIService.setTwitterService(this.twitterService);
 
       console.log(`[Twitter] Successfully initialized Twitter service for agent ${agentId}`);
@@ -190,25 +164,17 @@ export class TriggerSchedulerService {
     }
   }
 
-  /**
-   * Get the function details from the database
-   */
   private async getFunctionDetails(functionName: string): Promise<Function | undefined> {
     return await db.query.functionsTable.findFirst({
       where: eq(functionsTable.name, functionName),
     });
   }
 
-  /**
-   * Get all agent tools
-   */
   private async getAgentTools(): Promise<FunctionTool[]> {
-    // Get agent functions from database
     const agentFunctions = await db.query.functionsTable.findMany({
-      where: eq(functionsTable.type, "agent"),
+      where: ne(functionsTable.type, "trigger"),
     });
 
-    // Convert to tools format
     return agentFunctions.map((func) => ({
       type: "function" as const,
       function: {
@@ -219,11 +185,7 @@ export class TriggerSchedulerService {
     }));
   }
 
-  /**
-   * Get trigger tool
-   */
   private async getTriggerTool(functionName: string): Promise<FunctionTool> {
-    // Get the trigger function from the database
     const triggerFunction = await db.query.functionsTable.findFirst({
       where: and(eq(functionsTable.name, functionName), eq(functionsTable.type, "trigger")),
     });
@@ -242,61 +204,9 @@ export class TriggerSchedulerService {
     };
   }
 
-  /**
-   * Get Rpc tool
-   */
-  private async getRpcTools(): Promise<FunctionTool[]> {
-    // Get the trigger function from the database
-    const rpcFunctions = await db.query.functionsTable.findMany({
-      where: eq(functionsTable.type, "rpc"),
-    });
-
-    if (!rpcFunctions) {
-      throw new Error(`Rpc functions not found in database`);
-    }
-
-    // Convert to tools format
-    return rpcFunctions.map((func) => ({
-      type: "function" as const,
-      function: {
-        name: func.name,
-        description: func.description || "",
-        parameters: func.parameters || {},
-      },
-    }));
-  }
-
-  /**
-   * Get Dexscreener tool
-   */
-  private async getDexscreenerTools(): Promise<FunctionTool[]> {
-    // Get the  function from the database
-    const dexscreenerFunctions = await db.query.functionsTable.findMany({
-      where: eq(functionsTable.type, "dexscreener"),
-      });
-  
-      if (!dexscreenerFunctions) {
-        throw new Error(`Rpc functions not found in database`);
-      }
-  
-      // Convert to tools format
-      return dexscreenerFunctions.map((func) => ({
-        type: "function" as const,
-        function: {
-          name: func.name,
-          description: func.description || "",
-          parameters: func.parameters || {},
-        },
-      }));
-    }
-
-  /**
-   * Update the trigger's last run time and calculate the next run time
-   */
   private async updateTriggerSchedule(trigger: AgentTrigger): Promise<void> {
     const now = new Date();
 
-    // Calculate next run time based on interval and runEvery
     const nextRunAt = new Date(now);
     if (trigger.runEvery === "minutes") {
       nextRunAt.setMinutes(now.getMinutes() + trigger.interval);
@@ -306,7 +216,6 @@ export class TriggerSchedulerService {
 
     console.log(`Updating trigger schedule: next run at ${nextRunAt.toISOString()}`);
 
-    // Update the trigger record
     await db
       .update(agentTriggersTable)
       .set({

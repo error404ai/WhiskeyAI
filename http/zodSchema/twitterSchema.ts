@@ -36,4 +36,4 @@ export const quoteSchema = z.object({
 
 export const retweetSchema = z.object({
   retweetId: z.string().min(1, "Tweet ID is required"),
-}); 
+});
