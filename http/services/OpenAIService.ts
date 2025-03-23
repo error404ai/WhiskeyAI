@@ -4,7 +4,8 @@ import { AgentTrigger } from "@/db/schema/agentTriggersTable";
 import { OpenAI } from "openai";
 import { functionEnum } from "../enum/functionEnum";
 import { TriggerLogService } from "./agent/TriggerLogService";
-import rpcService from "./Rpc/RpcService";
+import dexscreenerService from "./Rpc/DexscreenerService";
+import QuickNodeRpcService from "./Rpc/QuickNodeRpcService";
 import TwitterService from "./TwitterService";
 
 // Define OpenAI function calling interfaces
@@ -620,8 +621,8 @@ export class OpenAIService {
         case functionEnum.RPC_getAccountInfo:
           console.log(`[RPC] Getting account info`);
           try {
-            result = await rpcService.getAccountInfo(args.publicKey);
-            console.log(`[Twitter] Successfully get account info ${args.publicKey}`);
+            result = await QuickNodeRpcService.getAccountInfo(args.publicKey);
+            console.log(`[RPC] Successfully get account info ${args.publicKey}`);
             return result;
           } catch (error: any) {
             throw error;
@@ -629,8 +630,8 @@ export class OpenAIService {
         case functionEnum.RPC_getBalance:
           console.log(`[RPC] Getting balance`);
           try {
-            result = await rpcService.getBalance(args.publicKey);
-            console.log(`[Twitter] Successfully get balance ${args.publicKey}`);
+            result = await QuickNodeRpcService.getBalance(args.publicKey);
+            console.log(`[RPC] Successfully get balance ${args.publicKey}`);
             return result;
           } catch (error: any) {
             throw error;
@@ -638,8 +639,26 @@ export class OpenAIService {
         case functionEnum.RPC_getBlock:
           console.log(`[RPC] Getting block`);
           try {
-            result = await rpcService.getBlock(args.slot);
-            console.log(`[Twitter] Successfully get block ${args.slot}`);
+            result = await QuickNodeRpcService.getBlock(args.slot);
+            console.log(`[RPC] Successfully get block ${args.slot}`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+        case functionEnum.DEX_getLatestTokenProfiles:
+          console.log(`[DEX] Getting latest token profiles`);
+          try {
+            result = await dexscreenerService.getLatestTokenProfiles();
+            console.log(`[DEX] Successfully get token profiles`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+        case functionEnum.DEX_getLatestBoostedTokens:
+          console.log(`[DEX] Getting latest token profiles`);
+          try {
+            result = await dexscreenerService.getLatestBoostedTokens();
+            console.log(`[DEX] Successfully get boosted tokens`);
             return result;
           } catch (error: any) {
             throw error;

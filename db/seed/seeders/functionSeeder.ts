@@ -143,6 +143,19 @@ export class FunctionsSeeder implements Seeder {
       },
       type: "rpc",
     },
+    //dexscreener
+    {
+      name: functionEnum.DEX_getLatestTokenProfiles,
+      description: "Get the latest token profiles",
+      parameters: {},
+      type: "dexscreener",
+    },
+    {
+      name: functionEnum.DEX_getLatestBoostedTokens,
+      description: "Get the latest boosted tokens",
+      parameters: {},
+      type: "dexscreener",
+    },
   ];
 
   async seed(): Promise<void> {

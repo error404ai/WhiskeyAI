@@ -5,7 +5,7 @@ export const functionsTable = pgTable("functions", {
   name: varchar({ length: 255 }).notNull().unique(),
   description: varchar({ length: 500 }),
   parameters: jsonb().notNull(),
-  type: varchar({ length: 255 }).notNull().$type<"agent" | "trigger" | "rpc">(),
+  type: varchar({ length: 255 }).notNull().$type<"agent" | "trigger" | "rpc" | "dexscreener">(),
 });
 
 export type Function = typeof functionsTable.$inferSelect;
