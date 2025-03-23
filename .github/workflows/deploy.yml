@@ -30,6 +30,9 @@ jobs:
           ssh -o StrictHostKeyChecking=no root@45.90.220.95 << 'EOF'
             set -e
             docker system prune -a --volumes=false --force
+            docker stop portainer || true
+            docker rm portainer || true
+            docker network rm whiskeyai_default || true
             cd /var/www/WhiskeyAI
             git pull origin production
             cd /var/www/WhiskeyAI
