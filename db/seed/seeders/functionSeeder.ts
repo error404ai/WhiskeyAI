@@ -17,7 +17,7 @@ export class FunctionsSeeder implements Seeder {
     },
     {
       name: functionEnum.post_tweet,
-      description: "Create and publish a new tweet on Twitter. Tweet length should not exceed 280 characters",
+      description: "Create and publish a new tweet on Twitter. Tweet length should not exceed 280 characters including links.",
       parameters: {
         type: "object",
         properties: {
@@ -146,25 +146,25 @@ export class FunctionsSeeder implements Seeder {
     //dexscreener
     {
       name: functionEnum.DEX_getLatestTokenProfiles,
-      description: "Get the latest token profiles",
+      description: "Get the latest token profile from dexscreener.com",
       parameters: {},
       type: "dexscreener",
     },
     {
       name: functionEnum.DEX_getLatestBoostedTokens,
-      description: "Get the latest boosted tokens",
+      description: "Get the latest boosted tokens from dexscreener.com",
       parameters: {},
       type: "dexscreener",
     },
     {
       name: functionEnum.DEX_getTopBoostedTokens,
-      description: "Get the tokens with most active boosts",
+      description: "Get the tokens with most active boosts from dexscreener.com",
       parameters: {},
       type: "dexscreener",
     },
     {
       name: functionEnum.DEX_getTokenOrders,
-      description: "Check orders paid for of token",
+      description: "Check orders paid for of token on dexscreener.com",
       parameters: {
         type: "object",
         properties: {
@@ -183,7 +183,7 @@ export class FunctionsSeeder implements Seeder {
     },
     {
       name: functionEnum.DEX_getPairsByChainAndPairAddress,
-      description: "Get one or multiple pairs by chain and pair address",
+      description: "Get one or multiple pairs by chain and pair address from dexscreener.com",
       parameters: {
         type: "object",
         properties: {
@@ -202,7 +202,7 @@ export class FunctionsSeeder implements Seeder {
     },
     {
       name: functionEnum.DEX_searchPairs,
-      description: "Search for pairs matching query",
+      description: "Search for pairs matching query from dexscreener.com",
       parameters: {
         type: "object",
         properties: {
@@ -217,7 +217,7 @@ export class FunctionsSeeder implements Seeder {
     },
     {
       name: functionEnum.DEX_getTokenPairs,
-      description: "Get the pools of a given token address",
+      description: "Get the pools of a given token address from dexscreener.com",
       parameters: {
         type: "object",
         properties: {
@@ -236,7 +236,7 @@ export class FunctionsSeeder implements Seeder {
     },
     {
       name: functionEnum.DEX_getTokensByAddress,
-      description: "Get one or multiple pairs by token address",
+      description: "Get one or multiple pairs by token address from dexscreener.com",
       parameters: {
         type: "object",
         properties: {
