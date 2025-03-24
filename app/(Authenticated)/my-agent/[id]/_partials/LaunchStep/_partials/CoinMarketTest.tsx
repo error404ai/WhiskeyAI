@@ -26,6 +26,16 @@ interface CoinMarketResponse {
   errorDetails?: string;
 }
 
+// Helper function to filter out empty parameters
+const filterEmptyParams = <T extends Record<string, unknown>>(params: T): Partial<T> => {
+  return Object.entries(params).reduce((acc, [key, value]) => {
+    if (value !== null && value !== undefined && value !== "") {
+      acc[key as keyof T] = value as T[keyof T];
+    }
+    return acc;
+  }, {} as Partial<T>);
+};
+
 export default function CoinMarketTest() {
   // Form handlers for each tab
   const trendingForm = useForm({
@@ -99,51 +109,80 @@ export default function CoinMarketTest() {
   };
 
   const handleGetTrendingMostVisited = (data: z.infer<typeof trendingBaseSchema>) => {
-    const params = {
+    const params = filterEmptyParams({
       ...data,
       limit: data.limit ? parseInt(data.limit) : undefined,
       start: data.start ? parseInt(data.start) : undefined,
-    };
+    });
     handleApiCall(() => getTrendingMostVisited(params), "Get Trending Most Visited");
     trendingForm.reset();
   };
 
   const handleGetTrendingGainersLosers = (data: z.infer<typeof trendingGainersLosersSchema>) => {
-    const params = {
+    const params = filterEmptyParams({
       ...data,
       limit: data.limit ? parseInt(data.limit) : undefined,
       start: data.start ? parseInt(data.start) : undefined,
-    };
+    });
     handleApiCall(() => getTrendingGainersLosers(params), "Get Trending Gainers & Losers");
     gainersLosersForm.reset();
   };
 
   const handleGetTrendingLatest = (data: z.infer<typeof trendingBaseSchema>) => {
-    const params = {
+    const params = filterEmptyParams({
       ...data,
       limit: data.limit ? parseInt(data.limit) : undefined,
       start: data.start ? parseInt(data.start) : undefined,
-    };
+    });
     handleApiCall(() => getTrendingLatest(params), "Get Trending Latest");
     trendingForm.reset();
   };
 
   const handleGetQuotesHistorical = (data: z.infer<typeof quotesHistoricalSchema>) => {
-    const params = {
-      ...data,
-      count: data.count ? parseInt(data.count) : undefined,
+    const { id, interval, count, ...rest } = data;
+    const params: {
+      id: string;
+      interval: typeof interval;
+      count?: number;
+      symbol?: string;
+      time_start?: string;
+      time_end?: string;
+      convert?: string;
+      convert_id?: string;
+      aux?: string;
+      skip_invalid?: boolean;
+    } = {
+      id,
+      interval,
+      ...(count ? { count: parseInt(count) } : {}),
+      ...filterEmptyParams(rest),
     };
     handleApiCall(() => getQuotesHistorical(params), "Get Quotes Historical");
     quotesHistoricalForm.reset();
   };
 
   const handleGetQuotesLatest = (data: z.infer<typeof quotesLatestSchema>) => {
-    handleApiCall(() => getQuotesLatest(data), "Get Quotes Latest");
+    const params = filterEmptyParams({
+      ...data,
+      // Ensure at least one identifier is present
+      id: data.id || undefined,
+      slug: data.slug || undefined,
+      symbol: data.symbol || undefined,
+    });
+    handleApiCall(() => getQuotesLatest(params), "Get Quotes Latest");
     quotesLatestForm.reset();
   };
 
   const handleGetMetadata = (data: z.infer<typeof metadataSchema>) => {
-    handleApiCall(() => getMetadata(data), "Get Metadata");
+    const params = filterEmptyParams({
+      ...data,
+      // Ensure at least one identifier is present
+      id: data.id || undefined,
+      slug: data.slug || undefined,
+      symbol: data.symbol || undefined,
+      address: data.address || undefined,
+    });
+    handleApiCall(() => getMetadata(params), "Get Metadata");
     metadataForm.reset();
   };
 
@@ -577,7 +616,7 @@ export default function CoinMarketTest() {
         <h2 className="mb-4 text-xl font-semibold">Results</h2>
 
         {error && (
-          <Alert variant="destructive" className="mb-4">
+          <Alert variant="destructive" className="mb-4 text-red-500">
             <div className="flex w-full flex-col">
               <div className="flex items-start">
                 <div className="mt-0.5 mr-2">

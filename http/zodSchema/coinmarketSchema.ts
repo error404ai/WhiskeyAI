@@ -40,6 +40,11 @@ export const quotesLatestSchema = z.object({
   convert_id: z.string().optional(),
   aux: z.string().optional(),
   skip_invalid: z.boolean().optional(),
+}).refine((data) => {
+  return data.id || data.slug || data.symbol;
+}, {
+  message: "At least one identifier (id, slug, or symbol) is required",
+  path: ["id", "slug", "symbol"]
 });
 
 export const metadataSchema = z.object({
@@ -47,6 +52,11 @@ export const metadataSchema = z.object({
   slug: z.string().optional(),
   symbol: z.string().optional(),
   address: z.string().optional(),
-  skip_invalid: z.boolean().optional(),
   aux: z.string().optional(),
+  skip_invalid: z.boolean().optional(),
+}).refine((data) => {
+  return data.id || data.slug || data.symbol || data.address;
+}, {
+  message: "At least one identifier (id, slug, symbol, or address) is required",
+  path: ["id", "slug", "symbol", "address"]
 }); 
