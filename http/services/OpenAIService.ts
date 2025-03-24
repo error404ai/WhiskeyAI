@@ -4,6 +4,7 @@ import { AgentTrigger } from "@/db/schema/agentTriggersTable";
 import { OpenAI } from "openai";
 import { functionEnum } from "../enum/functionEnum";
 import { TriggerLogService } from "./agent/TriggerLogService";
+import coinMarketService from "./Rpc/CoinMarketService";
 import dexscreenerService from "./Rpc/DexscreenerService";
 import QuickNodeRpcService from "./Rpc/QuickNodeRpcService";
 import TwitterService from "./TwitterService";
@@ -711,6 +712,24 @@ export class OpenAIService {
           try {
             result = await dexscreenerService.getTokensByAddress(args.chainId, args.tokenAddresses);
             console.log(`[DEX] Successfully get tokens by address`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+        case functionEnum.COINMARKET_getFearAndGreedLatest:
+          console.log(`[COINMARKET] Getting Fear and Greed Latest`);
+          try {
+            result = await coinMarketService.getFearAndGreedLatest();
+            console.log(`[COINMARKET] Successfully get Fear and Greed Latest`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+        case functionEnum.COINMARKET_getFearAndGreedHistorical:
+          console.log(`[COINMARKET] Getting Fear and Greed Historical`);
+          try {
+            result = await coinMarketService.getFearAndGreedHistorical();
+            console.log(`[COINMARKET] Successfully get Fear and Greed Historical`);
             return result;
           } catch (error: any) {
             throw error;

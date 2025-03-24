@@ -16,4 +16,6 @@ export enum functionEnum {
   DEX_searchPairs = "DEX_searchPairs",
   DEX_getTokenPairs = "DEX_getTokenPairs",
   DEX_getTokensByAddress = "DEX_getTokensByAddress",
+  COINMARKET_getFearAndGreedLatest = "COINMARKET_getFearAndGreedLatest",
+  COINMARKET_getFearAndGreedHistorical = "COINMARKET_getFearAndGreedHistorical",
 }
