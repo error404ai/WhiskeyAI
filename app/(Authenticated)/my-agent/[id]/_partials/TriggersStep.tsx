@@ -205,7 +205,7 @@ const TriggersStep = () => {
                             <Input label="Trigger Name" required name="name" placeholder="Enter Trigger Name" defaultValue={methods.getValues("name") || ""} />
                           </div>
                           <div className="space-y-2">
-                            <Textarea name="description" label="Trigger Description" required placeholder="What does this trigger do?" defaultValue={methods.getValues("description") || ""} />
+                            <Textarea name="description" label="Trigger Description" required placeholder="What does this trigger do?" defaultValue={methods.getValues("description") || ""} className="h-28" />
                           </div>
 
                           <div className="space-y-2">
