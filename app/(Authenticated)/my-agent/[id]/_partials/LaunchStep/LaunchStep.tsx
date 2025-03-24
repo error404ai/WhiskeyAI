@@ -3,7 +3,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AgentPlatform } from "@/db/schema";
 import * as PlatformController from "@/http/controllers/platformController";
 import { useQuery } from "@tanstack/react-query";
@@ -11,21 +13,13 @@ import { Trash2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
-import LaunchToken from "./_partials/LaunchToken";
-import TwitterAgentTest from "./_partials/TwitterAgentTest";
-import TokenAddressTest from "./_partials/TokenAddressTest";
-import DexscreenerTest from "./_partials/DexscreenerTest";
-import RpcTest from "./_partials/RpcTest";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CoinMarketTest from "./_partials/CoinMarketTest";
+import DexscreenerTest from "./_partials/DexscreenerTest";
+import LaunchToken from "./_partials/LaunchToken";
+import RpcTest from "./_partials/RpcTest";
+import TokenAddressTest from "./_partials/TokenAddressTest";
+import TwitterAgentTest from "./_partials/TwitterAgentTest";
 
 type TabType = "memory" | "simulation" | "connect" | "launch" | "custom_texts" | "post_id";
 
@@ -50,13 +44,13 @@ function LaunchStep() {
     try {
       // Check if Twitter credentials exist before connecting
       const hasCredentials = await PlatformController.checkTwitterCredentials(agentUuid);
-      
+
       if (!hasCredentials) {
         setWarningOpen(true);
         setConnecting(false);
         return;
       }
-      
+
       await PlatformController.connectTwitter({
         agentUuid,
         url: `/my-agent/${agentUuid}?tab=launch`,
@@ -129,9 +123,10 @@ function LaunchStep() {
         </div>
         <div>
           <Tabs value={activeApiTab} onValueChange={setActiveApiTab} className="w-full">
-            <TabsList className="mb-4 grid grid-cols-3">
+            <TabsList className="mb-4 flex flex-wrap gap-2 h-fit w-fit mx-auto">
               <TabsTrigger value="twitter">Twitter API</TabsTrigger>
               <TabsTrigger value="dexscreener">Dexscreener API</TabsTrigger>
+              <TabsTrigger value="coinmarket">Coinmarket API</TabsTrigger>
               <TabsTrigger value="rpc">RPC API</TabsTrigger>
             </TabsList>
             <TabsContent value="twitter">
@@ -140,13 +135,17 @@ function LaunchStep() {
             <TabsContent value="dexscreener">
               <DexscreenerTest />
             </TabsContent>
+            <TabsContent value="coinmarket">
+              <CoinMarketTest />
+            </TabsContent>
             <TabsContent value="rpc">
               <div className="space-y-6">
-                <RpcTest />
+               
                 <TokenAddressTest />
               </div>
             </TabsContent>
           </Tabs>
+          <RpcTest />
         </div>
       </div>
 
@@ -154,9 +153,7 @@ function LaunchStep() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Twitter Credentials Required</DialogTitle>
-            <DialogDescription>
-              Please set up your Twitter Developer credentials first. You need to enter both the Client ID and Client Secret in the &quot;Setup Twitter Developer&quot; section before connecting to Twitter.
-            </DialogDescription>
+            <DialogDescription>Please set up your Twitter Developer credentials first. You need to enter both the Client ID and Client Secret in the &quot;Setup Twitter Developer&quot; section before connecting to Twitter.</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="secondary" onClick={() => setWarningOpen(false)}>

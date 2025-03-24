@@ -4,6 +4,7 @@ import { AgentTrigger } from "@/db/schema/agentTriggersTable";
 import { OpenAI } from "openai";
 import { functionEnum } from "../enum/functionEnum";
 import { TriggerLogService } from "./agent/TriggerLogService";
+import coinMarketService from "./Rpc/CoinMarketService";
 import dexscreenerService from "./Rpc/DexscreenerService";
 import QuickNodeRpcService from "./Rpc/QuickNodeRpcService";
 import TwitterService from "./TwitterService";
@@ -80,7 +81,7 @@ export class OpenAIService {
     this.twitterService = twitterService;
   }
 
-  public async executeWithAI(triggerWithAgent: AgentTrigger & { agent: Agent & { user: { id: number } } }, tools: FunctionTool[]): Promise<any> {
+  public async executeWithAI(triggerWithAgent: AgentTrigger & { agent: Agent & { user: { id: number } } }): Promise<any> {
     if (!this.twitterService) {
       console.error(`[AI] Twitter service not initialized in executeWithAI`);
       throw new Error("Twitter service not initialized");
@@ -103,7 +104,7 @@ export class OpenAIService {
     });
 
     console.log(`[AI] Starting conversation with OpenAI for function: ${triggerWithAgent.functionName}`);
-    const { toolCallsData, successfulTriggerExecution } = await this.startConversation(triggerWithAgent, tools, context);
+    const { toolCallsData, successfulTriggerExecution } = await this.startConversation(triggerWithAgent, [], context);
     console.log(`[AI] Completed conversation with ${toolCallsData.length} tool calls`);
 
     if (toolCallsData.length > 0) {
@@ -711,6 +712,78 @@ export class OpenAIService {
           try {
             result = await dexscreenerService.getTokensByAddress(args.chainId, args.tokenAddresses);
             console.log(`[DEX] Successfully get tokens by address`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+        case functionEnum.COINMARKET_getFearAndGreedLatest:
+          console.log(`[COINMARKET] Getting Fear and Greed Latest`);
+          try {
+            result = await coinMarketService.getFearAndGreedLatest();
+            console.log(`[COINMARKET] Successfully get Fear and Greed Latest`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+        case functionEnum.COINMARKET_getFearAndGreedHistorical:
+          console.log(`[COINMARKET] Getting Fear and Greed Historical`);
+          try {
+            result = await coinMarketService.getFearAndGreedHistorical();
+            console.log(`[COINMARKET] Successfully get Fear and Greed Historical`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+        case functionEnum.COINMARKET_getTrendingMostVisited:
+          console.log(`[COINMARKET] Getting Trending Most Visited`);
+          try {
+            result = await coinMarketService.getTrendingMostVisited(args);
+            console.log(`[COINMARKET] Successfully get Trending Most Visited`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+        case functionEnum.COINMARKET_getTrendingGainersLosers:
+          console.log(`[COINMARKET] Getting Trending Gainers & Losers`);
+          try {
+            result = await coinMarketService.getTrendingGainersLosers(args);
+            console.log(`[COINMARKET] Successfully get Trending Gainers & Losers`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+        case functionEnum.COINMARKET_getTrendingLatest:
+          console.log(`[COINMARKET] Getting Trending Latest`);
+          try {
+            result = await coinMarketService.getTrendingLatest(args);
+            console.log(`[COINMARKET] Successfully get Trending Latest`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+        case functionEnum.COINMARKET_getQuotesHistorical:
+          console.log(`[COINMARKET] Getting Quotes Historical`);
+          try {
+            result = await coinMarketService.getQuotesHistorical(args);
+            console.log(`[COINMARKET] Successfully get Quotes Historical`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+        case functionEnum.COINMARKET_getQuotesLatest:
+          console.log(`[COINMARKET] Getting Quotes Latest`);
+          try {
+            result = await coinMarketService.getQuotesLatest(args);
+            console.log(`[COINMARKET] Successfully get Quotes Latest`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+        case functionEnum.COINMARKET_getMetadata:
+          console.log(`[COINMARKET] Getting Metadata`);
+          try {
+            result = await coinMarketService.getMetadata(args);
+            console.log(`[COINMARKET] Successfully get Metadata`);
             return result;
           } catch (error: any) {
             throw error;
