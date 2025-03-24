@@ -222,7 +222,7 @@ export class TriggerSchedulerService {
         throw new Error(`Unknown runEvery value: ${trigger.runEvery}`);
     }
 
-    console.log(`Updating trigger schedule: next run at ${nextRunAt.toISOString()}`);
+    console.log(`Updating trigger schedule: next run at UTC ${nextRunAt.toISOString()}`);
 
     await db
       .update(agentTriggersTable)

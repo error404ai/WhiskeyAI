@@ -146,7 +146,7 @@ export class FunctionsSeeder implements Seeder {
     //dexscreener
     {
       name: functionEnum.DEX_getLatestTokenProfiles,
-      description: "Get the latest token profiles",
+      description: "Get the latest token profile from dexscreener.com",
       parameters: {},
       type: "dexscreener",
     },
