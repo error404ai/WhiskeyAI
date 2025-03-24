@@ -18,4 +18,10 @@ export enum functionEnum {
   DEX_getTokensByAddress = "DEX_getTokensByAddress",
   COINMARKET_getFearAndGreedLatest = "COINMARKET_getFearAndGreedLatest",
   COINMARKET_getFearAndGreedHistorical = "COINMARKET_getFearAndGreedHistorical",
+  COINMARKET_getTrendingMostVisited = "COINMARKET_getTrendingMostVisited",
+  COINMARKET_getTrendingGainersLosers = "COINMARKET_getTrendingGainersLosers",
+  COINMARKET_getTrendingLatest = "COINMARKET_getTrendingLatest",
+  COINMARKET_getQuotesHistorical = "COINMARKET_getQuotesHistorical",
+  COINMARKET_getQuotesLatest = "COINMARKET_getQuotesLatest",
+  COINMARKET_getMetadata = "COINMARKET_getMetadata",
 }

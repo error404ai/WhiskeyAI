@@ -284,6 +284,146 @@ export class FunctionsSeeder implements Seeder {
       type: "agent",
       group: "coinmarket",
     },
+    {
+      name: functionEnum.COINMARKET_getTrendingMostVisited,
+      description: "Returns a paginated list of all trending cryptocurrency market data, determined and sorted by traffic to coin detail pages",
+      parameters: {
+        type: "object",
+        properties: {
+          limit: {
+            type: "number",
+            description: "Number of results to return (1-500)",
+          },
+          start: {
+            type: "number",
+            description: "Starting point for pagination",
+          },
+        },
+        required: [],
+      },
+      type: "agent",
+      group: "coinmarket",
+    },
+    {
+      name: functionEnum.COINMARKET_getTrendingGainersLosers,
+      description: "Returns a paginated list of all trending cryptocurrencies, determined and sorted by the largest price gains or losses",
+      parameters: {
+        type: "object",
+        properties: {
+          limit: {
+            type: "number",
+            description: "Number of results to return (1-500)",
+          },
+          start: {
+            type: "number",
+            description: "Starting point for pagination",
+          },
+          sort: {
+            type: "string",
+            description: "Sort by field (e.g. percent_change_24h)",
+          },
+        },
+        required: [],
+      },
+      type: "agent",
+      group: "coinmarket",
+    },
+    {
+      name: functionEnum.COINMARKET_getTrendingLatest,
+      description: "Returns a paginated list of all trending cryptocurrency market data, determined and sorted by CoinMarketCap search volume",
+      parameters: {
+        type: "object",
+        properties: {
+          limit: {
+            type: "number",
+            description: "Number of results to return (1-500)",
+          },
+          start: {
+            type: "number",
+            description: "Starting point for pagination",
+          },
+        },
+        required: [],
+      },
+      type: "agent",
+      group: "coinmarket",
+    },
+    {
+      name: functionEnum.COINMARKET_getQuotesHistorical,
+      description: "Returns an interval of historic market quotes for any cryptocurrency based on time and interval parameters",
+      parameters: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            description: "One or more comma-separated cryptocurrency IDs",
+          },
+          interval: {
+            type: "string",
+            description: "Interval of time to update data (e.g. 1h, 1d, 1w)",
+          },
+          count: {
+            type: "number",
+            description: "Number of intervals to return",
+          },
+          time_start: {
+            type: "string",
+            description: "Timestamp to start returning data for",
+          },
+          time_end: {
+            type: "string",
+            description: "Timestamp to stop returning data for",
+          },
+        },
+        required: ["id", "interval"],
+      },
+      type: "agent",
+      group: "coinmarket",
+    },
+    {
+      name: functionEnum.COINMARKET_getQuotesLatest,
+      description: "Returns the latest market quote for 1 or more cryptocurrencies",
+      parameters: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            description: "One or more comma-separated cryptocurrency IDs",
+          },
+          convert: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into",
+          },
+          skip_invalid: {
+            type: "boolean",
+            description: "Skip any invalid cryptocurrencies",
+          },
+        },
+        required: ["id"],
+      },
+      type: "agent",
+      group: "coinmarket",
+    },
+    {
+      name: functionEnum.COINMARKET_getMetadata,
+      description: "Returns all static metadata available for one or more cryptocurrencies",
+      parameters: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            description: "One or more comma-separated cryptocurrency IDs",
+          },
+          skip_invalid: {
+            type: "boolean",
+            description: "Skip any invalid cryptocurrencies",
+          },
+        },
+        required: ["id"],
+      },
+      type: "agent",
+      group: "coinmarket",
+    },
   ];
 
   async seed(): Promise<void> {
