@@ -14,6 +14,7 @@ export class FunctionsSeeder implements Seeder {
         required: [],
       },
       type: "agent",
+      group: "twitter",
     },
     {
       name: functionEnum.post_tweet,
@@ -29,6 +30,7 @@ export class FunctionsSeeder implements Seeder {
         required: ["text"],
       },
       type: "trigger",
+      group: "twitter",
     },
     {
       name: functionEnum.reply_tweet,
@@ -48,6 +50,7 @@ export class FunctionsSeeder implements Seeder {
         required: ["text", "tweetId"],
       },
       type: "trigger",
+      group: "twitter",
     },
     {
       name: functionEnum.like_tweet,
@@ -63,6 +66,7 @@ export class FunctionsSeeder implements Seeder {
         required: ["tweetId"],
       },
       type: "trigger",
+      group: "twitter",
     },
     {
       name: functionEnum.quote_tweet,
@@ -82,6 +86,7 @@ export class FunctionsSeeder implements Seeder {
         required: ["quotedTweetId", "comment"],
       },
       type: "trigger",
+      group: "twitter",
     },
     {
       name: functionEnum.retweet,
@@ -97,6 +102,7 @@ export class FunctionsSeeder implements Seeder {
         required: ["tweetId"],
       },
       type: "trigger",
+      group: "twitter",
     },
     {
       name: functionEnum.RPC_getAccountInfo,
@@ -111,7 +117,8 @@ export class FunctionsSeeder implements Seeder {
         },
         required: ["publicKey"],
       },
-      type: "rpc",
+      type: "agent",
+      group: "rpc",
     },
     {
       name: functionEnum.RPC_getBalance,
@@ -126,7 +133,8 @@ export class FunctionsSeeder implements Seeder {
         },
         required: ["publicKey"],
       },
-      type: "rpc",
+      type: "agent",
+      group: "rpc",
     },
     {
       name: functionEnum.RPC_getBlock,
@@ -141,26 +149,30 @@ export class FunctionsSeeder implements Seeder {
         },
         required: ["slot"],
       },
-      type: "rpc",
+      type: "agent",
+      group: "rpc",
     },
     //dexscreener
     {
       name: functionEnum.DEX_getLatestTokenProfiles,
       description: "Get the latest token profile from dexscreener.com",
       parameters: {},
-      type: "dexscreener",
+      type: "agent",
+      group: "dexscreener",
     },
     {
       name: functionEnum.DEX_getLatestBoostedTokens,
       description: "Get the latest boosted tokens from dexscreener.com",
       parameters: {},
-      type: "dexscreener",
+      type: "agent",
+      group: "dexscreener",
     },
     {
       name: functionEnum.DEX_getTopBoostedTokens,
       description: "Get the tokens with most active boosts from dexscreener.com",
       parameters: {},
-      type: "dexscreener",
+      type: "agent",
+      group: "dexscreener",
     },
     {
       name: functionEnum.DEX_getTokenOrders,
@@ -179,7 +191,8 @@ export class FunctionsSeeder implements Seeder {
         },
         required: ["chainId", "tokenAddress"],
       },
-      type: "dexscreener",
+      type: "agent",
+      group: "dexscreener",
     },
     {
       name: functionEnum.DEX_getPairsByChainAndPairAddress,
@@ -198,7 +211,8 @@ export class FunctionsSeeder implements Seeder {
         },
         required: ["chainId", "pairId"],
       },
-      type: "dexscreener",
+      type: "agent",
+      group: "dexscreener",
     },
     {
       name: functionEnum.DEX_searchPairs,
@@ -213,7 +227,8 @@ export class FunctionsSeeder implements Seeder {
         },
         required: ["query"],
       },
-      type: "dexscreener",
+      type: "agent",
+      group: "dexscreener",
     },
     {
       name: functionEnum.DEX_getTokenPairs,
@@ -232,7 +247,8 @@ export class FunctionsSeeder implements Seeder {
         },
         required: ["chainId", "tokenAddress"],
       },
-      type: "dexscreener",
+      type: "agent",
+      group: "dexscreener",
     },
     {
       name: functionEnum.DEX_getTokensByAddress,
@@ -251,7 +267,274 @@ export class FunctionsSeeder implements Seeder {
         },
         required: ["chainId", "tokenAddresses"],
       },
-      type: "dexscreener",
+      type: "agent",
+      group: "dexscreener",
+    },
+    {
+      name: functionEnum.COINMARKET_getFearAndGreedLatest,
+      description: "Returns the lastest CMC Crypto Fear and Greed value from coinmarketcap.com",
+      parameters: {},
+      type: "agent",
+      group: "coinmarket",
+    },
+    {
+      name: functionEnum.COINMARKET_getFearAndGreedHistorical,
+      description: "Returns a paginated list of all CMC Crypto Fear and Greed values at 12am UTC time from coinmarketcap.com",
+      parameters: {},
+      type: "agent",
+      group: "coinmarket",
+    },
+    {
+      name: functionEnum.COINMARKET_getTrendingMostVisited,
+      description: "Returns a paginated list of all trending cryptocurrency market data, determined and sorted by traffic to coin detail pages",
+      parameters: {
+        type: "object",
+        properties: {
+          limit: {
+            type: "number",
+            description: "Number of results to return (1-500)",
+            minimum: 1,
+            maximum: 500
+          },
+          start: {
+            type: "number",
+            description: "Starting point for pagination",
+            minimum: 0
+          },
+          time_period: {
+            type: "string",
+            description: "Time period for trending data",
+            enum: ["24h", "30d", "7d"]
+          },
+          convert: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into"
+          },
+          convert_id: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into"
+          }
+        },
+        required: [],
+      },
+      type: "agent",
+      group: "coinmarket",
+    },
+    {
+      name: functionEnum.COINMARKET_getTrendingGainersLosers,
+      description: "Returns a paginated list of all trending cryptocurrencies, determined and sorted by the largest price gains or losses",
+      parameters: {
+        type: "object",
+        properties: {
+          limit: {
+            type: "number",
+            description: "Number of results to return (1-500)",
+            minimum: 1,
+            maximum: 500
+          },
+          start: {
+            type: "number",
+            description: "Starting point for pagination",
+            minimum: 0
+          },
+          time_period: {
+            type: "string",
+            description: "Time period for trending data",
+            enum: ["24h", "30d", "7d"]
+          },
+          sort: {
+            type: "string",
+            description: "Sort by field",
+            enum: ["percent_change_24h"]
+          },
+          sort_dir: {
+            type: "string",
+            description: "Sort direction",
+            enum: ["asc", "desc"]
+          },
+          convert: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into"
+          },
+          convert_id: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into"
+          }
+        },
+        required: [],
+      },
+      type: "agent",
+      group: "coinmarket",
+    },
+    {
+      name: functionEnum.COINMARKET_getTrendingLatest,
+      description: "Returns a paginated list of all trending cryptocurrency market data, determined and sorted by CoinMarketCap search volume",
+      parameters: {
+        type: "object",
+        properties: {
+          limit: {
+            type: "number",
+            description: "Number of results to return (1-500)",
+            minimum: 1,
+            maximum: 500
+          },
+          start: {
+            type: "number",
+            description: "Starting point for pagination",
+            minimum: 0
+          },
+          time_period: {
+            type: "string",
+            description: "Time period for trending data",
+            enum: ["24h", "30d", "7d"]
+          },
+          convert: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into"
+          },
+          convert_id: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into"
+          }
+        },
+        required: [],
+      },
+      type: "agent",
+      group: "coinmarket",
+    },
+    {
+      name: functionEnum.COINMARKET_getQuotesHistorical,
+      description: "Returns an interval of historic market quotes for any cryptocurrency based on time and interval parameters",
+      parameters: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            description: "One or more comma-separated cryptocurrency IDs",
+            minLength: 1
+          },
+          interval: {
+            type: "string",
+            description: "Interval of time to update data",
+            enum: ["yearly", "monthly", "weekly", "daily", "hourly", "5m", "10m", "15m", "30m", "45m", "1h", "2h", "3h", "4h", "6h", "12h", "24h", "1d", "2d", "3d", "7d", "14d", "15d", "30d", "60d", "90d", "365d"]
+          },
+          count: {
+            type: "number",
+            description: "Number of intervals to return",
+            minimum: 1,
+            maximum: 10000
+          },
+          time_start: {
+            type: "string",
+            description: "Timestamp to start returning data for (ISO 8601 format)"
+          },
+          time_end: {
+            type: "string",
+            description: "Timestamp to stop returning data for (ISO 8601 format)"
+          },
+          symbol: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency symbols"
+          },
+          convert: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into"
+          },
+          convert_id: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into"
+          },
+          aux: {
+            type: "string",
+            description: "Comma-separated list of auxiliary data fields to return"
+          },
+          skip_invalid: {
+            type: "boolean",
+            description: "Skip any invalid cryptocurrencies"
+          }
+        },
+        required: ["id", "interval"],
+      },
+      type: "agent",
+      group: "coinmarket",
+    },
+    {
+      name: functionEnum.COINMARKET_getQuotesLatest,
+      description: "Returns the latest market quote for 1 or more cryptocurrencies",
+      parameters: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            description: "One or more comma-separated cryptocurrency IDs",
+            minLength: 1
+          },
+          slug: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency slugs"
+          },
+          symbol: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency symbols"
+          },
+          convert: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into"
+          },
+          convert_id: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into"
+          },
+          aux: {
+            type: "string",
+            description: "Comma-separated list of auxiliary data fields to return"
+          },
+          skip_invalid: {
+            type: "boolean",
+            description: "Skip any invalid cryptocurrencies"
+          }
+        },
+        required: ["id"],
+      },
+      type: "agent",
+      group: "coinmarket",
+    },
+    {
+      name: functionEnum.COINMARKET_getMetadata,
+      description: "Returns all static metadata available for one or more cryptocurrencies",
+      parameters: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            description: "One or more comma-separated cryptocurrency IDs",
+            minLength: 1
+          },
+          slug: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency slugs"
+          },
+          symbol: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency symbols"
+          },
+          address: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency contract addresses"
+          },
+          aux: {
+            type: "string",
+            description: "Comma-separated list of auxiliary data fields to return"
+          },
+          skip_invalid: {
+            type: "boolean",
+            description: "Skip any invalid cryptocurrencies"
+          }
+        },
+        required: ["id"],
+      },
+      type: "agent",
+      group: "coinmarket",
     },
   ];
 
