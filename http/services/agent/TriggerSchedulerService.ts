@@ -208,10 +208,18 @@ export class TriggerSchedulerService {
     const now = new Date();
 
     const nextRunAt = new Date(now);
-    if (trigger.runEvery === "minutes") {
-      nextRunAt.setMinutes(now.getMinutes() + trigger.interval);
-    } else if (trigger.runEvery === "hours") {
-      nextRunAt.setHours(now.getHours() + trigger.interval);
+    switch (trigger.runEvery) {
+      case "minutes":
+        nextRunAt.setMinutes(now.getMinutes() + trigger.interval);
+        break;
+      case "hours":
+        nextRunAt.setHours(now.getHours() + trigger.interval);
+        break;
+      case "days":
+        nextRunAt.setDate(now.getDate() + trigger.interval);
+        break;
+      default:
+        throw new Error(`Unknown runEvery value: ${trigger.runEvery}`);
     }
 
     console.log(`Updating trigger schedule: next run at ${nextRunAt.toISOString()}`);
