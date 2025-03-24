@@ -14,6 +14,7 @@ export class FunctionsSeeder implements Seeder {
         required: [],
       },
       type: "agent",
+      group: "twitter",
     },
     {
       name: functionEnum.post_tweet,
@@ -29,6 +30,7 @@ export class FunctionsSeeder implements Seeder {
         required: ["text"],
       },
       type: "trigger",
+      group: "twitter",
     },
     {
       name: functionEnum.reply_tweet,
@@ -48,6 +50,7 @@ export class FunctionsSeeder implements Seeder {
         required: ["text", "tweetId"],
       },
       type: "trigger",
+      group: "twitter",
     },
     {
       name: functionEnum.like_tweet,
@@ -63,6 +66,7 @@ export class FunctionsSeeder implements Seeder {
         required: ["tweetId"],
       },
       type: "trigger",
+      group: "twitter",
     },
     {
       name: functionEnum.quote_tweet,
@@ -82,6 +86,7 @@ export class FunctionsSeeder implements Seeder {
         required: ["quotedTweetId", "comment"],
       },
       type: "trigger",
+      group: "twitter",
     },
     {
       name: functionEnum.retweet,
@@ -97,6 +102,7 @@ export class FunctionsSeeder implements Seeder {
         required: ["tweetId"],
       },
       type: "trigger",
+      group: "twitter",
     },
     {
       name: functionEnum.RPC_getAccountInfo,
@@ -111,7 +117,8 @@ export class FunctionsSeeder implements Seeder {
         },
         required: ["publicKey"],
       },
-      type: "rpc",
+      type: "agent",
+      group: "rpc",
     },
     {
       name: functionEnum.RPC_getBalance,
@@ -126,7 +133,8 @@ export class FunctionsSeeder implements Seeder {
         },
         required: ["publicKey"],
       },
-      type: "rpc",
+      type: "agent",
+      group: "rpc",
     },
     {
       name: functionEnum.RPC_getBlock,
@@ -141,26 +149,30 @@ export class FunctionsSeeder implements Seeder {
         },
         required: ["slot"],
       },
-      type: "rpc",
+      type: "agent",
+      group: "rpc",
     },
     //dexscreener
     {
       name: functionEnum.DEX_getLatestTokenProfiles,
       description: "Get the latest token profile from dexscreener.com",
       parameters: {},
-      type: "dexscreener",
+      type: "agent",
+      group: "dexscreener",
     },
     {
       name: functionEnum.DEX_getLatestBoostedTokens,
       description: "Get the latest boosted tokens from dexscreener.com",
       parameters: {},
-      type: "dexscreener",
+      type: "agent",
+      group: "dexscreener",
     },
     {
       name: functionEnum.DEX_getTopBoostedTokens,
       description: "Get the tokens with most active boosts from dexscreener.com",
       parameters: {},
-      type: "dexscreener",
+      type: "agent",
+      group: "dexscreener",
     },
     {
       name: functionEnum.DEX_getTokenOrders,
@@ -179,7 +191,8 @@ export class FunctionsSeeder implements Seeder {
         },
         required: ["chainId", "tokenAddress"],
       },
-      type: "dexscreener",
+      type: "agent",
+      group: "dexscreener",
     },
     {
       name: functionEnum.DEX_getPairsByChainAndPairAddress,
@@ -198,7 +211,8 @@ export class FunctionsSeeder implements Seeder {
         },
         required: ["chainId", "pairId"],
       },
-      type: "dexscreener",
+      type: "agent",
+      group: "dexscreener",
     },
     {
       name: functionEnum.DEX_searchPairs,
@@ -213,7 +227,8 @@ export class FunctionsSeeder implements Seeder {
         },
         required: ["query"],
       },
-      type: "dexscreener",
+      type: "agent",
+      group: "dexscreener",
     },
     {
       name: functionEnum.DEX_getTokenPairs,
@@ -232,7 +247,8 @@ export class FunctionsSeeder implements Seeder {
         },
         required: ["chainId", "tokenAddress"],
       },
-      type: "dexscreener",
+      type: "agent",
+      group: "dexscreener",
     },
     {
       name: functionEnum.DEX_getTokensByAddress,
@@ -251,7 +267,22 @@ export class FunctionsSeeder implements Seeder {
         },
         required: ["chainId", "tokenAddresses"],
       },
-      type: "dexscreener",
+      type: "agent",
+      group: "dexscreener",
+    },
+    {
+      name: functionEnum.COINMARKET_getFearAndGreedLatest,
+      description: "Returns the lastest CMC Crypto Fear and Greed value from coinmarketcap.com",
+      parameters: {},
+      type: "agent",
+      group: "coinmarket",
+    },
+    {
+      name: functionEnum.COINMARKET_getFearAndGreedHistorical,
+      description: "Returns a paginated list of all CMC Crypto Fear and Greed values at 12am UTC time from coinmarketcap.com",
+      parameters: {},
+      type: "agent",
+      group: "coinmarket",
     },
   ];
 
