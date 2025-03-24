@@ -293,11 +293,27 @@ export class FunctionsSeeder implements Seeder {
           limit: {
             type: "number",
             description: "Number of results to return (1-500)",
+            minimum: 1,
+            maximum: 500
           },
           start: {
             type: "number",
             description: "Starting point for pagination",
+            minimum: 0
           },
+          time_period: {
+            type: "string",
+            description: "Time period for trending data",
+            enum: ["24h", "30d", "7d"]
+          },
+          convert: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into"
+          },
+          convert_id: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into"
+          }
         },
         required: [],
       },
@@ -313,15 +329,37 @@ export class FunctionsSeeder implements Seeder {
           limit: {
             type: "number",
             description: "Number of results to return (1-500)",
+            minimum: 1,
+            maximum: 500
           },
           start: {
             type: "number",
             description: "Starting point for pagination",
+            minimum: 0
+          },
+          time_period: {
+            type: "string",
+            description: "Time period for trending data",
+            enum: ["24h", "30d", "7d"]
           },
           sort: {
             type: "string",
-            description: "Sort by field (e.g. percent_change_24h)",
+            description: "Sort by field",
+            enum: ["percent_change_24h"]
           },
+          sort_dir: {
+            type: "string",
+            description: "Sort direction",
+            enum: ["asc", "desc"]
+          },
+          convert: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into"
+          },
+          convert_id: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into"
+          }
         },
         required: [],
       },
@@ -337,11 +375,27 @@ export class FunctionsSeeder implements Seeder {
           limit: {
             type: "number",
             description: "Number of results to return (1-500)",
+            minimum: 1,
+            maximum: 500
           },
           start: {
             type: "number",
             description: "Starting point for pagination",
+            minimum: 0
           },
+          time_period: {
+            type: "string",
+            description: "Time period for trending data",
+            enum: ["24h", "30d", "7d"]
+          },
+          convert: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into"
+          },
+          convert_id: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into"
+          }
         },
         required: [],
       },
@@ -357,23 +411,47 @@ export class FunctionsSeeder implements Seeder {
           id: {
             type: "string",
             description: "One or more comma-separated cryptocurrency IDs",
+            minLength: 1
           },
           interval: {
             type: "string",
-            description: "Interval of time to update data (e.g. 1h, 1d, 1w)",
+            description: "Interval of time to update data",
+            enum: ["yearly", "monthly", "weekly", "daily", "hourly", "5m", "10m", "15m", "30m", "45m", "1h", "2h", "3h", "4h", "6h", "12h", "24h", "1d", "2d", "3d", "7d", "14d", "15d", "30d", "60d", "90d", "365d"]
           },
           count: {
             type: "number",
             description: "Number of intervals to return",
+            minimum: 1,
+            maximum: 10000
           },
           time_start: {
             type: "string",
-            description: "Timestamp to start returning data for",
+            description: "Timestamp to start returning data for (ISO 8601 format)"
           },
           time_end: {
             type: "string",
-            description: "Timestamp to stop returning data for",
+            description: "Timestamp to stop returning data for (ISO 8601 format)"
           },
+          symbol: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency symbols"
+          },
+          convert: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into"
+          },
+          convert_id: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into"
+          },
+          aux: {
+            type: "string",
+            description: "Comma-separated list of auxiliary data fields to return"
+          },
+          skip_invalid: {
+            type: "boolean",
+            description: "Skip any invalid cryptocurrencies"
+          }
         },
         required: ["id", "interval"],
       },
@@ -389,15 +467,32 @@ export class FunctionsSeeder implements Seeder {
           id: {
             type: "string",
             description: "One or more comma-separated cryptocurrency IDs",
+            minLength: 1
+          },
+          slug: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency slugs"
+          },
+          symbol: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency symbols"
           },
           convert: {
             type: "string",
-            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into",
+            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into"
+          },
+          convert_id: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into"
+          },
+          aux: {
+            type: "string",
+            description: "Comma-separated list of auxiliary data fields to return"
           },
           skip_invalid: {
             type: "boolean",
-            description: "Skip any invalid cryptocurrencies",
-          },
+            description: "Skip any invalid cryptocurrencies"
+          }
         },
         required: ["id"],
       },
@@ -413,11 +508,28 @@ export class FunctionsSeeder implements Seeder {
           id: {
             type: "string",
             description: "One or more comma-separated cryptocurrency IDs",
+            minLength: 1
+          },
+          slug: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency slugs"
+          },
+          symbol: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency symbols"
+          },
+          address: {
+            type: "string",
+            description: "Comma-separated list of cryptocurrency contract addresses"
+          },
+          aux: {
+            type: "string",
+            description: "Comma-separated list of auxiliary data fields to return"
           },
           skip_invalid: {
             type: "boolean",
-            description: "Skip any invalid cryptocurrencies",
-          },
+            description: "Skip any invalid cryptocurrencies"
+          }
         },
         required: ["id"],
       },
