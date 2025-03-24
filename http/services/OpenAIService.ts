@@ -81,7 +81,7 @@ export class OpenAIService {
     this.twitterService = twitterService;
   }
 
-  public async executeWithAI(triggerWithAgent: AgentTrigger & { agent: Agent & { user: { id: number } } }): Promise<any> {
+  public async executeWithAI(triggerWithAgent: AgentTrigger & { agent: Agent & { user: { id: number } } }, tools: FunctionTool[]): Promise<any> {
     if (!this.twitterService) {
       console.error(`[AI] Twitter service not initialized in executeWithAI`);
       throw new Error("Twitter service not initialized");
@@ -104,7 +104,7 @@ export class OpenAIService {
     });
 
     console.log(`[AI] Starting conversation with OpenAI for function: ${triggerWithAgent.functionName}`);
-    const { toolCallsData, successfulTriggerExecution } = await this.startConversation(triggerWithAgent, [], context);
+    const { toolCallsData, successfulTriggerExecution } = await this.startConversation(triggerWithAgent, tools, context);
     console.log(`[AI] Completed conversation with ${toolCallsData.length} tool calls`);
 
     if (toolCallsData.length > 0) {
