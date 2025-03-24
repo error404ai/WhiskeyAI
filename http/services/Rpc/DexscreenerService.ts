@@ -6,25 +6,34 @@ export class DexscreenerService {
     });
 
     const data = await response.json();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mostRecentItem = data.reduce((latest: any, current: any) => {
-      const latestTimestampMatch = latest.openGraph.match(/timestamp=(\d+)/);
-      const currentTimestampMatch = current.openGraph.match(/timestamp=(\d+)/);
+    const sortedData = data
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((item: any) => {
+        const timestampMatch = item.openGraph.match(/timestamp=(\d+)/);
+        const timestamp = timestampMatch ? parseInt(timestampMatch[1], 10) : 0;
+        return { ...item, timestamp };
+      })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .sort((a: any, b: any) => b.timestamp - a.timestamp);
 
-      const latestTimestamp = latestTimestampMatch ? parseInt(latestTimestampMatch[1], 10) : 0;
-      const currentTimestamp = currentTimestampMatch ? parseInt(currentTimestampMatch[1], 10) : 0;
-
-      return currentTimestamp > latestTimestamp ? current : latest;
-    }, data[0]);
-
-    return [mostRecentItem];
+    return sortedData.slice(0, 3);
   }
   async getLatestBoostedTokens() {
     const response = await fetch(this.dexscreenerEndpoint + "/token-boosts/latest/v1", {
       method: "GET",
     });
     const data = await response.json();
-    return data;
+    const sortedData = data
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((item: any) => {
+        const timestampMatch = item.openGraph.match(/timestamp=(\d+)/);
+        const timestamp = timestampMatch ? parseInt(timestampMatch[1], 10) : 0;
+        return { ...item, timestamp };
+      })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .sort((a: any, b: any) => b.timestamp - a.timestamp);
+
+    return sortedData.slice(0, 3);
   }
 
   async getTopBoostedTokens() {
