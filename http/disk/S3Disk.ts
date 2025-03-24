@@ -11,9 +11,6 @@ export class S3Disk extends Disk {
     this.bucketName = process.env.S3_BUCKET || "my-bucket";
     this.publicUrl = process.env.S3_PUBLIC_URL || "";
 
-    console.log("access key is", process.env.S3_ACCESS_KEY_ID);
-    console.log("secret key is", process.env.S3_SECRET_ACCESS_KEY);
-
     this.client = new S3Client({
       forcePathStyle: process.env.S3_FORCE_PATH_STYLE === "true",
       region: process.env.S3_REGION || "us-east-1",
