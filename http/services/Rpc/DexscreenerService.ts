@@ -1,87 +1,53 @@
+import axios from "axios";
+
 export class DexscreenerService {
-  private dexscreenerEndpoint = "https://api.dexscreener.com";
-  async getLatestTokenProfiles() {
-    const response = await fetch(this.dexscreenerEndpoint + "/token-profiles/latest/v1", {
-      method: "GET",
-    });
+  private endPoint = "https://api.dexscreener.com";
+  private axios;
 
-    const data = await response.json();
-    const sortedData = data
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .map((item: any) => {
-        const timestampMatch = item.openGraph.match(/timestamp=(\d+)/);
-        const timestamp = timestampMatch ? parseInt(timestampMatch[1], 10) : 0;
-        return { ...item, timestamp };
-      })
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .sort((a: any, b: any) => b.timestamp - a.timestamp);
-
-    return sortedData.slice(0, 3);
+  constructor() {
+    this.axios = axios.create();
   }
-  async getLatestBoostedTokens() {
-    const response = await fetch(this.dexscreenerEndpoint + "/token-boosts/latest/v1", {
-      method: "GET",
-    });
-    const data = await response.json();
-    const sortedData = data
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .map((item: any) => {
-        const timestampMatch = item.openGraph.match(/timestamp=(\d+)/);
-        const timestamp = timestampMatch ? parseInt(timestampMatch[1], 10) : 0;
-        return { ...item, timestamp };
-      })
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .sort((a: any, b: any) => b.timestamp - a.timestamp);
 
-    return sortedData.slice(0, 3);
+  async getLatestTokenProfiles() {
+    const res = await this.axios.get(`${this.endPoint}/token-profiles/latest/v1`);
+    return res.data;
+  }
+
+  async getLatestBoostedTokens() {
+    const res = await this.axios.get(`${this.endPoint}/token-boosts/latest/v1`);
+    return res.data;
   }
 
   async getTopBoostedTokens() {
-    const response = await fetch(this.dexscreenerEndpoint + "/token-boosts/top/v1", {
-      method: "GET",
-    });
-    const data = await response.json();
-    return data;
+    const res = await this.axios.get(`${this.endPoint}/token-boosts/top/v1`);
+    return res.data;
   }
 
   async getTokenOrders(chainId: string, tokenAddress: string) {
-    const response = await fetch(this.dexscreenerEndpoint + `/orders/v1/${chainId}/${tokenAddress}`, {
-      method: "GET",
-    });
-    const data = await response.json();
-    return data;
+    const res = await this.axios.get(`${this.endPoint}/orders/v1/${chainId}/${tokenAddress}`);
+    return res.data;
   }
 
   async getPairsByChainAndPairAddress(chainId: string, pairId: string) {
-    const response = await fetch(this.dexscreenerEndpoint + `/latest/dex/pairs/${chainId}/${pairId}`, {
-      method: "GET",
-    });
-    const data = await response.json();
-    return data;
+    const res = await this.axios.get(`${this.endPoint}/latest/dex/pairs/${chainId}/${pairId}`);
+    return res.data;
   }
 
   async searchPairs(query: string) {
-    const response = await fetch(this.dexscreenerEndpoint + `/latest/dex/search?q=${encodeURIComponent(query)}`, {
-      method: "GET",
+    const res = await this.axios.get(`${this.endPoint}/latest/dex/search`, {
+      params: { q: query }
     });
-    const data = await response.json();
-    return data;
+    return res.data;
   }
 
   async getTokenPairs(chainId: string, tokenAddress: string) {
-    const response = await fetch(this.dexscreenerEndpoint + `/token-pairs/v1/${chainId}/${tokenAddress}`, {
-      method: "GET",
-    });
-    const data = await response.json();
-    return data;
+    const res = await this.axios.get(`${this.endPoint}/token-pairs/v1/${chainId}/${tokenAddress}`);
+    return res.data;
   }
 
   async getTokensByAddress(chainId: string, tokenAddresses: string) {
-    const response = await fetch(this.dexscreenerEndpoint + `/tokens/v1/${chainId}/${tokenAddresses}`, {
-      method: "GET",
-    });
-    const data = await response.json();
-    return data;
+    const res = await this.axios.get(`${this.endPoint}/tokens/v1/${chainId}/${tokenAddresses}`);
+    return res.data;
   }
 }
 

@@ -1,10 +1,10 @@
 import axios from "axios";
 
 class SolanaTrackingService {
-  private axiosInstance;
+  private axios;
 
   constructor() {
-    this.axiosInstance = axios.create({
+    this.axios = axios.create({
       baseURL: process.env.SOLANA_TRACKING_API_URL || "https://data.solanatracker.io",
       headers: {
         "x-api-key": process.env.SOLANATRACKER_API_KEY || "",
@@ -14,57 +14,57 @@ class SolanaTrackingService {
   }
 
   async getTokenHolders(tokenAddress: string) {
-    const response = await this.axiosInstance.get(`/tokens/${tokenAddress}/holders`);
+    const response = await this.axios.get(`/tokens/${tokenAddress}/holders`);
     return response.data;
   }
 
   async getTopTokenHolders(tokenAddress: string) {
-    const response = await this.axiosInstance.get(`/tokens/${tokenAddress}/holders/top`);
+    const response = await this.axios.get(`/tokens/${tokenAddress}/holders/top`);
     return response.data;
   }
 
   async getDeployerTokens(wallet: string) {
-    const response = await this.axiosInstance.get(`/deployer/${wallet}`);
+    const response = await this.axios.get(`/deployer/${wallet}`);
     return response.data;
   }
 
   async getLatestTokens() {
-    const response = await this.axiosInstance.get(`/tokens/latest`);
+    const response = await this.axios.get(`/tokens/latest`);
     return response.data;
   }
 
   async getTrendingTokens() {
-    const response = await this.axiosInstance.get(`/tokens/trending`);
+    const response = await this.axios.get(`/tokens/trending`);
     return response.data;
   }
 
   async getTrendingTokensByTimeframe(timeframe: string) {
-    const response = await this.axiosInstance.get(`/tokens/trending/${timeframe}`);
+    const response = await this.axios.get(`/tokens/trending/${timeframe}`);
     return response.data;
   }
 
   async getTopVolumeTokens() {
-    const response = await this.axiosInstance.get(`/tokens/volume`);
+    const response = await this.axios.get(`/tokens/volume`);
     return response.data;
   }
 
   async getVolumeTokensByTimeframe(timeframe: string) {
-    const response = await this.axiosInstance.get(`/tokens/volume/${timeframe}`);
+    const response = await this.axios.get(`/tokens/volume/${timeframe}`);
     return response.data;
   }
 
   async getMultiAllTokens() {
-    const response = await this.axiosInstance.get(`/tokens/multi/all`);
+    const response = await this.axios.get(`/tokens/multi/all`);
     return response.data;
   }
 
   async getMultiGraduatedTokens() {
-    const response = await this.axiosInstance.get(`/tokens/multi/graduated`);
+    const response = await this.axios.get(`/tokens/multi/graduated`);
     return response.data;
   }
 
   async getTokenPrice(token: string, priceChanges?: boolean) {
-    const response = await this.axiosInstance.get(`/price`, {
+    const response = await this.axios.get(`/price`, {
       params: {
         token,
         priceChanges,
@@ -74,7 +74,7 @@ class SolanaTrackingService {
   }
 
   async getMultiTokenPrices(tokens: string, priceChanges?: boolean) {
-    const response = await this.axiosInstance.get(`/price/multi`, {
+    const response = await this.axios.get(`/price/multi`, {
       params: {
         tokens,
         priceChanges,
@@ -84,12 +84,12 @@ class SolanaTrackingService {
   }
 
   async getWalletTokens(owner: string) {
-    const response = await this.axiosInstance.get(`/wallet/${owner}`);
+    const response = await this.axios.get(`/wallet/${owner}`);
     return response.data;
   }
 
   async getWalletTrades(owner: string, cursor?: string) {
-    const response = await this.axiosInstance.get(`/wallet/${owner}/trades`, {
+    const response = await this.axios.get(`/wallet/${owner}/trades`, {
       params: {
         cursor,
       },
@@ -107,7 +107,7 @@ class SolanaTrackingService {
       removeOutliers?: boolean;
     },
   ) {
-    const response = await this.axiosInstance.get(`/chart/${token}`, {
+    const response = await this.axios.get(`/chart/${token}`, {
       params,
     });
     return response.data;
@@ -124,7 +124,7 @@ class SolanaTrackingService {
       removeOutliers?: boolean;
     },
   ) {
-    const response = await this.axiosInstance.get(`/chart/${token}/${pool}`, {
+    const response = await this.axios.get(`/chart/${token}/${pool}`, {
       params,
     });
     return response.data;
@@ -138,14 +138,14 @@ class SolanaTrackingService {
       time_to?: number;
     },
   ) {
-    const response = await this.axiosInstance.get(`/holders/chart/${token}`, {
+    const response = await this.axios.get(`/holders/chart/${token}`, {
       params,
     });
     return response.data;
   }
 
   async getFirstBuyers(token: string) {
-    const response = await this.axiosInstance.get(`/first-buyers/${token}`);
+    const response = await this.axios.get(`/first-buyers/${token}`);
     return response.data;
   }
 }
