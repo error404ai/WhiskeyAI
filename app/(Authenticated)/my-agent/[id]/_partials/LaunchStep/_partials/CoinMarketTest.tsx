@@ -16,14 +16,14 @@ import { z } from "zod";
 
 interface ResultData {
   action: string;
-  data: Record<string, unknown>;
+  data: unknown;
 }
 
-interface CoinMarketResponse {
-  status: "success" | "error";
-  message?: string;
-  data?: Record<string, unknown>;
-  errorDetails?: string;
+interface CoinMarketError {
+  status: {
+    error_code: number;
+    error_message: string;
+  };
 }
 
 // Helper function to filter out empty parameters
@@ -66,11 +66,11 @@ export default function CoinMarketTest() {
   // State for results
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ResultData | null>(null);
-  const [error, setError] = useState<CoinMarketResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   // Function to handle API calls and update state
-  const handleApiCall = async (apiCall: () => Promise<{ status: string; data?: Record<string, unknown>; message?: string; errorDetails?: string }>, actionName: string) => {
+  const handleApiCall = async (apiCall: () => Promise<unknown>, actionName: string) => {
     setLoading(true);
     setError(null);
     setSuccess(null);
@@ -78,21 +78,20 @@ export default function CoinMarketTest() {
 
     try {
       const response = await apiCall();
-      if (response.status === "error") {
-        setError(response as CoinMarketResponse);
-        console.error(`${actionName} error:`, response.message);
+      
+      // Check if response is an error response from CoinMarketCap
+      const errorResponse = response as CoinMarketError;
+      if (errorResponse?.status?.error_code) {
+        setError(errorResponse.status.error_message);
+        console.error(`${actionName} error:`, errorResponse.status.error_message);
       } else {
-        setResult({ action: actionName, data: response.data || {} });
+        setResult({ action: actionName, data: response });
         setSuccess(`${actionName} completed successfully!`);
-        console.log(`${actionName} response:`, response.data);
+        console.log(`${actionName} response:`, response);
       }
     } catch (err) {
-      const safeError: CoinMarketResponse = {
-        status: "error",
-        message: `Unexpected error: ${(err as Error).message}`,
-        errorDetails: JSON.stringify(err),
-      };
-      setError(safeError);
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      setError(errorMessage);
       console.error(`${actionName} unexpected error:`, err);
     } finally {
       setLoading(false);
@@ -186,32 +185,12 @@ export default function CoinMarketTest() {
     metadataForm.reset();
   };
 
-  // Format JSON for display
-  const formatJson = (data: unknown) => {
-    try {
-      return JSON.stringify(data, null, 2);
-    } catch (err) {
-      return `Error formatting JSON: ${err}`;
-    }
-  };
-
   // Try to parse error details if they exist
   const getErrorDetails = () => {
-    if (!error?.errorDetails) return null;
-
-    try {
-      const details = JSON.parse(error.errorDetails);
-      return (
-        <div className="mt-3 w-full">
-          <div className="text-sm font-semibold">Error Details:</div>
-          <div className="mt-1 max-h-32 w-full overflow-auto rounded bg-gray-100 p-2">
-            <pre className="text-xs break-words whitespace-pre-wrap">{JSON.stringify(details, null, 2)}</pre>
-          </div>
-        </div>
-      );
-    } catch {
-      return <div className="mt-3 w-full text-xs whitespace-normal">{error.errorDetails}</div>;
-    }
+    if (!error) return null;
+    return (
+      <div className="mt-3 w-full text-xs whitespace-normal">{error}</div>
+    );
   };
 
   return (
@@ -600,7 +579,7 @@ export default function CoinMarketTest() {
                 </div>
                 <div className="flex-1">
                   <AlertTitle className="mb-1 block font-semibold">Error</AlertTitle>
-                  <AlertDescription className="block whitespace-normal">{error.message}</AlertDescription>
+                  <AlertDescription className="block whitespace-normal">{error}</AlertDescription>
                   {getErrorDetails()}
                 </div>
               </div>
@@ -623,14 +602,14 @@ export default function CoinMarketTest() {
         )}
 
         {result && (
-          <Card>
+          <Card className="mt-4">
             <CardHeader>
-              <CardTitle>{result.action} Result</CardTitle>
+              <CardTitle>{result.action} Results</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="max-h-96 overflow-auto rounded bg-gray-100 p-4">
-                <pre className="text-sm break-words whitespace-pre-wrap">{formatJson(result.data)}</pre>
-              </div>
+              <pre className="whitespace-pre-wrap text-sm">
+                {JSON.stringify(result.data, null, 2)}
+              </pre>
             </CardContent>
           </Card>
         )}

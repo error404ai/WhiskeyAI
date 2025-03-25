@@ -35,7 +35,7 @@ const handleTwitterError = (error: unknown): TwitterResponse => {
     // Convert error object to a safe string representation instead of passing the Error instance
     errorDetails: typeof error === 'object' && error !== null 
       ? JSON.stringify(Object.getOwnPropertyNames(error).reduce((acc, key) => {
-          // @ts-ignore - dynamic property access
+          // @ts-expect-error - dynamic property access
           acc[key] = String(error[key]);
           return acc;
         }, {} as Record<string, string>))
