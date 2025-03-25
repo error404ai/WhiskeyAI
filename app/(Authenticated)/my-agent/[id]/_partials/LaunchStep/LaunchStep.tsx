@@ -20,6 +20,7 @@ import LaunchToken from "./_partials/LaunchToken";
 import RpcTest from "./_partials/RpcTest";
 import TokenAddressTest from "./_partials/TokenAddressTest";
 import TwitterAgentTest from "./_partials/TwitterAgentTest";
+import SolanaTrackerTest from "./_partials/SolanaTrackerTest";
 
 type TabType = "memory" | "simulation" | "connect" | "launch" | "custom_texts" | "post_id";
 
@@ -128,6 +129,7 @@ function LaunchStep() {
               <TabsTrigger value="dexscreener">Dexscreener API</TabsTrigger>
               <TabsTrigger value="coinmarket">Coinmarket API</TabsTrigger>
               <TabsTrigger value="rpc">RPC API</TabsTrigger>
+              <TabsTrigger value="solanatracker">Solana Tracker</TabsTrigger>
             </TabsList>
             <TabsContent value="twitter">
               <TwitterAgentTest />
@@ -140,9 +142,11 @@ function LaunchStep() {
             </TabsContent>
             <TabsContent value="rpc">
               <div className="space-y-6">
-               
                 <TokenAddressTest />
               </div>
+            </TabsContent>
+            <TabsContent value="solanatracker">
+              <SolanaTrackerTest />
             </TabsContent>
           </Tabs>
           <RpcTest />
