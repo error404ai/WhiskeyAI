@@ -58,35 +58,39 @@ class CoinMarketService {
   }
 
   async getFearAndGreedLatest() {
-    return this.axios.get(`${this.endPoint}/v3/fear-and-greed/latest`);
+    const res = await this.axios.get(`${this.endPoint}/v3/fear-and-greed/latest`);
+    console.log("getFearAndGreedLatest response ==========", res.data);
+    return res.data;
   }
 
   async getFearAndGreedHistorical() {
-    return this.axios.get(`${this.endPoint}/v3/fear-and-greed/historical`);
+    const res = await this.axios.get(`${this.endPoint}/v3/fear-and-greed/historical`);
+
+    return res.data;
   }
 
   async getTrendingMostVisited(params?: TrendingBaseParams) {
-    return this.axios.get(`${this.endPoint}/v1/cryptocurrency/trending/most-visited`, { params });
+    return (await this.axios.get(`${this.endPoint}/v1/cryptocurrency/trending/most-visited`, { params })).data;
   }
 
   async getTrendingGainersLosers(params?: TrendingGainersLosersParams) {
-    return this.axios.get(`${this.endPoint}/v1/cryptocurrency/trending/gainers-losers`, { params });
+    return (await this.axios.get(`${this.endPoint}/v1/cryptocurrency/trending/gainers-losers`, { params })).data;
   }
 
   async getTrendingLatest(params?: TrendingBaseParams) {
-    return this.axios.get(`${this.endPoint}/v1/cryptocurrency/trending/latest`, { params });
+    return (await this.axios.get(`${this.endPoint}/v1/cryptocurrency/trending/latest`, { params })).data;
   }
 
   async getQuotesHistorical(params: QuotesHistoricalParams) {
-    return this.axios.get(`${this.endPoint}/v2/cryptocurrency/quotes/historical`, { params });
+    return (await this.axios.get(`${this.endPoint}/v2/cryptocurrency/quotes/historical`, { params })).data;
   }
 
   async getQuotesLatest(params: QuotesLatestParams) {
-    return this.axios.get(`${this.endPoint}/v2/cryptocurrency/quotes/latest`, { params });
+    return (await this.axios.get(`${this.endPoint}/v2/cryptocurrency/quotes/latest`, { params })).data;
   }
 
   async getMetadata(params: MetadataParams) {
-    return this.axios.get(`${this.endPoint}/v2/cryptocurrency/info`, { params });
+    return (await this.axios.get(`${this.endPoint}/v2/cryptocurrency/info`, { params })).data;
   }
 }
 
