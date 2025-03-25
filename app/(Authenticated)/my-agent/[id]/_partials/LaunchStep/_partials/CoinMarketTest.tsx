@@ -6,8 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getFearAndGreedLatest, getFearAndGreedHistorical, getTrendingMostVisited, getTrendingGainersLosers, getTrendingLatest, getQuotesHistorical, getQuotesLatest, getMetadata } from "@/http/controllers/coinmarket/coinmarketController";
-import { trendingBaseSchema, trendingGainersLosersSchema, quotesHistoricalSchema, quotesLatestSchema, metadataSchema } from "@/http/zodSchema/coinmarketSchema";
+import { getFearAndGreedHistorical, getFearAndGreedLatest, getMetadata, getQuotesHistorical, getQuotesLatest, getTrendingGainersLosers, getTrendingLatest, getTrendingMostVisited } from "@/http/controllers/coinmarket/coinmarketController";
+import { metadataSchema, quotesHistoricalSchema, quotesLatestSchema, trendingBaseSchema, trendingGainersLosersSchema } from "@/http/zodSchema/coinmarketSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, CheckCircle, LineChart } from "lucide-react";
 import { useState } from "react";
@@ -215,22 +215,38 @@ export default function CoinMarketTest() {
   };
 
   return (
-    <div className="mt-4 container mx-auto p-4">
+    <div className="container mx-auto mt-4 p-4">
       <div className="mb-6 flex items-center gap-2">
         <LineChart className="text-blue-500" size={24} />
         <h1 className="text-2xl font-bold">CoinMarket API Test</h1>
       </div>
 
       <Tabs defaultValue="fear-and-greed-latest" className="w-full">
-        <TabsList className="mb-4 h-fit flex flex-wrap gap-2">
-          <TabsTrigger value="fear-and-greed-latest" className="text-xs sm:text-sm">Fear & Greed Latest</TabsTrigger>
-          <TabsTrigger value="fear-and-greed-historical" className="text-xs sm:text-sm">Fear & Greed Historical</TabsTrigger>
-          <TabsTrigger value="trending-most-visited" className="text-xs sm:text-sm">Trending Most Visited</TabsTrigger>
-          <TabsTrigger value="trending-gainers-losers" className="text-xs sm:text-sm">Trending Gainers & Losers</TabsTrigger>
-          <TabsTrigger value="trending-latest" className="text-xs sm:text-sm">Trending Latest</TabsTrigger>
-          <TabsTrigger value="quotes-historical" className="text-xs sm:text-sm">Quotes Historical</TabsTrigger>
-          <TabsTrigger value="quotes-latest" className="text-xs sm:text-sm">Quotes Latest</TabsTrigger>
-          <TabsTrigger value="metadata" className="text-xs sm:text-sm">Metadata</TabsTrigger>
+        <TabsList className="mb-4 flex h-fit flex-wrap gap-2">
+          <TabsTrigger value="fear-and-greed-latest" className="text-xs sm:text-sm">
+            Fear & Greed Latest
+          </TabsTrigger>
+          <TabsTrigger value="fear-and-greed-historical" className="text-xs sm:text-sm">
+            Fear & Greed Historical
+          </TabsTrigger>
+          <TabsTrigger value="trending-most-visited" className="text-xs sm:text-sm">
+            Trending Most Visited
+          </TabsTrigger>
+          <TabsTrigger value="trending-gainers-losers" className="text-xs sm:text-sm">
+            Trending Gainers & Losers
+          </TabsTrigger>
+          <TabsTrigger value="trending-latest" className="text-xs sm:text-sm">
+            Trending Latest
+          </TabsTrigger>
+          <TabsTrigger value="quotes-historical" className="text-xs sm:text-sm">
+            Quotes Historical
+          </TabsTrigger>
+          <TabsTrigger value="quotes-latest" className="text-xs sm:text-sm">
+            Quotes Latest
+          </TabsTrigger>
+          <TabsTrigger value="metadata" className="text-xs sm:text-sm">
+            Metadata
+          </TabsTrigger>
         </TabsList>
 
         {/* Fear & Greed Latest Tab */}
@@ -241,12 +257,7 @@ export default function CoinMarketTest() {
               <CardDescription>Fetch the latest fear and greed index data</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button 
-                parentClass="w-fit" 
-                onClick={handleGetFearAndGreedLatest} 
-                disabled={loading} 
-                className="bg-blue-500 hover:bg-blue-600"
-              >
+              <Button parentClass="w-fit" onClick={handleGetFearAndGreedLatest} disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                 {loading ? "Loading..." : "Get Fear and Greed Latest"}
               </Button>
             </CardContent>
@@ -261,12 +272,7 @@ export default function CoinMarketTest() {
               <CardDescription>Fetch historical fear and greed index data</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button 
-                parentClass="w-fit" 
-                onClick={handleGetFearAndGreedHistorical} 
-                disabled={loading} 
-                className="bg-blue-500 hover:bg-blue-600"
-              >
+              <Button parentClass="w-fit" onClick={handleGetFearAndGreedHistorical} disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                 {loading ? "Loading..." : "Get Fear and Greed Historical"}
               </Button>
             </CardContent>
@@ -293,7 +299,7 @@ export default function CoinMarketTest() {
                   </div>
                   <div className="space-y-2">
                     <Label>Time Period</Label>
-                    <select {...trendingForm.register("time_period")} className="w-full p-2 border rounded">
+                    <select {...trendingForm.register("time_period")} className="w-full rounded border p-2">
                       <option value="24h">24 Hours</option>
                       <option value="30d">30 Days</option>
                       <option value="7d">7 Days</option>
@@ -307,12 +313,7 @@ export default function CoinMarketTest() {
                     <Label>Convert ID</Label>
                     <Input {...trendingForm.register("convert_id")} placeholder="e.g. 1,2781" />
                   </div>
-                  <Button 
-                    parentClass="w-fit" 
-                    type="submit" 
-                    disabled={loading} 
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Loading..." : "Get Trending Most Visited"}
                   </Button>
                 </CardContent>
@@ -341,7 +342,7 @@ export default function CoinMarketTest() {
                   </div>
                   <div className="space-y-2">
                     <Label>Time Period</Label>
-                    <select {...gainersLosersForm.register("time_period")} className="w-full p-2 border rounded">
+                    <select {...gainersLosersForm.register("time_period")} className="w-full rounded border p-2">
                       <option value="24h">24 Hours</option>
                       <option value="30d">30 Days</option>
                       <option value="7d">7 Days</option>
@@ -349,13 +350,13 @@ export default function CoinMarketTest() {
                   </div>
                   <div className="space-y-2">
                     <Label>Sort</Label>
-                    <select {...gainersLosersForm.register("sort")} className="w-full p-2 border rounded">
+                    <select {...gainersLosersForm.register("sort")} className="w-full rounded border p-2">
                       <option value="percent_change_24h">24h Price Change</option>
                     </select>
                   </div>
                   <div className="space-y-2">
                     <Label>Sort Direction</Label>
-                    <select {...gainersLosersForm.register("sort_dir")} className="w-full p-2 border rounded">
+                    <select {...gainersLosersForm.register("sort_dir")} className="w-full rounded border p-2">
                       <option value="desc">Descending</option>
                       <option value="asc">Ascending</option>
                     </select>
@@ -368,12 +369,7 @@ export default function CoinMarketTest() {
                     <Label>Convert ID</Label>
                     <Input {...gainersLosersForm.register("convert_id")} placeholder="e.g. 1,2781" />
                   </div>
-                  <Button 
-                    parentClass="w-fit" 
-                    type="submit" 
-                    disabled={loading} 
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Loading..." : "Get Trending Gainers & Losers"}
                   </Button>
                 </CardContent>
@@ -402,7 +398,7 @@ export default function CoinMarketTest() {
                   </div>
                   <div className="space-y-2">
                     <Label>Time Period</Label>
-                    <select {...trendingForm.register("time_period")} className="w-full p-2 border rounded">
+                    <select {...trendingForm.register("time_period")} className="w-full rounded border p-2">
                       <option value="24h">24 Hours</option>
                       <option value="30d">30 Days</option>
                       <option value="7d">7 Days</option>
@@ -416,12 +412,7 @@ export default function CoinMarketTest() {
                     <Label>Convert ID</Label>
                     <Input {...trendingForm.register("convert_id")} placeholder="e.g. 1,2781" />
                   </div>
-                  <Button 
-                    parentClass="w-fit" 
-                    type="submit" 
-                    disabled={loading} 
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Loading..." : "Get Trending Latest"}
                   </Button>
                 </CardContent>
@@ -450,7 +441,7 @@ export default function CoinMarketTest() {
                   </div>
                   <div className="space-y-2">
                     <Label>Interval</Label>
-                    <select {...quotesHistoricalForm.register("interval")} className="w-full p-2 border rounded">
+                    <select {...quotesHistoricalForm.register("interval")} className="w-full rounded border p-2">
                       <option value="5m">5 Minutes</option>
                       <option value="15m">15 Minutes</option>
                       <option value="30m">30 Minutes</option>
@@ -496,12 +487,7 @@ export default function CoinMarketTest() {
                     <Label>Skip Invalid</Label>
                     <Input type="checkbox" {...quotesHistoricalForm.register("skip_invalid")} />
                   </div>
-                  <Button 
-                    parentClass="w-fit" 
-                    type="submit" 
-                    disabled={loading} 
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Loading..." : "Get Quotes Historical"}
                   </Button>
                 </CardContent>
@@ -548,12 +534,7 @@ export default function CoinMarketTest() {
                     <Label>Skip Invalid</Label>
                     <Input type="checkbox" {...quotesLatestForm.register("skip_invalid")} />
                   </div>
-                  <Button 
-                    parentClass="w-fit" 
-                    type="submit" 
-                    disabled={loading} 
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Loading..." : "Get Quotes Latest"}
                   </Button>
                 </CardContent>
@@ -596,12 +577,7 @@ export default function CoinMarketTest() {
                     <Label>Skip Invalid</Label>
                     <Input type="checkbox" {...metadataForm.register("skip_invalid")} />
                   </div>
-                  <Button 
-                    parentClass="w-fit" 
-                    type="submit" 
-                    disabled={loading} 
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Loading..." : "Get Metadata"}
                   </Button>
                 </CardContent>
@@ -661,4 +637,4 @@ export default function CoinMarketTest() {
       </div>
     </div>
   );
-} 
+}
