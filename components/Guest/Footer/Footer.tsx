@@ -19,7 +19,7 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-primary">
+                <a href="https://whiskey-ai.gitbook.io/whiskey-ai" target="_blank" className="hover:text-primary">
                   Documentation
                 </a>
               </li>

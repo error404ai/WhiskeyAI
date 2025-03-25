@@ -39,9 +39,12 @@ export function GuestHeader() {
                   </Link>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                  <Link href="/docs" legacyBehavior passHref>
-                    <NavigationMenuLink className={navigationMenuTriggerStyle}>DOCS</NavigationMenuLink>
+                  <Link href="https://whiskey-ai.gitbook.io/whiskey-ai" legacyBehavior passHref>
+                    <NavigationMenuLink target="_blank" rel="noopener noreferrer" className={navigationMenuTriggerStyle}>
+                      DOCS
+                    </NavigationMenuLink>
                   </Link>
+
                 </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
@@ -87,8 +90,10 @@ export function GuestHeader() {
               <Link href="/faq" className="hover:text-primary text-lg font-semibold">
                 FAQ
               </Link>
-              <Link href="/docs" className="hover:text-primary text-lg font-semibold">
-                DOCS
+              <Link href="https://whiskey-ai.gitbook.io/whiskey-ai" passHref>
+                <a target="_blank" rel="noopener noreferrer" className="hover:text-primary text-lg font-semibold">
+                  DOCS
+                </a>
               </Link>
               <div className="flex flex-col gap-2">
                 <ConnectButton />
