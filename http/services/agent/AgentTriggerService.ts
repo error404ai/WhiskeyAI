@@ -1,11 +1,12 @@
 import { db } from "@/db/db";
-import { agentTriggersTable } from "@/db/schema";
+import { agentTriggersTable, agentPlatformsTable } from "@/db/schema";
 import { AgentTrigger } from "@/db/schema/agentTriggersTable";
 import { agentTriggerCreateSchema } from "@/http/zodSchema/agentTriggerCreateSchema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import AuthService from "../authService";
 import { AgentService } from "./AgentService";
+import { TriggerSchedulerService } from "./TriggerSchedulerService";
 
 export class AgentTriggerService {
   static async createAgentTrigger(data: z.infer<typeof agentTriggerCreateSchema>) {
@@ -42,6 +43,45 @@ export class AgentTriggerService {
       return false;
     }
   }
+
+  static async testAgentTrigger(triggerId: number) {
+    const authUser = await AuthService.getAuthUser();
+    if (!authUser) throw new Error("User not authenticated");
+
+    const trigger = await db.query.agentTriggersTable.findFirst({
+      where: eq(agentTriggersTable.id, triggerId),
+      with: {
+        agent: {
+          with:{
+            user: true,
+          }
+        }
+      },
+    });
+
+    if (!trigger) throw new Error("Trigger not found");
+    if (Number(authUser.id) !== trigger.agent.userId) throw new Error("User not authenticated");
+
+    // Check if Twitter is connected
+    const twitterPlatform = await db.query.agentPlatformsTable.findFirst({
+      where: and(
+        eq(agentPlatformsTable.agentId, trigger.agentId),
+        eq(agentPlatformsTable.type, "twitter"),
+        eq(agentPlatformsTable.enabled, true)
+      ),
+    });
+
+    if (!twitterPlatform) {
+      throw new Error("Twitter account is not connected. Please connect your Twitter account in the Launch tab.");
+    }
+
+    // Initialize trigger scheduler service and process the trigger
+    const scheduler = new TriggerSchedulerService();
+    await scheduler.processTrigger(trigger);
+
+    return true;
+  }
+
   static async getAgentTriggers(agentUuid: string): Promise<AgentTrigger[]> {
     const authUser = await AuthService.getAuthUser();
     const agent = await AgentService.getAgentByUuid(agentUuid);
