@@ -294,26 +294,26 @@ export class FunctionsSeeder implements Seeder {
             type: "number",
             description: "Number of results to return (1-500)",
             minimum: 1,
-            maximum: 500
+            maximum: 500,
           },
           start: {
             type: "number",
             description: "Starting point for pagination",
-            minimum: 0
+            minimum: 0,
           },
           time_period: {
             type: "string",
             description: "Time period for trending data",
-            enum: ["24h", "30d", "7d"]
+            enum: ["24h", "30d", "7d"],
           },
           convert: {
             type: "string",
-            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into"
+            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into",
           },
           convert_id: {
             type: "string",
-            description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into"
-          }
+            description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into",
+          },
         },
         required: [],
       },
@@ -330,36 +330,36 @@ export class FunctionsSeeder implements Seeder {
             type: "number",
             description: "Number of results to return (1-500)",
             minimum: 1,
-            maximum: 500
+            maximum: 500,
           },
           start: {
             type: "number",
             description: "Starting point for pagination",
-            minimum: 0
+            minimum: 0,
           },
           time_period: {
             type: "string",
             description: "Time period for trending data",
-            enum: ["24h", "30d", "7d"]
+            enum: ["24h", "30d", "7d"],
           },
           sort: {
             type: "string",
             description: "Sort by field",
-            enum: ["percent_change_24h"]
+            enum: ["percent_change_24h"],
           },
           sort_dir: {
             type: "string",
             description: "Sort direction",
-            enum: ["asc", "desc"]
+            enum: ["asc", "desc"],
           },
           convert: {
             type: "string",
-            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into"
+            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into",
           },
           convert_id: {
             type: "string",
-            description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into"
-          }
+            description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into",
+          },
         },
         required: [],
       },
@@ -376,26 +376,26 @@ export class FunctionsSeeder implements Seeder {
             type: "number",
             description: "Number of results to return (1-500)",
             minimum: 1,
-            maximum: 500
+            maximum: 500,
           },
           start: {
             type: "number",
             description: "Starting point for pagination",
-            minimum: 0
+            minimum: 0,
           },
           time_period: {
             type: "string",
             description: "Time period for trending data",
-            enum: ["24h", "30d", "7d"]
+            enum: ["24h", "30d", "7d"],
           },
           convert: {
             type: "string",
-            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into"
+            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into",
           },
           convert_id: {
             type: "string",
-            description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into"
-          }
+            description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into",
+          },
         },
         required: [],
       },
@@ -411,47 +411,47 @@ export class FunctionsSeeder implements Seeder {
           id: {
             type: "string",
             description: "One or more comma-separated cryptocurrency IDs",
-            minLength: 1
+            minLength: 1,
           },
           interval: {
             type: "string",
             description: "Interval of time to update data",
-            enum: ["yearly", "monthly", "weekly", "daily", "hourly", "5m", "10m", "15m", "30m", "45m", "1h", "2h", "3h", "4h", "6h", "12h", "24h", "1d", "2d", "3d", "7d", "14d", "15d", "30d", "60d", "90d", "365d"]
+            enum: ["yearly", "monthly", "weekly", "daily", "hourly", "5m", "10m", "15m", "30m", "45m", "1h", "2h", "3h", "4h", "6h", "12h", "24h", "1d", "2d", "3d", "7d", "14d", "15d", "30d", "60d", "90d", "365d"],
           },
           count: {
             type: "number",
             description: "Number of intervals to return",
             minimum: 1,
-            maximum: 10000
+            maximum: 10000,
           },
           time_start: {
             type: "string",
-            description: "Timestamp to start returning data for (ISO 8601 format)"
+            description: "Timestamp to start returning data for (ISO 8601 format)",
           },
           time_end: {
             type: "string",
-            description: "Timestamp to stop returning data for (ISO 8601 format)"
+            description: "Timestamp to stop returning data for (ISO 8601 format)",
           },
           symbol: {
             type: "string",
-            description: "Comma-separated list of cryptocurrency symbols"
+            description: "Comma-separated list of cryptocurrency symbols",
           },
           convert: {
             type: "string",
-            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into"
+            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into",
           },
           convert_id: {
             type: "string",
-            description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into"
+            description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into",
           },
           aux: {
             type: "string",
-            description: "Comma-separated list of auxiliary data fields to return"
+            description: "Comma-separated list of auxiliary data fields to return",
           },
           skip_invalid: {
             type: "boolean",
-            description: "Skip any invalid cryptocurrencies"
-          }
+            description: "Skip any invalid cryptocurrencies",
+          },
         },
         required: ["id", "interval"],
       },
@@ -467,32 +467,32 @@ export class FunctionsSeeder implements Seeder {
           id: {
             type: "string",
             description: "One or more comma-separated cryptocurrency IDs",
-            minLength: 1
+            minLength: 1,
           },
           slug: {
             type: "string",
-            description: "Comma-separated list of cryptocurrency slugs"
+            description: "Comma-separated list of cryptocurrency slugs",
           },
           symbol: {
             type: "string",
-            description: "Comma-separated list of cryptocurrency symbols"
+            description: "Comma-separated list of cryptocurrency symbols",
           },
           convert: {
             type: "string",
-            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into"
+            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into",
           },
           convert_id: {
             type: "string",
-            description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into"
+            description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into",
           },
           aux: {
             type: "string",
-            description: "Comma-separated list of auxiliary data fields to return"
+            description: "Comma-separated list of auxiliary data fields to return",
           },
           skip_invalid: {
             type: "boolean",
-            description: "Skip any invalid cryptocurrencies"
-          }
+            description: "Skip any invalid cryptocurrencies",
+          },
         },
         required: ["id"],
       },
@@ -508,33 +508,350 @@ export class FunctionsSeeder implements Seeder {
           id: {
             type: "string",
             description: "One or more comma-separated cryptocurrency IDs",
-            minLength: 1
+            minLength: 1,
           },
           slug: {
             type: "string",
-            description: "Comma-separated list of cryptocurrency slugs"
+            description: "Comma-separated list of cryptocurrency slugs",
           },
           symbol: {
             type: "string",
-            description: "Comma-separated list of cryptocurrency symbols"
+            description: "Comma-separated list of cryptocurrency symbols",
           },
           address: {
             type: "string",
-            description: "Comma-separated list of cryptocurrency contract addresses"
+            description: "Comma-separated list of cryptocurrency contract addresses",
           },
           aux: {
             type: "string",
-            description: "Comma-separated list of auxiliary data fields to return"
+            description: "Comma-separated list of auxiliary data fields to return",
           },
           skip_invalid: {
             type: "boolean",
-            description: "Skip any invalid cryptocurrencies"
-          }
+            description: "Skip any invalid cryptocurrencies",
+          },
         },
         required: ["id"],
       },
       type: "agent",
       group: "coinmarket",
+    },
+    // Solana Tracking APIs
+    {
+      name: functionEnum.SOLANA_getTokenHolders,
+      description: "Get the top 100 holders for a specific token",
+      parameters: {
+        type: "object",
+        properties: {
+          tokenAddress: {
+            type: "string",
+            description: "The token address to get holders for",
+          },
+        },
+        required: ["tokenAddress"],
+      },
+      type: "agent",
+      group: "solanatracker",
+    },
+    {
+      name: functionEnum.SOLANA_getTopTokenHolders,
+      description: "Get the top 20 holders for a token, recommended over the /holders endpoint",
+      parameters: {
+        type: "object",
+        properties: {
+          tokenAddress: {
+            type: "string",
+            description: "The token address to get top holders for",
+          },
+        },
+        required: ["tokenAddress"],
+      },
+      type: "agent",
+      group: "solanatracker",
+    },
+    {
+      name: functionEnum.SOLANA_getDeployerTokens,
+      description: "Retrieve all tokens created by wallet",
+      parameters: {
+        type: "object",
+        properties: {
+          wallet: {
+            type: "string",
+            description: "The wallet address to get tokens for",
+          },
+        },
+        required: ["wallet"],
+      },
+      type: "agent",
+      group: "solanatracker",
+    },
+    {
+      name: functionEnum.SOLANA_getLatestTokens,
+      description: "Retrieve the latest 100 tokens",
+      parameters: {},
+      type: "agent",
+      group: "solanatracker",
+    },
+    {
+      name: functionEnum.SOLANA_getTrendingTokens,
+      description: "Get the top 100 trending tokens based on transaction volume in the past hour",
+      parameters: {},
+      type: "agent",
+      group: "solanatracker",
+    },
+    {
+      name: functionEnum.SOLANA_getTrendingTokensByTimeframe,
+      description: "Returns trending tokens for a specific time interval",
+      parameters: {
+        type: "object",
+        properties: {
+          timeframe: {
+            type: "string",
+            description: "Time interval for trending data",
+            enum: ["5m", "15m", "30m", "1h", "2h", "3h", "4h", "5h", "6h", "12h", "24h"],
+          },
+        },
+        required: ["timeframe"],
+      },
+      type: "agent",
+      group: "solanatracker",
+    },
+    {
+      name: functionEnum.SOLANA_getTopVolumeTokens,
+      description: "Retrieve the top 100 tokens sorted by highest volume",
+      parameters: {},
+      type: "agent",
+      group: "solanatracker",
+    },
+    {
+      name: functionEnum.SOLANA_getVolumeTokensByTimeframe,
+      description: "Returns trending tokens for a specific time interval",
+      parameters: {
+        type: "object",
+        properties: {
+          timeframe: {
+            type: "string",
+            description: "Time interval for volume data",
+            enum: ["5m", "15m", "30m", "1h", "6h", "12h", "24h"],
+          },
+        },
+        required: ["timeframe"],
+      },
+      type: "agent",
+      group: "solanatracker",
+    },
+    {
+      name: functionEnum.SOLANA_getMultiAllTokens,
+      description: "Get an overview of latest, graduating, and graduated tokens",
+      parameters: {},
+      type: "agent",
+      group: "solanatracker",
+    },
+    {
+      name: functionEnum.SOLANA_getMultiGraduatedTokens,
+      description: "Overview of all graduated pumpfun/moonshot tokens",
+      parameters: {},
+      type: "agent",
+      group: "solanatracker",
+    },
+    {
+      name: functionEnum.SOLANA_getTokenPrice,
+      description: "Get price information for a single token",
+      parameters: {
+        type: "object",
+        properties: {
+          token: {
+            type: "string",
+            description: "The token address",
+          },
+          priceChanges: {
+            type: "boolean",
+            description: "Returns price change percentages for the token up to 24 hours ago",
+          },
+        },
+        required: ["token"],
+      },
+      type: "agent",
+      group: "solanatracker",
+    },
+    {
+      name: functionEnum.SOLANA_getMultiTokenPrices,
+      description: "Get price information for multiple tokens (up to 100)",
+      parameters: {
+        type: "object",
+        properties: {
+          tokens: {
+            type: "string",
+            description: "Comma-separated list of token addresses",
+          },
+          priceChanges: {
+            type: "boolean",
+            description: "Returns price change percentages for the tokens up to 24 hours ago",
+          },
+        },
+        required: ["tokens"],
+      },
+      type: "agent",
+      group: "solanatracker",
+    },
+    {
+      name: functionEnum.SOLANA_getWalletTokens,
+      description: "Get all tokens in a wallet with current value in USD",
+      parameters: {
+        type: "object",
+        properties: {
+          owner: {
+            type: "string",
+            description: "The wallet address",
+          },
+        },
+        required: ["owner"],
+      },
+      type: "agent",
+      group: "solanatracker",
+    },
+    {
+      name: functionEnum.SOLANA_getWalletTrades,
+      description: "Get the latest trades of a wallet",
+      parameters: {
+        type: "object",
+        properties: {
+          owner: {
+            type: "string",
+            description: "The wallet address",
+          },
+          cursor: {
+            type: "string",
+            description: "Cursor for pagination",
+          },
+        },
+        required: ["owner"],
+      },
+      type: "agent",
+      group: "solanatracker",
+    },
+    {
+      name: functionEnum.SOLANA_getTokenChart,
+      description: "Get OLCVH (Open, Low, Close, Volume, High) data for charts",
+      parameters: {
+        type: "object",
+        properties: {
+          token: {
+            type: "string",
+            description: "The token address",
+          },
+          type: {
+            type: "string",
+            description: "Time interval (e.g., '1s', '1m', '1h', '1d')",
+            enum: ["1s", "5s", "15s", "1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d", "3d", "1w", "1mn"],
+          },
+          time_from: {
+            type: "number",
+            description: "Start time (Unix timestamp in seconds)",
+          },
+          time_to: {
+            type: "number",
+            description: "End time (Unix timestamp in seconds)",
+          },
+          marketCap: {
+            type: "boolean",
+            description: "Return chart for market cap instead of pricing",
+          },
+          removeOutliers: {
+            type: "boolean",
+            description: "Set to false to disable outlier removal, true by default",
+          },
+        },
+        required: ["token"],
+      },
+      type: "agent",
+      group: "solanatracker",
+    },
+    {
+      name: functionEnum.SOLANA_getTokenPoolChart,
+      description: "Get OLCVH (Open, Low, Close, Volume, High) data for charts for a specific pool",
+      parameters: {
+        type: "object",
+        properties: {
+          token: {
+            type: "string",
+            description: "The token address",
+          },
+          pool: {
+            type: "string",
+            description: "The pool address",
+          },
+          type: {
+            type: "string",
+            description: "Time interval (e.g., '1s', '1m', '1h', '1d')",
+            enum: ["1s", "5s", "15s", "1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d", "3d", "1w", "1mn"],
+          },
+          time_from: {
+            type: "number",
+            description: "Start time (Unix timestamp in seconds)",
+          },
+          time_to: {
+            type: "number",
+            description: "End time (Unix timestamp in seconds)",
+          },
+          marketCap: {
+            type: "boolean",
+            description: "Return chart for market cap instead of pricing",
+          },
+          removeOutliers: {
+            type: "boolean",
+            description: "Set to false to disable outlier removal, true by default",
+          },
+        },
+        required: ["token", "pool"],
+      },
+      type: "agent",
+      group: "solanatracker",
+    },
+    {
+      name: functionEnum.SOLANA_getTokenHoldersChart,
+      description: "Get token holder count data over time",
+      parameters: {
+        type: "object",
+        properties: {
+          token: {
+            type: "string",
+            description: "The token address",
+          },
+          type: {
+            type: "string",
+            description: "Time interval (e.g., '1s', '1m', '1h', '1d')",
+            enum: ["1s", "5s", "15s", "1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d", "3d", "1w", "1mn"],
+          },
+          time_from: {
+            type: "number",
+            description: "Start time (Unix timestamp in seconds)",
+          },
+          time_to: {
+            type: "number",
+            description: "End time (Unix timestamp in seconds)",
+          },
+        },
+        required: ["token"],
+      },
+      type: "agent",
+      group: "solanatracker",
+    },
+    {
+      name: functionEnum.SOLANA_getFirstBuyers,
+      description: "Retrieve the first 100 buyers of a token with Profit and Loss data for each wallet",
+      parameters: {
+        type: "object",
+        properties: {
+          token: {
+            type: "string",
+            description: "The token address",
+          },
+        },
+        required: ["token"],
+      },
+      type: "agent",
+      group: "solanatracker",
     },
   ];
 
