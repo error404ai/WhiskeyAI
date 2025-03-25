@@ -7,6 +7,7 @@ import { TriggerLogService } from "./agent/TriggerLogService";
 import coinMarketService from "./Rpc/CoinMarketService";
 import dexscreenerService from "./Rpc/DexscreenerService";
 import QuickNodeRpcService from "./Rpc/QuickNodeRpcService";
+import solanaTrackingService from "./Rpc/SolanaTrackingService";
 import TwitterService from "./TwitterService";
 
 // Define OpenAI function calling interfaces
@@ -784,6 +785,203 @@ export class OpenAIService {
           try {
             result = await coinMarketService.getMetadata(args);
             console.log(`[COINMARKET] Successfully get Metadata`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+
+        // Solana Tracking APIs
+        case functionEnum.SOLANA_getTokenHolders:
+          console.log(`[SOLANA] Getting token holders for ${args.tokenAddress}`);
+          try {
+            result = await solanaTrackingService.getTokenHolders(args.tokenAddress);
+            console.log(`[SOLANA] Successfully get token holders`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+
+        case functionEnum.SOLANA_getTopTokenHolders:
+          console.log(`[SOLANA] Getting top token holders for ${args.tokenAddress}`);
+          try {
+            result = await solanaTrackingService.getTopTokenHolders(args.tokenAddress);
+            console.log(`[SOLANA] Successfully get top token holders`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+
+        case functionEnum.SOLANA_getDeployerTokens:
+          console.log(`[SOLANA] Getting deployer tokens for ${args.wallet}`);
+          try {
+            result = await solanaTrackingService.getDeployerTokens(args.wallet);
+            console.log(`[SOLANA] Successfully get deployer tokens`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+
+        case functionEnum.SOLANA_getLatestTokens:
+          console.log(`[SOLANA] Getting latest tokens`);
+          try {
+            result = await solanaTrackingService.getLatestTokens();
+            console.log(`[SOLANA] Successfully get latest tokens`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+
+        case functionEnum.SOLANA_getTrendingTokens:
+          console.log(`[SOLANA] Getting trending tokens`);
+          try {
+            result = await solanaTrackingService.getTrendingTokens();
+            console.log(`[SOLANA] Successfully get trending tokens`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+
+        case functionEnum.SOLANA_getTrendingTokensByTimeframe:
+          console.log(`[SOLANA] Getting trending tokens for timeframe ${args.timeframe}`);
+          try {
+            result = await solanaTrackingService.getTrendingTokensByTimeframe(args.timeframe);
+            console.log(`[SOLANA] Successfully get trending tokens by timeframe`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+
+        case functionEnum.SOLANA_getTopVolumeTokens:
+          console.log(`[SOLANA] Getting top volume tokens`);
+          try {
+            result = await solanaTrackingService.getTopVolumeTokens();
+            console.log(`[SOLANA] Successfully get top volume tokens`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+
+        case functionEnum.SOLANA_getVolumeTokensByTimeframe:
+          console.log(`[SOLANA] Getting volume tokens for timeframe ${args.timeframe}`);
+          try {
+            result = await solanaTrackingService.getVolumeTokensByTimeframe(args.timeframe);
+            console.log(`[SOLANA] Successfully get volume tokens by timeframe`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+
+        case functionEnum.SOLANA_getMultiAllTokens:
+          console.log(`[SOLANA] Getting multi all tokens`);
+          try {
+            result = await solanaTrackingService.getMultiAllTokens();
+            console.log(`[SOLANA] Successfully get multi all tokens`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+
+        case functionEnum.SOLANA_getMultiGraduatedTokens:
+          console.log(`[SOLANA] Getting multi graduated tokens`);
+          try {
+            result = await solanaTrackingService.getMultiGraduatedTokens();
+            console.log(`[SOLANA] Successfully get multi graduated tokens`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+
+        case functionEnum.SOLANA_getTokenPrice:
+          console.log(`[SOLANA] Getting token price for ${args.token}`);
+          try {
+            result = await solanaTrackingService.getTokenPrice(args.token, args.priceChanges);
+            console.log(`[SOLANA] Successfully get token price`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+
+        case functionEnum.SOLANA_getMultiTokenPrices:
+          console.log(`[SOLANA] Getting multi token prices for ${args.tokens}`);
+          try {
+            result = await solanaTrackingService.getMultiTokenPrices(args.tokens, args.priceChanges);
+            console.log(`[SOLANA] Successfully get multi token prices`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+
+        case functionEnum.SOLANA_getWalletTokens:
+          console.log(`[SOLANA] Getting wallet tokens for ${args.owner}`);
+          try {
+            result = await solanaTrackingService.getWalletTokens(args.owner);
+            console.log(`[SOLANA] Successfully get wallet tokens`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+
+        case functionEnum.SOLANA_getWalletTrades:
+          console.log(`[SOLANA] Getting wallet trades for ${args.owner}`);
+          try {
+            result = await solanaTrackingService.getWalletTrades(args.owner, args.cursor);
+            console.log(`[SOLANA] Successfully get wallet trades`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+
+        case functionEnum.SOLANA_getTokenChart:
+          console.log(`[SOLANA] Getting token chart for ${args.token}`);
+          try {
+            result = await solanaTrackingService.getTokenChart(args.token, {
+              type: args.type,
+              time_from: args.time_from,
+              time_to: args.time_to,
+              marketCap: args.marketCap,
+              removeOutliers: args.removeOutliers,
+            });
+            console.log(`[SOLANA] Successfully get token chart`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+
+        case functionEnum.SOLANA_getTokenPoolChart:
+          console.log(`[SOLANA] Getting token pool chart for ${args.token}/${args.pool}`);
+          try {
+            result = await solanaTrackingService.getTokenPoolChart(args.token, args.pool, {
+              type: args.type,
+              time_from: args.time_from,
+              time_to: args.time_to,
+              marketCap: args.marketCap,
+              removeOutliers: args.removeOutliers,
+            });
+            console.log(`[SOLANA] Successfully get token pool chart`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+
+        case functionEnum.SOLANA_getTokenHoldersChart:
+          console.log(`[SOLANA] Getting token holders chart for ${args.token}`);
+          try {
+            result = await solanaTrackingService.getTokenHoldersChart(args.token, {
+              type: args.type,
+              time_from: args.time_from,
+              time_to: args.time_to,
+            });
+            console.log(`[SOLANA] Successfully get token holders chart`);
+            return result;
+          } catch (error: any) {
+            throw error;
+          }
+
+        case functionEnum.SOLANA_getFirstBuyers:
+          console.log(`[SOLANA] Getting first buyers for ${args.token}`);
+          try {
+            result = await solanaTrackingService.getFirstBuyers(args.token);
+            console.log(`[SOLANA] Successfully get first buyers`);
             return result;
           } catch (error: any) {
             throw error;
