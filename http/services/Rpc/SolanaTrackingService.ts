@@ -55,12 +55,14 @@ class SolanaTrackingService {
 
   async getMultiAllTokens() {
     const response = await this.axios.get(`/tokens/multi/all`);
-    return response.data;
+    const data = response.data;
+    return Array.isArray(data.latest) && data.latest.length > 0 ? data.latest[0] : null;
   }
 
   async getMultiGraduatedTokens() {
     const response = await this.axios.get(`/tokens/multi/graduated`);
-    return response.data;
+    const data = response.data;
+    return Array.isArray(data) && data.length > 0 ? data[0] : null;
   }
 
   async getTokenPrice(token: string, priceChanges?: boolean) {
