@@ -72,8 +72,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           throw new Error("Missing credentials");
         }
 
-        console.log("public key is", publicKey);
-
         // Decode signature
         const decodedSignature = bs58.decode(signature);
 
