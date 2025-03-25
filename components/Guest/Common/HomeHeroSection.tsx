@@ -29,9 +29,9 @@ export default function HomeHeroSection() {
                 Get Started
                 <Bot className="ml-2 h-4 w-4 transition-transform group-hover:rotate-12" />
               </Button>
-              <Button size="lg" variant="outline">
+              {/* <Button size="lg" variant="outline">
                 Watch Demo
-              </Button>
+              </Button> */}
             </div>
 
             <div className="flex items-center gap-4 text-sm">

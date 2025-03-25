@@ -25,13 +25,13 @@ export default function CTASection() {
               Get Started
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-            <Button
+            {/* <Button
               size="lg"
               variant="outline"
               className="bg-transparent text-primary-foreground border-primary-foreground hover:bg-primary-foreground/10"
             >
               Schedule Demo
-            </Button>
+            </Button> */}
           </div>
         </MotionDiv>
       </div>
