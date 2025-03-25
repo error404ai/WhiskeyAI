@@ -38,6 +38,11 @@ export function GuestHeader() {
                     <NavigationMenuLink className={navigationMenuTriggerStyle}>FAQ</NavigationMenuLink>
                   </Link>
                 </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Link href="/docs" legacyBehavior passHref>
+                    <NavigationMenuLink className={navigationMenuTriggerStyle}>DOCS</NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
           </div>
@@ -81,6 +86,9 @@ export function GuestHeader() {
               </Link> */}
               <Link href="/faq" className="hover:text-primary text-lg font-semibold">
                 FAQ
+              </Link>
+              <Link href="/docs" className="hover:text-primary text-lg font-semibold">
+                DOCS
               </Link>
               <div className="flex flex-col gap-2">
                 <ConnectButton />
