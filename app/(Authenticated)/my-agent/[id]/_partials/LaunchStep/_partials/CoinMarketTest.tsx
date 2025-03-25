@@ -6,8 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getFearAndGreedLatest, getFearAndGreedHistorical, getTrendingMostVisited, getTrendingGainersLosers, getTrendingLatest, getQuotesHistorical, getQuotesLatest, getMetadata } from "@/http/controllers/coinmarket/coinmarketController";
-import { trendingBaseSchema, trendingGainersLosersSchema, quotesHistoricalSchema, quotesLatestSchema, metadataSchema } from "@/http/zodSchema/coinmarketSchema";
+import { getFearAndGreedHistorical, getFearAndGreedLatest, getMetadata, getQuotesHistorical, getQuotesLatest, getTrendingGainersLosers, getTrendingLatest, getTrendingMostVisited } from "@/http/controllers/coinmarket/coinmarketController";
+import { metadataSchema, quotesHistoricalSchema, quotesLatestSchema, trendingBaseSchema, trendingGainersLosersSchema } from "@/http/zodSchema/coinmarketSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, CheckCircle, LineChart } from "lucide-react";
 import { useState } from "react";
@@ -16,14 +16,14 @@ import { z } from "zod";
 
 interface ResultData {
   action: string;
-  data: Record<string, unknown>;
+  data: unknown;
 }
 
-interface CoinMarketResponse {
-  status: "success" | "error";
-  message?: string;
-  data?: Record<string, unknown>;
-  errorDetails?: string;
+interface CoinMarketError {
+  status: {
+    error_code: number;
+    error_message: string;
+  };
 }
 
 // Helper function to filter out empty parameters
@@ -66,11 +66,11 @@ export default function CoinMarketTest() {
   // State for results
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ResultData | null>(null);
-  const [error, setError] = useState<CoinMarketResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   // Function to handle API calls and update state
-  const handleApiCall = async (apiCall: () => Promise<{ status: string; data?: Record<string, unknown>; message?: string; errorDetails?: string }>, actionName: string) => {
+  const handleApiCall = async (apiCall: () => Promise<unknown>, actionName: string) => {
     setLoading(true);
     setError(null);
     setSuccess(null);
@@ -78,21 +78,20 @@ export default function CoinMarketTest() {
 
     try {
       const response = await apiCall();
-      if (response.status === "error") {
-        setError(response as CoinMarketResponse);
-        console.error(`${actionName} error:`, response.message);
+      
+      // Check if response is an error response from CoinMarketCap
+      const errorResponse = response as CoinMarketError;
+      if (errorResponse?.status?.error_code) {
+        setError(errorResponse.status.error_message);
+        console.error(`${actionName} error:`, errorResponse.status.error_message);
       } else {
-        setResult({ action: actionName, data: response.data || {} });
+        setResult({ action: actionName, data: response });
         setSuccess(`${actionName} completed successfully!`);
-        console.log(`${actionName} response:`, response.data);
+        console.log(`${actionName} response:`, response);
       }
     } catch (err) {
-      const safeError: CoinMarketResponse = {
-        status: "error",
-        message: `Unexpected error: ${(err as Error).message}`,
-        errorDetails: JSON.stringify(err),
-      };
-      setError(safeError);
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      setError(errorMessage);
       console.error(`${actionName} unexpected error:`, err);
     } finally {
       setLoading(false);
@@ -186,51 +185,47 @@ export default function CoinMarketTest() {
     metadataForm.reset();
   };
 
-  // Format JSON for display
-  const formatJson = (data: unknown) => {
-    try {
-      return JSON.stringify(data, null, 2);
-    } catch (err) {
-      return `Error formatting JSON: ${err}`;
-    }
-  };
-
   // Try to parse error details if they exist
   const getErrorDetails = () => {
-    if (!error?.errorDetails) return null;
-
-    try {
-      const details = JSON.parse(error.errorDetails);
-      return (
-        <div className="mt-3 w-full">
-          <div className="text-sm font-semibold">Error Details:</div>
-          <div className="mt-1 max-h-32 w-full overflow-auto rounded bg-gray-100 p-2">
-            <pre className="text-xs break-words whitespace-pre-wrap">{JSON.stringify(details, null, 2)}</pre>
-          </div>
-        </div>
-      );
-    } catch {
-      return <div className="mt-3 w-full text-xs whitespace-normal">{error.errorDetails}</div>;
-    }
+    if (!error) return null;
+    return (
+      <div className="mt-3 w-full text-xs whitespace-normal">{error}</div>
+    );
   };
 
   return (
-    <div className="mt-4 container mx-auto p-4">
+    <div className="container mx-auto mt-4 p-4">
       <div className="mb-6 flex items-center gap-2">
         <LineChart className="text-blue-500" size={24} />
         <h1 className="text-2xl font-bold">CoinMarket API Test</h1>
       </div>
 
       <Tabs defaultValue="fear-and-greed-latest" className="w-full">
-        <TabsList className="mb-4 h-fit flex flex-wrap gap-2">
-          <TabsTrigger value="fear-and-greed-latest" className="text-xs sm:text-sm">Fear & Greed Latest</TabsTrigger>
-          <TabsTrigger value="fear-and-greed-historical" className="text-xs sm:text-sm">Fear & Greed Historical</TabsTrigger>
-          <TabsTrigger value="trending-most-visited" className="text-xs sm:text-sm">Trending Most Visited</TabsTrigger>
-          <TabsTrigger value="trending-gainers-losers" className="text-xs sm:text-sm">Trending Gainers & Losers</TabsTrigger>
-          <TabsTrigger value="trending-latest" className="text-xs sm:text-sm">Trending Latest</TabsTrigger>
-          <TabsTrigger value="quotes-historical" className="text-xs sm:text-sm">Quotes Historical</TabsTrigger>
-          <TabsTrigger value="quotes-latest" className="text-xs sm:text-sm">Quotes Latest</TabsTrigger>
-          <TabsTrigger value="metadata" className="text-xs sm:text-sm">Metadata</TabsTrigger>
+        <TabsList className="mb-4 flex h-fit flex-wrap gap-2">
+          <TabsTrigger value="fear-and-greed-latest" className="text-xs sm:text-sm">
+            Fear & Greed Latest
+          </TabsTrigger>
+          <TabsTrigger value="fear-and-greed-historical" className="text-xs sm:text-sm">
+            Fear & Greed Historical
+          </TabsTrigger>
+          <TabsTrigger value="trending-most-visited" className="text-xs sm:text-sm">
+            Trending Most Visited
+          </TabsTrigger>
+          <TabsTrigger value="trending-gainers-losers" className="text-xs sm:text-sm">
+            Trending Gainers & Losers
+          </TabsTrigger>
+          <TabsTrigger value="trending-latest" className="text-xs sm:text-sm">
+            Trending Latest
+          </TabsTrigger>
+          <TabsTrigger value="quotes-historical" className="text-xs sm:text-sm">
+            Quotes Historical
+          </TabsTrigger>
+          <TabsTrigger value="quotes-latest" className="text-xs sm:text-sm">
+            Quotes Latest
+          </TabsTrigger>
+          <TabsTrigger value="metadata" className="text-xs sm:text-sm">
+            Metadata
+          </TabsTrigger>
         </TabsList>
 
         {/* Fear & Greed Latest Tab */}
@@ -241,12 +236,7 @@ export default function CoinMarketTest() {
               <CardDescription>Fetch the latest fear and greed index data</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button 
-                parentClass="w-fit" 
-                onClick={handleGetFearAndGreedLatest} 
-                disabled={loading} 
-                className="bg-blue-500 hover:bg-blue-600"
-              >
+              <Button parentClass="w-fit" onClick={handleGetFearAndGreedLatest} disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                 {loading ? "Loading..." : "Get Fear and Greed Latest"}
               </Button>
             </CardContent>
@@ -261,12 +251,7 @@ export default function CoinMarketTest() {
               <CardDescription>Fetch historical fear and greed index data</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button 
-                parentClass="w-fit" 
-                onClick={handleGetFearAndGreedHistorical} 
-                disabled={loading} 
-                className="bg-blue-500 hover:bg-blue-600"
-              >
+              <Button parentClass="w-fit" onClick={handleGetFearAndGreedHistorical} disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                 {loading ? "Loading..." : "Get Fear and Greed Historical"}
               </Button>
             </CardContent>
@@ -293,7 +278,7 @@ export default function CoinMarketTest() {
                   </div>
                   <div className="space-y-2">
                     <Label>Time Period</Label>
-                    <select {...trendingForm.register("time_period")} className="w-full p-2 border rounded">
+                    <select {...trendingForm.register("time_period")} className="w-full rounded border p-2">
                       <option value="24h">24 Hours</option>
                       <option value="30d">30 Days</option>
                       <option value="7d">7 Days</option>
@@ -307,12 +292,7 @@ export default function CoinMarketTest() {
                     <Label>Convert ID</Label>
                     <Input {...trendingForm.register("convert_id")} placeholder="e.g. 1,2781" />
                   </div>
-                  <Button 
-                    parentClass="w-fit" 
-                    type="submit" 
-                    disabled={loading} 
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Loading..." : "Get Trending Most Visited"}
                   </Button>
                 </CardContent>
@@ -341,7 +321,7 @@ export default function CoinMarketTest() {
                   </div>
                   <div className="space-y-2">
                     <Label>Time Period</Label>
-                    <select {...gainersLosersForm.register("time_period")} className="w-full p-2 border rounded">
+                    <select {...gainersLosersForm.register("time_period")} className="w-full rounded border p-2">
                       <option value="24h">24 Hours</option>
                       <option value="30d">30 Days</option>
                       <option value="7d">7 Days</option>
@@ -349,13 +329,13 @@ export default function CoinMarketTest() {
                   </div>
                   <div className="space-y-2">
                     <Label>Sort</Label>
-                    <select {...gainersLosersForm.register("sort")} className="w-full p-2 border rounded">
+                    <select {...gainersLosersForm.register("sort")} className="w-full rounded border p-2">
                       <option value="percent_change_24h">24h Price Change</option>
                     </select>
                   </div>
                   <div className="space-y-2">
                     <Label>Sort Direction</Label>
-                    <select {...gainersLosersForm.register("sort_dir")} className="w-full p-2 border rounded">
+                    <select {...gainersLosersForm.register("sort_dir")} className="w-full rounded border p-2">
                       <option value="desc">Descending</option>
                       <option value="asc">Ascending</option>
                     </select>
@@ -368,12 +348,7 @@ export default function CoinMarketTest() {
                     <Label>Convert ID</Label>
                     <Input {...gainersLosersForm.register("convert_id")} placeholder="e.g. 1,2781" />
                   </div>
-                  <Button 
-                    parentClass="w-fit" 
-                    type="submit" 
-                    disabled={loading} 
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Loading..." : "Get Trending Gainers & Losers"}
                   </Button>
                 </CardContent>
@@ -402,7 +377,7 @@ export default function CoinMarketTest() {
                   </div>
                   <div className="space-y-2">
                     <Label>Time Period</Label>
-                    <select {...trendingForm.register("time_period")} className="w-full p-2 border rounded">
+                    <select {...trendingForm.register("time_period")} className="w-full rounded border p-2">
                       <option value="24h">24 Hours</option>
                       <option value="30d">30 Days</option>
                       <option value="7d">7 Days</option>
@@ -416,12 +391,7 @@ export default function CoinMarketTest() {
                     <Label>Convert ID</Label>
                     <Input {...trendingForm.register("convert_id")} placeholder="e.g. 1,2781" />
                   </div>
-                  <Button 
-                    parentClass="w-fit" 
-                    type="submit" 
-                    disabled={loading} 
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Loading..." : "Get Trending Latest"}
                   </Button>
                 </CardContent>
@@ -450,7 +420,7 @@ export default function CoinMarketTest() {
                   </div>
                   <div className="space-y-2">
                     <Label>Interval</Label>
-                    <select {...quotesHistoricalForm.register("interval")} className="w-full p-2 border rounded">
+                    <select {...quotesHistoricalForm.register("interval")} className="w-full rounded border p-2">
                       <option value="5m">5 Minutes</option>
                       <option value="15m">15 Minutes</option>
                       <option value="30m">30 Minutes</option>
@@ -496,12 +466,7 @@ export default function CoinMarketTest() {
                     <Label>Skip Invalid</Label>
                     <Input type="checkbox" {...quotesHistoricalForm.register("skip_invalid")} />
                   </div>
-                  <Button 
-                    parentClass="w-fit" 
-                    type="submit" 
-                    disabled={loading} 
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Loading..." : "Get Quotes Historical"}
                   </Button>
                 </CardContent>
@@ -548,12 +513,7 @@ export default function CoinMarketTest() {
                     <Label>Skip Invalid</Label>
                     <Input type="checkbox" {...quotesLatestForm.register("skip_invalid")} />
                   </div>
-                  <Button 
-                    parentClass="w-fit" 
-                    type="submit" 
-                    disabled={loading} 
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Loading..." : "Get Quotes Latest"}
                   </Button>
                 </CardContent>
@@ -596,12 +556,7 @@ export default function CoinMarketTest() {
                     <Label>Skip Invalid</Label>
                     <Input type="checkbox" {...metadataForm.register("skip_invalid")} />
                   </div>
-                  <Button 
-                    parentClass="w-fit" 
-                    type="submit" 
-                    disabled={loading} 
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Loading..." : "Get Metadata"}
                   </Button>
                 </CardContent>
@@ -624,7 +579,7 @@ export default function CoinMarketTest() {
                 </div>
                 <div className="flex-1">
                   <AlertTitle className="mb-1 block font-semibold">Error</AlertTitle>
-                  <AlertDescription className="block whitespace-normal">{error.message}</AlertDescription>
+                  <AlertDescription className="block whitespace-normal">{error}</AlertDescription>
                   {getErrorDetails()}
                 </div>
               </div>
@@ -647,18 +602,18 @@ export default function CoinMarketTest() {
         )}
 
         {result && (
-          <Card>
+          <Card className="mt-4">
             <CardHeader>
-              <CardTitle>{result.action} Result</CardTitle>
+              <CardTitle>{result.action} Results</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="max-h-96 overflow-auto rounded bg-gray-100 p-4">
-                <pre className="text-sm break-words whitespace-pre-wrap">{formatJson(result.data)}</pre>
-              </div>
+              <pre className="whitespace-pre-wrap text-sm">
+                {JSON.stringify(result.data, null, 2)}
+              </pre>
             </CardContent>
           </Card>
         )}
       </div>
     </div>
   );
-} 
+}

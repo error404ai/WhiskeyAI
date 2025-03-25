@@ -22,17 +22,16 @@ import {
   tokenPairsSchema, 
   tokensByAddressSchema 
 } from "@/http/zodSchema/dexscreenerSchema";
-import { DexScreenerApiError, DexScreenerResponse } from "@/types/dexscreener";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, CheckCircle, Clock, LineChart } from "lucide-react";
+import { AlertCircle, CheckCircle, LineChart } from "lucide-react";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
-type ResultData = {
+interface ResultData {
   action: string;
   data: unknown;
-};
+}
 
 export default function DexscreenerTest() {
   // Form handlers for each tab
@@ -64,23 +63,11 @@ export default function DexscreenerTest() {
   // State for results
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ResultData | null>(null);
-  const [error, setError] = useState<DexScreenerApiError | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Process the response from the API
-  const processResponse = (response: DexScreenerResponse, actionName: string) => {
-    if (response.status === "error") {
-      setError(response);
-      console.error(`${actionName} error:`, JSON.stringify(response));
-    } else {
-      setResult({ action: actionName, data: response.data });
-      setSuccess(`${actionName} completed successfully!`);
-      console.log(`${actionName} response:`, response.data);
-    }
-  };
-
   // Function to handle API calls and update state
-  const handleApiCall = async (apiCall: () => Promise<DexScreenerResponse>, actionName: string) => {
+  const handleApiCall = async (apiCall: () => Promise<unknown>, actionName: string) => {
     setLoading(true);
     setError(null);
     setSuccess(null);
@@ -88,17 +75,21 @@ export default function DexscreenerTest() {
 
     try {
       const response = await apiCall();
-      processResponse(response, actionName);
+      
+      // Check if response is an error response from Dexscreener
+      if (response && typeof response === 'object' && 'error' in response) {
+        const errorMessage = typeof response.error === 'string' ? response.error : 'An error occurred';
+        setError(errorMessage);
+        console.error(`${actionName} error:`, errorMessage);
+      } else {
+        setResult({ action: actionName, data: response });
+        setSuccess(`${actionName} completed successfully!`);
+        console.log(`${actionName} response:`, response);
+      }
     } catch (err) {
-      // Create a safe serializable error object
-      const safeError: DexScreenerApiError = {
-        status: "error",
-        message: `Unexpected error: ${(err as Error).message}`,
-        isRateLimit: false,
-        errorDetails: JSON.stringify(err),
-      };
-      setError(safeError);
-      console.error(`${actionName} unexpected error:`, JSON.stringify(safeError));
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      setError(errorMessage);
+      console.error(`${actionName} unexpected error:`, err);
     } finally {
       setLoading(false);
     }
@@ -143,34 +134,6 @@ export default function DexscreenerTest() {
   const handleGetTokensByAddress = (data: z.infer<typeof tokensByAddressSchema>) => {
     handleApiCall(() => getTokensByAddress(data.chainId, data.tokenAddresses), "Get Tokens by Address");
     tokensByAddressForm.reset();
-  };
-
-  // Format JSON for display
-  const formatJson = (data: unknown) => {
-    try {
-      return JSON.stringify(data, null, 2);
-    } catch (err) {
-      return `Error formatting JSON: ${err}`;
-    }
-  };
-
-  // Try to parse error details if they exist
-  const getErrorDetails = () => {
-    if (!error?.errorDetails) return null;
-
-    try {
-      const details = JSON.parse(error.errorDetails);
-      return (
-        <div className="mt-3 w-full">
-          <div className="text-sm font-semibold">Error Details:</div>
-          <div className="mt-1 max-h-32 w-full overflow-auto rounded bg-gray-100 p-2">
-            <pre className="text-xs break-words whitespace-pre-wrap">{JSON.stringify(details, null, 2)}</pre>
-          </div>
-        </div>
-      );
-    } catch {
-      return <div className="mt-3 w-full text-xs whitespace-normal">{error.errorDetails}</div>;
-    }
   };
 
   return (
@@ -393,55 +356,30 @@ export default function DexscreenerTest() {
         <h2 className="mb-4 text-xl font-semibold">Results</h2>
 
         {error && (
-          <Alert 
-            variant={error.isRateLimit ? "default" : "destructive"} 
-            className={`mb-4 ${error.isRateLimit ? "border-yellow-200 bg-yellow-50 text-yellow-800" : ""}`}
-          >
-            <div className="flex w-full flex-col">
-              <div className="flex items-start">
-                <div className="mt-0.5 mr-2">
-                  {error.isRateLimit ? <Clock className="h-4 w-4 text-yellow-600" /> : <AlertCircle className="h-4 w-4" />}
-                </div>
-                <div className="flex-1">
-                  <AlertTitle className="mb-1 block font-semibold">
-                    {error.isRateLimit ? "Rate Limit Exceeded" : "Error"}
-                  </AlertTitle>
-                  <AlertDescription className="block whitespace-normal">{error.message}</AlertDescription>
-                  {error.isRateLimit && (
-                    <div className="mt-2 text-sm whitespace-normal">
-                      Dexscreener limits the number of API requests. Please wait a few minutes before trying again.
-                    </div>
-                  )}
-                  {getErrorDetails()}
-                </div>
-              </div>
-            </div>
+          <Alert variant="destructive" className="mt-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
         {success && (
-          <Alert variant="default" className="mb-4 border-green-200 bg-green-50 text-green-800">
-            <div className="flex items-start">
-              <div className="mt-0.5 mr-2">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-              </div>
-              <div>
-                <AlertTitle className="mb-1 block font-semibold">Success</AlertTitle>
-                <AlertDescription className="block whitespace-normal">{success}</AlertDescription>
-              </div>
-            </div>
+          <Alert className="mt-4 border-green-500">
+            <CheckCircle className="h-4 w-4 text-green-500" />
+            <AlertTitle className="text-green-500">Success</AlertTitle>
+            <AlertDescription>{success}</AlertDescription>
           </Alert>
         )}
 
         {result && (
-          <Card>
+          <Card className="mt-4">
             <CardHeader>
-              <CardTitle>{result.action} Result</CardTitle>
+              <CardTitle>{result.action} Results</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="max-h-96 overflow-auto rounded bg-gray-100 p-4">
-                <pre className="text-sm break-words whitespace-pre-wrap">{formatJson(result.data)}</pre>
-              </div>
+              <pre className="whitespace-pre-wrap text-sm">
+                {JSON.stringify(result.data, null, 2)}
+              </pre>
             </CardContent>
           </Card>
         )}
