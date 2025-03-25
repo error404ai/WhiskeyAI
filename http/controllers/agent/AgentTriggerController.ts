@@ -30,3 +30,7 @@ export const updateAgentTrigger = async (triggerId: number, data: z.infer<typeof
   const parsedData = agentTriggerCreateSchema.parse(data);
   return await AgentTriggerService.updateAgentTrigger(triggerId, parsedData);
 };
+
+export const testAgentTrigger = async (triggerId: number) => {
+  return AgentTriggerService.testAgentTrigger(triggerId);
+};
