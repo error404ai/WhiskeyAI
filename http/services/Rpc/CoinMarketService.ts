@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from "axios";
 
 interface TrendingBaseParams {
@@ -66,19 +67,39 @@ class CoinMarketService {
   async getFearAndGreedHistorical() {
     const res = await this.axios.get(`${this.endPoint}/v3/fear-and-greed/historical`);
 
-    return res.data;
+    return res.data.data.slice(0, 10);
   }
 
   async getTrendingMostVisited(params?: TrendingBaseParams) {
-    return (await this.axios.get(`${this.endPoint}/v1/cryptocurrency/trending/most-visited`, { params })).data;
+    const response = await this.axios.get(`${this.endPoint}/v1/cryptocurrency/trending/most-visited`, { params });
+    return response.data.data.slice(0, 10).map((item: any) => ({
+      name: item.name,
+      symbol: item.symbol,
+      slug: item.slug,
+      date_added: item.date_added,
+      cmc_rank: item.cmc_rank,
+    }));
   }
 
   async getTrendingGainersLosers(params?: TrendingGainersLosersParams) {
-    return (await this.axios.get(`${this.endPoint}/v1/cryptocurrency/trending/gainers-losers`, { params })).data;
+    const response = await this.axios.get(`${this.endPoint}/v1/cryptocurrency/trending/gainers-losers`, { params });
+    return response.data.data.slice(0, 10).map((item: any) => ({
+      name: item.name,
+      symbol: item.symbol,
+      percent_change_24h: item.percent_change_24h,
+      cmc_rank: item.cmc_rank,
+      date_added: item.date_added,
+    }));
   }
 
   async getTrendingLatest(params?: TrendingBaseParams) {
-    return (await this.axios.get(`${this.endPoint}/v1/cryptocurrency/trending/latest`, { params })).data;
+    const response = await this.axios.get(`${this.endPoint}/v1/cryptocurrency/trending/latest`, { params });
+    return response.data.data.slice(0, 10).map((item: any) => ({
+      name: item.name,
+      symbol: item.symbol,
+      date_added: item.date_added,
+      cmc_rank: item.cmc_rank,
+    }));
   }
 
   async getQuotesHistorical(params: QuotesHistoricalParams) {

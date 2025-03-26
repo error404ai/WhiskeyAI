@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from "axios";
 
 class SolanaTrackingService {
@@ -15,37 +16,49 @@ class SolanaTrackingService {
 
   async getTokenHolders(tokenAddress: string) {
     const response = await this.axios.get(`/tokens/${tokenAddress}/holders`);
-    return response.data;
+    return `Total number of token holders is:  ${response.data.total}`;
   }
 
   async getTopTokenHolders(tokenAddress: string) {
     const response = await this.axios.get(`/tokens/${tokenAddress}/holders/top`);
-    return response.data;
-  }
-
-  async getDeployerTokens(wallet: string) {
-    const response = await this.axios.get(`/deployer/${wallet}`);
-    return response.data;
+    return response.data.slice(0, 10);
   }
 
   async getLatestTokens() {
     const response = await this.axios.get(`/tokens/latest`);
-    return response.data;
+    const data = response.data.slice(0, 10);
+    return data.map((item: any) => ({
+      name: item.token.name,
+      symbol: item.token.symbol,
+      mint: item.token.mint,
+      price: item.pools[0].price.usd,
+    }));
   }
 
   async getTrendingTokens() {
     const response = await this.axios.get(`/tokens/trending`);
-    return response.data;
+    const data = response.data.slice(0, 10);
+    return data.map((item: any) => ({
+      name: item.token.name,
+      symbol: item.token.symbol,
+      mint: item.token.mint,
+      price: item.pools[0].price.usd,
+    }));
   }
 
   async getTrendingTokensByTimeframe(timeframe: string) {
     const response = await this.axios.get(`/tokens/trending/${timeframe}`);
     return response.data;
   }
-
   async getTopVolumeTokens() {
     const response = await this.axios.get(`/tokens/volume`);
-    return response.data;
+    const data = response.data.slice(0, 10);
+    return data.map((item: any) => ({
+      name: item.token.name,
+      symbol: item.token.symbol,
+      mint: item.token.mint,
+      price: item.pools[0].price.usd,
+    }));
   }
 
   async getVolumeTokensByTimeframe(timeframe: string) {
@@ -56,13 +69,23 @@ class SolanaTrackingService {
   async getMultiAllTokens() {
     const response = await this.axios.get(`/tokens/multi/all`);
     const data = response.data;
-    return Array.isArray(data.latest) && data.latest.length > 0 ? data.latest[0] : null;
+    return data.latest.slice(0, 10).map((item: any) => ({
+      name: item.token.name,
+      symbol: item.token.symbol,
+      mint: item.token.mint,
+      price: item.pools[0].price.usd,
+    }));
   }
 
   async getMultiGraduatedTokens() {
     const response = await this.axios.get(`/tokens/multi/graduated`);
-    const data = response.data;
-    return Array.isArray(data) && data.length > 0 ? data[0] : null;
+    const data = response.data.slice(0, 10);
+    return data.map((item: any) => ({
+      name: item.token.name,
+      symbol: item.token.symbol,
+      mint: item.token.mint,
+      price: item.pools[0].price.usd,
+    }));
   }
 
   async getTokenPrice(token: string, priceChanges?: boolean) {
@@ -75,11 +98,10 @@ class SolanaTrackingService {
     return response.data;
   }
 
-  async getMultiTokenPrices(tokens: string, priceChanges?: boolean) {
+  async getMultiTokenPrices(tokens: string) {
     const response = await this.axios.get(`/price/multi`, {
       params: {
         tokens,
-        priceChanges,
       },
     });
     return response.data;
@@ -87,7 +109,11 @@ class SolanaTrackingService {
 
   async getWalletTokens(owner: string) {
     const response = await this.axios.get(`/wallet/${owner}`);
-    return response.data;
+    return response.data.tokens.slice(0, 10).map((item: any) => ({
+      name: item.token.name,
+      symbol: item.token.symbol,
+      mint: item.token.mint,
+    }));
   }
 
   async getWalletTrades(owner: string, cursor?: string) {
@@ -96,7 +122,19 @@ class SolanaTrackingService {
         cursor,
       },
     });
-    return response.data;
+    return response.data.trades.slice(0, 10).map((trade: any) => ({
+      tx: trade.tx,
+      from: {
+        address: trade.from.address,
+        amount: trade.from.amount,
+        symbol: trade.from.token.symbol,
+      },
+      to: {
+        address: trade.to.address,
+        amount: trade.to.amount,
+        symbol: trade.to.token.symbol,
+      },
+    }));
   }
 
   async getTokenChart(

@@ -811,16 +811,6 @@ export class OpenAIService {
             throw error;
           }
 
-        case functionEnum.SOLANA_getDeployerTokens:
-          console.log(`[SOLANA] Getting deployer tokens for ${args.wallet}`);
-          try {
-            result = await solanaTrackingService.getDeployerTokens(args.wallet);
-            console.log(`[SOLANA] Successfully get deployer tokens`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-
         case functionEnum.SOLANA_getLatestTokens:
           console.log(`[SOLANA] Getting latest tokens`);
           try {
@@ -904,7 +894,7 @@ export class OpenAIService {
         case functionEnum.SOLANA_getMultiTokenPrices:
           console.log(`[SOLANA] Getting multi token prices for ${args.tokens}`);
           try {
-            result = await solanaTrackingService.getMultiTokenPrices(args.tokens, args.priceChanges);
+            result = await solanaTrackingService.getMultiTokenPrices(args.tokens);
             console.log(`[SOLANA] Successfully get multi token prices`);
             return result;
           } catch (error: any) {
