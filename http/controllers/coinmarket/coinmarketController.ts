@@ -48,129 +48,33 @@ interface MetadataParams {
 }
 
 export async function getFearAndGreedLatest() {
-  try {
-    const response = await coinMarketService.getFearAndGreedLatest();
-    return {
-      status: "success",
-      data: response.data,
-    };
-  } catch (error) {
-    return {
-      status: "error",
-      message: error instanceof Error ? error.message : "Failed to get fear and greed latest",
-      errorDetails: error instanceof Error ? error.stack : undefined,
-    };
-  }
+  return await coinMarketService.getFearAndGreedLatest();
 }
 
 export async function getFearAndGreedHistorical() {
-  try {
-    const response = await coinMarketService.getFearAndGreedHistorical();
-    return {
-      status: "success",
-      data: response.data,
-    };
-  } catch (error) {
-    return {
-      status: "error",
-      message: error instanceof Error ? error.message : "Failed to get fear and greed historical",
-      errorDetails: error instanceof Error ? error.stack : undefined,
-    };
-  }
+  return await coinMarketService.getFearAndGreedHistorical();
 }
 
 export async function getTrendingMostVisited(params: TrendingBaseParams) {
-  try {
-    const response = await coinMarketService.getTrendingMostVisited(params);
-    return {
-      status: "success",
-      data: response.data,
-    };
-  } catch (error) {
-    return {
-      status: "error",
-      message: error instanceof Error ? error.message : "Failed to get trending most visited",
-      errorDetails: error instanceof Error ? error.stack : undefined,
-    };
-  }
+  return await coinMarketService.getTrendingMostVisited(params);
 }
 
 export async function getTrendingGainersLosers(params: TrendingGainersLosersParams) {
-  try {
-    const response = await coinMarketService.getTrendingGainersLosers(params);
-    return {
-      status: "success",
-      data: response.data,
-    };
-  } catch (error) {
-    return {
-      status: "error",
-      message: error instanceof Error ? error.message : "Failed to get trending gainers & losers",
-      errorDetails: error instanceof Error ? error.stack : undefined,
-    };
-  }
+  return await coinMarketService.getTrendingGainersLosers(params);
 }
 
 export async function getTrendingLatest(params: TrendingBaseParams) {
-  try {
-    const response = await coinMarketService.getTrendingLatest(params);
-    return {
-      status: "success",
-      data: response.data,
-    };
-  } catch (error) {
-    return {
-      status: "error",
-      message: error instanceof Error ? error.message : "Failed to get trending latest",
-      errorDetails: error instanceof Error ? error.stack : undefined,
-    };
-  }
+  return await coinMarketService.getTrendingLatest(params);
 }
 
 export async function getQuotesHistorical(params: QuotesHistoricalParams) {
-  try {
-    const response = await coinMarketService.getQuotesHistorical(params);
-    return {
-      status: "success",
-      data: response.data,
-    };
-  } catch (error) {
-    return {
-      status: "error",
-      message: error instanceof Error ? error.message : "Failed to get quotes historical",
-      errorDetails: error instanceof Error ? error.stack : undefined,
-    };
-  }
+  return await coinMarketService.getQuotesHistorical(params);
 }
 
 export async function getQuotesLatest(params: QuotesLatestParams) {
-  try {
-    const response = await coinMarketService.getQuotesLatest(params);
-    return {
-      status: "success",
-      data: response.data,
-    };
-  } catch (error) {
-    return {
-      status: "error",
-      message: error instanceof Error ? error.message : "Failed to get quotes latest",
-      errorDetails: error instanceof Error ? error.stack : undefined,
-    };
-  }
+  return await coinMarketService.getQuotesLatest(params);
 }
 
 export async function getMetadata(params: MetadataParams) {
-  try {
-    const response = await coinMarketService.getMetadata(params);
-    return {
-      status: "success",
-      data: response.data,
-    };
-  } catch (error) {
-    return {
-      status: "error",
-      message: error instanceof Error ? error.message : "Failed to get metadata",
-      errorDetails: error instanceof Error ? error.stack : undefined,
-    };
-  }
-} 
+  return await coinMarketService.getMetadata(params);
+}

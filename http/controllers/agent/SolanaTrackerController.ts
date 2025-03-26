@@ -23,7 +23,7 @@ export const getTokenHolders = async (tokenAddress: string): Promise<SolanaTrack
     const result = await solanaTrackingService.getTokenHolders(tokenAddress);
     return {
       status: "success",
-      data: result,
+      data: { result },
     };
   } catch (error) {
     return handleSolanaTrackerError(error);
@@ -33,18 +33,6 @@ export const getTokenHolders = async (tokenAddress: string): Promise<SolanaTrack
 export const getTopTokenHolders = async (tokenAddress: string): Promise<SolanaTrackerResponse> => {
   try {
     const result = await solanaTrackingService.getTopTokenHolders(tokenAddress);
-    return {
-      status: "success",
-      data: result,
-    };
-  } catch (error) {
-    return handleSolanaTrackerError(error);
-  }
-};
-
-export const getDeployerTokens = async (wallet: string): Promise<SolanaTrackerResponse> => {
-  try {
-    const result = await solanaTrackingService.getDeployerTokens(wallet);
     return {
       status: "success",
       data: result,
@@ -150,9 +138,9 @@ export const getTokenPrice = async (token: string, priceChanges?: boolean): Prom
   }
 };
 
-export const getMultiTokenPrices = async (tokens: string, priceChanges?: boolean): Promise<SolanaTrackerResponse> => {
+export const getMultiTokenPrices = async (tokens: string): Promise<SolanaTrackerResponse> => {
   try {
-    const result = await solanaTrackingService.getMultiTokenPrices(tokens, priceChanges);
+    const result = await solanaTrackingService.getMultiTokenPrices(tokens);
     return {
       status: "success",
       data: result,
@@ -186,13 +174,16 @@ export const getWalletTrades = async (owner: string, cursor?: string): Promise<S
   }
 };
 
-export const getTokenChart = async (token: string, params?: {
-  type?: string;
-  time_from?: number;
-  time_to?: number;
-  marketCap?: boolean;
-  removeOutliers?: boolean;
-}): Promise<SolanaTrackerResponse> => {
+export const getTokenChart = async (
+  token: string,
+  params?: {
+    type?: string;
+    time_from?: number;
+    time_to?: number;
+    marketCap?: boolean;
+    removeOutliers?: boolean;
+  },
+): Promise<SolanaTrackerResponse> => {
   try {
     const result = await solanaTrackingService.getTokenChart(token, params);
     return {
@@ -204,13 +195,17 @@ export const getTokenChart = async (token: string, params?: {
   }
 };
 
-export const getTokenPoolChart = async (token: string, pool: string, params?: {
-  type?: string;
-  time_from?: number;
-  time_to?: number;
-  marketCap?: boolean;
-  removeOutliers?: boolean;
-}): Promise<SolanaTrackerResponse> => {
+export const getTokenPoolChart = async (
+  token: string,
+  pool: string,
+  params?: {
+    type?: string;
+    time_from?: number;
+    time_to?: number;
+    marketCap?: boolean;
+    removeOutliers?: boolean;
+  },
+): Promise<SolanaTrackerResponse> => {
   try {
     const result = await solanaTrackingService.getTokenPoolChart(token, pool, params);
     return {
@@ -222,11 +217,14 @@ export const getTokenPoolChart = async (token: string, pool: string, params?: {
   }
 };
 
-export const getTokenHoldersChart = async (token: string, params?: {
-  type?: string;
-  time_from?: number;
-  time_to?: number;
-}): Promise<SolanaTrackerResponse> => {
+export const getTokenHoldersChart = async (
+  token: string,
+  params?: {
+    type?: string;
+    time_from?: number;
+    time_to?: number;
+  },
+): Promise<SolanaTrackerResponse> => {
   try {
     const result = await solanaTrackingService.getTokenHoldersChart(token, params);
     return {
@@ -248,4 +246,4 @@ export const getFirstBuyers = async (token: string): Promise<SolanaTrackerRespon
   } catch (error) {
     return handleSolanaTrackerError(error);
   }
-}; 
+};
