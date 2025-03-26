@@ -6,38 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  getTokenHolders,
-  getTopTokenHolders,
-  getDeployerTokens,
-  getLatestTokens,
-  getTrendingTokens,
-  getTrendingTokensByTimeframe,
-  getTopVolumeTokens,
-  getVolumeTokensByTimeframe,
-  getMultiAllTokens,
-  getMultiGraduatedTokens,
-  getTokenPrice,
-  getMultiTokenPrices,
-  getWalletTokens,
-  getWalletTrades,
-  getTokenChart,
-  getTokenPoolChart,
-  getTokenHoldersChart,
-  getFirstBuyers,
-  type SolanaTrackerResponse,
-} from "@/http/controllers/agent/SolanaTrackerController";
-import {
-  tokenHoldersSchema,
-  tokenPriceSchema,
-  multiTokenPricesSchema,
-  walletTokensSchema,
-  walletTradesSchema,
-  tokenChartSchema,
-  tokenPoolChartSchema,
-  tokenHoldersChartSchema,
-  firstBuyersSchema,
-} from "@/http/zodSchema/solanaTrackerSchema";
+import { getFirstBuyers, getLatestTokens, getMultiAllTokens, getMultiGraduatedTokens, getMultiTokenPrices, getTokenChart, getTokenHolders, getTokenHoldersChart, getTokenPoolChart, getTokenPrice, getTopTokenHolders, getTopVolumeTokens, getTrendingTokens, getTrendingTokensByTimeframe, getVolumeTokensByTimeframe, getWalletTokens, getWalletTrades, type SolanaTrackerResponse } from "@/http/controllers/agent/SolanaTrackerController";
+import { firstBuyersSchema, multiTokenPricesSchema, tokenChartSchema, tokenHoldersChartSchema, tokenHoldersSchema, tokenPoolChartSchema, tokenPriceSchema, walletTokensSchema, walletTradesSchema } from "@/http/zodSchema/solanaTrackerSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, CheckCircle, LineChart } from "lucide-react";
 import { useState } from "react";
@@ -50,9 +20,7 @@ interface ResultData {
 }
 
 const filterEmptyParams = (params: Record<string, unknown>) => {
-  return Object.fromEntries(
-    Object.entries(params).filter(([, value]) => value !== undefined && value !== "")
-  );
+  return Object.fromEntries(Object.entries(params).filter(([, value]) => value !== undefined && value !== ""));
 };
 
 export default function SolanaTrackerTest() {
@@ -141,9 +109,9 @@ export default function SolanaTrackerTest() {
         setError(response);
         console.error(`${actionName} error:`, response.message);
       } else {
-        setResult({ 
-          action: actionName, 
-          data: response.data || {} 
+        setResult({
+          action: actionName,
+          data: response.data || {},
         });
         setSuccess(`${actionName} completed successfully!`);
         console.log(`${actionName} response:`, response.data);
@@ -170,11 +138,6 @@ export default function SolanaTrackerTest() {
   const handleGetTopTokenHolders = (data: z.infer<typeof tokenHoldersSchema>) => {
     handleApiCall(() => getTopTokenHolders(data.tokenAddress), "Get Top Token Holders");
     tokenHoldersForm.reset();
-  };
-
-  const handleGetDeployerTokens = (data: z.infer<typeof walletTokensSchema>) => {
-    handleApiCall(() => getDeployerTokens(data.owner), "Get Deployer Tokens");
-    walletTokensForm.reset();
   };
 
   const handleGetLatestTokens = () => {
@@ -211,7 +174,7 @@ export default function SolanaTrackerTest() {
   };
 
   const handleGetMultiTokenPrices = (data: z.infer<typeof multiTokenPricesSchema>) => {
-    handleApiCall(() => getMultiTokenPrices(data.tokens, data.priceChanges), "Get Multi Token Prices");
+    handleApiCall(() => getMultiTokenPrices(data.tokens), "Get Multi Token Prices");
     multiTokenPricesForm.reset();
   };
 
@@ -249,22 +212,38 @@ export default function SolanaTrackerTest() {
   };
 
   return (
-    <div className="mt-4 container mx-auto p-4">
+    <div className="container mx-auto mt-4 p-4">
       <div className="mb-6 flex items-center gap-2">
         <LineChart className="text-blue-500" size={24} />
         <h1 className="text-2xl font-bold">Solana Tracker API Test</h1>
       </div>
 
       <Tabs defaultValue="token-holders" className="w-full">
-        <TabsList className="mb-4 h-fit flex flex-wrap gap-2">
-          <TabsTrigger value="token-holders" className="text-xs sm:text-sm">Token Holders</TabsTrigger>
-          <TabsTrigger value="latest-tokens" className="text-xs sm:text-sm">Latest Tokens</TabsTrigger>
-          <TabsTrigger value="trending-tokens" className="text-xs sm:text-sm">Trending Tokens</TabsTrigger>
-          <TabsTrigger value="volume-tokens" className="text-xs sm:text-sm">Volume Tokens</TabsTrigger>
-          <TabsTrigger value="multi-tokens" className="text-xs sm:text-sm">Multi Tokens</TabsTrigger>
-          <TabsTrigger value="token-price" className="text-xs sm:text-sm">Token Price</TabsTrigger>
-          <TabsTrigger value="wallet-info" className="text-xs sm:text-sm">Wallet Info</TabsTrigger>
-          <TabsTrigger value="charts" className="text-xs sm:text-sm">Charts</TabsTrigger>
+        <TabsList className="mb-4 flex h-fit flex-wrap gap-2">
+          <TabsTrigger value="token-holders" className="text-xs sm:text-sm">
+            Token Holders
+          </TabsTrigger>
+          <TabsTrigger value="latest-tokens" className="text-xs sm:text-sm">
+            Latest Tokens
+          </TabsTrigger>
+          <TabsTrigger value="trending-tokens" className="text-xs sm:text-sm">
+            Trending Tokens
+          </TabsTrigger>
+          <TabsTrigger value="volume-tokens" className="text-xs sm:text-sm">
+            Volume Tokens
+          </TabsTrigger>
+          <TabsTrigger value="multi-tokens" className="text-xs sm:text-sm">
+            Multi Tokens
+          </TabsTrigger>
+          <TabsTrigger value="token-price" className="text-xs sm:text-sm">
+            Token Price
+          </TabsTrigger>
+          <TabsTrigger value="wallet-info" className="text-xs sm:text-sm">
+            Wallet Info
+          </TabsTrigger>
+          <TabsTrigger value="charts" className="text-xs sm:text-sm">
+            Charts
+          </TabsTrigger>
         </TabsList>
 
         {/* Token Holders Tab */}
@@ -282,19 +261,10 @@ export default function SolanaTrackerTest() {
                     <Input {...tokenHoldersForm.register("tokenAddress")} placeholder="Enter token address" />
                   </div>
                   <div className="flex gap-2">
-                    <Button 
-                      type="submit" 
-                      disabled={loading} 
-                      className="bg-blue-500 hover:bg-blue-600"
-                    >
+                    <Button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                       {loading ? "Loading..." : "Get Token Holders"}
                     </Button>
-                    <Button 
-                      type="button" 
-                      disabled={loading} 
-                      className="bg-blue-500 hover:bg-blue-600"
-                      onClick={() => tokenHoldersForm.handleSubmit(handleGetTopTokenHolders)()}
-                    >
+                    <Button type="button" disabled={loading} className="bg-blue-500 hover:bg-blue-600" onClick={() => tokenHoldersForm.handleSubmit(handleGetTopTokenHolders)()}>
                       {loading ? "Loading..." : "Get Top Token Holders"}
                     </Button>
                   </div>
@@ -312,11 +282,7 @@ export default function SolanaTrackerTest() {
               <CardDescription>Fetch the latest tokens from Solana Tracker</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button 
-                onClick={handleGetLatestTokens} 
-                disabled={loading} 
-                className="bg-blue-500 hover:bg-blue-600"
-              >
+              <Button onClick={handleGetLatestTokens} disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                 {loading ? "Loading..." : "Get Latest Tokens"}
               </Button>
             </CardContent>
@@ -331,23 +297,14 @@ export default function SolanaTrackerTest() {
               <CardDescription>Fetch trending tokens from Solana Tracker</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button 
-                onClick={handleGetTrendingTokens} 
-                disabled={loading} 
-                className="bg-blue-500 hover:bg-blue-600"
-              >
+              <Button onClick={handleGetTrendingTokens} disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                 {loading ? "Loading..." : "Get Trending Tokens"}
               </Button>
               <div className="space-y-2">
                 <Label>Get Trending By Timeframe</Label>
                 <div className="flex gap-2">
                   {["5m", "15m", "30m", "1h", "6h", "12h", "24h"].map((timeframe) => (
-                    <Button
-                      key={timeframe}
-                      onClick={() => handleGetTrendingTokensByTimeframe(timeframe)}
-                      disabled={loading}
-                      className="bg-blue-500 hover:bg-blue-600"
-                    >
+                    <Button key={timeframe} onClick={() => handleGetTrendingTokensByTimeframe(timeframe)} disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                       {timeframe}
                     </Button>
                   ))}
@@ -365,23 +322,14 @@ export default function SolanaTrackerTest() {
               <CardDescription>Fetch tokens sorted by volume from Solana Tracker</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button 
-                onClick={handleGetTopVolumeTokens} 
-                disabled={loading} 
-                className="bg-blue-500 hover:bg-blue-600"
-              >
+              <Button onClick={handleGetTopVolumeTokens} disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                 {loading ? "Loading..." : "Get Top Volume Tokens"}
               </Button>
               <div className="space-y-2">
                 <Label>Get Volume By Timeframe</Label>
                 <div className="flex gap-2">
                   {["5m", "15m", "30m", "1h", "6h", "12h", "24h"].map((timeframe) => (
-                    <Button
-                      key={timeframe}
-                      onClick={() => handleGetVolumeTokensByTimeframe(timeframe)}
-                      disabled={loading}
-                      className="bg-blue-500 hover:bg-blue-600"
-                    >
+                    <Button key={timeframe} onClick={() => handleGetVolumeTokensByTimeframe(timeframe)} disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                       {timeframe}
                     </Button>
                   ))}
@@ -399,18 +347,10 @@ export default function SolanaTrackerTest() {
               <CardDescription>Fetch multiple token information from Solana Tracker</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button 
-                onClick={handleGetMultiAllTokens} 
-                disabled={loading} 
-                className="bg-blue-500 hover:bg-blue-600"
-              >
+              <Button onClick={handleGetMultiAllTokens} disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                 {loading ? "Loading..." : "Get All Multi Tokens"}
               </Button>
-              <Button 
-                onClick={handleGetMultiGraduatedTokens} 
-                disabled={loading} 
-                className="bg-blue-500 hover:bg-blue-600"
-              >
+              <Button onClick={handleGetMultiGraduatedTokens} disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                 {loading ? "Loading..." : "Get Graduated Multi Tokens"}
               </Button>
             </CardContent>
@@ -433,18 +373,10 @@ export default function SolanaTrackerTest() {
                       <Input {...tokenPriceForm.register("token")} placeholder="Enter token address" />
                     </div>
                     <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        {...tokenPriceForm.register("priceChanges")}
-                        id="priceChanges"
-                      />
+                      <input type="checkbox" {...tokenPriceForm.register("priceChanges")} id="priceChanges" />
                       <Label htmlFor="priceChanges">Include Price Changes</Label>
                     </div>
-                    <Button 
-                      type="submit" 
-                      disabled={loading} 
-                      className="bg-blue-500 hover:bg-blue-600"
-                    >
+                    <Button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                       {loading ? "Loading..." : "Get Token Price"}
                     </Button>
                   </CardContent>
@@ -465,18 +397,10 @@ export default function SolanaTrackerTest() {
                       <Input {...multiTokenPricesForm.register("tokens")} placeholder="Enter comma-separated token addresses" />
                     </div>
                     <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        {...multiTokenPricesForm.register("priceChanges")}
-                        id="multiPriceChanges"
-                      />
+                      <input type="checkbox" {...multiTokenPricesForm.register("priceChanges")} id="multiPriceChanges" />
                       <Label htmlFor="multiPriceChanges">Include Price Changes</Label>
                     </div>
-                    <Button 
-                      type="submit" 
-                      disabled={loading} 
-                      className="bg-blue-500 hover:bg-blue-600"
-                    >
+                    <Button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                       {loading ? "Loading..." : "Get Multi Token Prices"}
                     </Button>
                   </CardContent>
@@ -502,20 +426,8 @@ export default function SolanaTrackerTest() {
                       <Input {...walletTokensForm.register("owner")} placeholder="Enter wallet address" />
                     </div>
                     <div className="flex gap-2">
-                      <Button 
-                        type="submit" 
-                        disabled={loading} 
-                        className="bg-blue-500 hover:bg-blue-600"
-                      >
+                      <Button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                         {loading ? "Loading..." : "Get Wallet Tokens"}
-                      </Button>
-                      <Button 
-                        type="button" 
-                        disabled={loading} 
-                        className="bg-blue-500 hover:bg-blue-600"
-                        onClick={() => walletTokensForm.handleSubmit(handleGetDeployerTokens)()}
-                      >
-                        {loading ? "Loading..." : "Get Deployer Tokens"}
                       </Button>
                     </div>
                   </CardContent>
@@ -539,11 +451,7 @@ export default function SolanaTrackerTest() {
                       <Label>Cursor</Label>
                       <Input {...walletTradesForm.register("cursor")} placeholder="Enter cursor for pagination" />
                     </div>
-                    <Button 
-                      type="submit" 
-                      disabled={loading} 
-                      className="bg-blue-500 hover:bg-blue-600"
-                    >
+                    <Button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                       {loading ? "Loading..." : "Get Wallet Trades"}
                     </Button>
                   </CardContent>
@@ -570,10 +478,12 @@ export default function SolanaTrackerTest() {
                     </div>
                     <div className="space-y-2">
                       <Label>Time Interval</Label>
-                      <select {...tokenChartForm.register("type")} className="w-full p-2 border rounded">
+                      <select {...tokenChartForm.register("type")} className="w-full rounded border p-2">
                         <option value="">Select interval</option>
                         {["1s", "5s", "15s", "1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d", "3d", "1w", "1mn"].map((interval) => (
-                          <option key={interval} value={interval}>{interval}</option>
+                          <option key={interval} value={interval}>
+                            {interval}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -586,26 +496,14 @@ export default function SolanaTrackerTest() {
                       <Input {...tokenChartForm.register("time_to", { valueAsNumber: true })} type="number" placeholder="Enter end time" />
                     </div>
                     <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        {...tokenChartForm.register("marketCap")}
-                        id="marketCap"
-                      />
+                      <input type="checkbox" {...tokenChartForm.register("marketCap")} id="marketCap" />
                       <Label htmlFor="marketCap">Show Market Cap</Label>
                     </div>
                     <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        {...tokenChartForm.register("removeOutliers")}
-                        id="removeOutliers"
-                      />
+                      <input type="checkbox" {...tokenChartForm.register("removeOutliers")} id="removeOutliers" />
                       <Label htmlFor="removeOutliers">Remove Outliers</Label>
                     </div>
-                    <Button 
-                      type="submit" 
-                      disabled={loading} 
-                      className="bg-blue-500 hover:bg-blue-600"
-                    >
+                    <Button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                       {loading ? "Loading..." : "Get Token Chart"}
                     </Button>
                   </CardContent>
@@ -631,10 +529,12 @@ export default function SolanaTrackerTest() {
                     </div>
                     <div className="space-y-2">
                       <Label>Time Interval</Label>
-                      <select {...tokenPoolChartForm.register("type")} className="w-full p-2 border rounded">
+                      <select {...tokenPoolChartForm.register("type")} className="w-full rounded border p-2">
                         <option value="">Select interval</option>
                         {["1s", "5s", "15s", "1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d", "3d", "1w", "1mn"].map((interval) => (
-                          <option key={interval} value={interval}>{interval}</option>
+                          <option key={interval} value={interval}>
+                            {interval}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -647,26 +547,14 @@ export default function SolanaTrackerTest() {
                       <Input {...tokenPoolChartForm.register("time_to", { valueAsNumber: true })} type="number" placeholder="Enter end time" />
                     </div>
                     <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        {...tokenPoolChartForm.register("marketCap")}
-                        id="poolMarketCap"
-                      />
+                      <input type="checkbox" {...tokenPoolChartForm.register("marketCap")} id="poolMarketCap" />
                       <Label htmlFor="poolMarketCap">Show Market Cap</Label>
                     </div>
                     <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        {...tokenPoolChartForm.register("removeOutliers")}
-                        id="poolRemoveOutliers"
-                      />
+                      <input type="checkbox" {...tokenPoolChartForm.register("removeOutliers")} id="poolRemoveOutliers" />
                       <Label htmlFor="poolRemoveOutliers">Remove Outliers</Label>
                     </div>
-                    <Button 
-                      type="submit" 
-                      disabled={loading} 
-                      className="bg-blue-500 hover:bg-blue-600"
-                    >
+                    <Button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                       {loading ? "Loading..." : "Get Token Pool Chart"}
                     </Button>
                   </CardContent>
@@ -688,10 +576,12 @@ export default function SolanaTrackerTest() {
                     </div>
                     <div className="space-y-2">
                       <Label>Time Interval</Label>
-                      <select {...tokenHoldersChartForm.register("type")} className="w-full p-2 border rounded">
+                      <select {...tokenHoldersChartForm.register("type")} className="w-full rounded border p-2">
                         <option value="">Select interval</option>
                         {["1s", "5s", "15s", "1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d", "3d", "1w", "1mn"].map((interval) => (
-                          <option key={interval} value={interval}>{interval}</option>
+                          <option key={interval} value={interval}>
+                            {interval}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -703,11 +593,7 @@ export default function SolanaTrackerTest() {
                       <Label>Time To (Unix timestamp)</Label>
                       <Input {...tokenHoldersChartForm.register("time_to", { valueAsNumber: true })} type="number" placeholder="Enter end time" />
                     </div>
-                    <Button 
-                      type="submit" 
-                      disabled={loading} 
-                      className="bg-blue-500 hover:bg-blue-600"
-                    >
+                    <Button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                       {loading ? "Loading..." : "Get Token Holders Chart"}
                     </Button>
                   </CardContent>
@@ -727,11 +613,7 @@ export default function SolanaTrackerTest() {
                       <Label>Token Address</Label>
                       <Input {...firstBuyersForm.register("token")} placeholder="Enter token address" />
                     </div>
-                    <Button 
-                      type="submit" 
-                      disabled={loading} 
-                      className="bg-blue-500 hover:bg-blue-600"
-                    >
+                    <Button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                       {loading ? "Loading..." : "Get First Buyers"}
                     </Button>
                   </CardContent>
@@ -749,11 +631,7 @@ export default function SolanaTrackerTest() {
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>
             {error.message}
-            {error.errorDetails && (
-              <pre className="mt-2 whitespace-pre-wrap text-sm">
-                {error.errorDetails}
-              </pre>
-            )}
+            {error.errorDetails && <pre className="mt-2 text-sm whitespace-pre-wrap">{error.errorDetails}</pre>}
           </AlertDescription>
         </Alert>
       )}
@@ -772,12 +650,10 @@ export default function SolanaTrackerTest() {
             <CardTitle>{result.action} Results</CardTitle>
           </CardHeader>
           <CardContent>
-            <pre className="whitespace-pre-wrap text-sm">
-              {JSON.stringify(result.data, null, 2)}
-            </pre>
+            <pre className="text-sm whitespace-pre-wrap">{JSON.stringify(result.data, null, 2)}</pre>
           </CardContent>
         </Card>
       )}
     </div>
   );
-} 
+}
