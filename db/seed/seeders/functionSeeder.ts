@@ -570,22 +570,6 @@ export class FunctionsSeeder implements Seeder {
       group: "solanatracker",
     },
     {
-      name: functionEnum.SOLANA_getDeployerTokens,
-      description: "Retrieve all tokens created by wallet",
-      parameters: {
-        type: "object",
-        properties: {
-          wallet: {
-            type: "string",
-            description: "The wallet address to get tokens for",
-          },
-        },
-        required: ["wallet"],
-      },
-      type: "agent",
-      group: "solanatracker",
-    },
-    {
       name: functionEnum.SOLANA_getLatestTokens,
       description: "Retrieve the latest 100 tokens",
       parameters: {},
@@ -683,10 +667,6 @@ export class FunctionsSeeder implements Seeder {
           tokens: {
             type: "string",
             description: "Comma-separated list of token addresses",
-          },
-          priceChanges: {
-            type: "boolean",
-            description: "Returns price change percentages for the tokens up to 24 hours ago",
           },
         },
         required: ["tokens"],
