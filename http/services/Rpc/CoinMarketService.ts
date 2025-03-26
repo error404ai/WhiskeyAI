@@ -61,7 +61,7 @@ class CoinMarketService {
   async getFearAndGreedLatest() {
     const res = await this.axios.get(`${this.endPoint}/v3/fear-and-greed/latest`);
     console.log("getFearAndGreedLatest response ==========", res.data);
-    return res.data;
+    return [res.data];
   }
 
   async getFearAndGreedHistorical() {
