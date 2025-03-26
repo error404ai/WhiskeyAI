@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Bot, Sparkles } from "lucide-react";
+import ConnectButton from "../Header/_partials/ConnectButton";
 
 export default function HomeHeroSection() {
   // Render animated version after client-side hydration
@@ -25,13 +25,13 @@ export default function HomeHeroSection() {
             <p className="text-muted-foreground text-xl">Deploy autonomous AI agents that handle your tasks with human-like intelligence. Transform your workflow with next-generation AI automation.</p>
 
             <div className="flex flex-col gap-4 sm:flex-row">
-              <Button size="lg" className="group">
+              <ConnectButton size="lg" className="group">
                 Get Started
                 <Bot className="ml-2 h-4 w-4 transition-transform group-hover:rotate-12" />
-              </Button>
-              <Button size="lg" variant="outline">
+              </ConnectButton>
+              {/* <Button size="lg" variant="outline">
                 Watch Demo
-              </Button>
+              </Button> */}
             </div>
 
             <div className="flex items-center gap-4 text-sm">
