@@ -1,6 +1,6 @@
 "use server";
 
-import coinMarketService from "@/http/services/Rpc/CoinMarketService";
+import coinMarketService from "@/http/services/externalApi/CoinMarketService";
 
 interface TrendingBaseParams {
   limit?: number;

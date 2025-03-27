@@ -3,25 +3,18 @@
 import NoSsr from "@/components/NoSsr/NoSsr";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { CopyableText } from "@/components/ui/copyable-text";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { SOCIAL_CONFIG } from "@/config";
 import * as AgentController from "@/http/controllers/agent/AgentController";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, ExternalLink, RefreshCw, Trash2 } from "lucide-react";
 import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import AgentCreate from "./AgentCreate";
-import { CopyableText } from "@/components/ui/copyable-text";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import PaymentDialog from "./PaymentDialog";
-import { SOCIAL_CONFIG } from "@/config";
 
 export default function YourAgentsSection() {
   const {
@@ -49,7 +42,7 @@ export default function YourAgentsSection() {
 
   const handleToggleAgentStatus = async (agentUuid: string) => {
     // Only validate when attempting to set status to active
-    const agent = agents?.find(a => a.uuid === agentUuid);
+    const agent = agents?.find((a) => a.uuid === agentUuid);
     if (agent && agent.status === "paused") {
       // Check if user has paid
       const hasPaid = await AgentController.hasUserPaidForAgents();
@@ -125,7 +118,7 @@ export default function YourAgentsSection() {
           {!isPending && !isFetching && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
               {agents?.map((agent) => (
-                <Card key={agent.id} className={`p-6 ${agent.status === 'paused' ? 'opacity-75' : ''}`}>
+                <Card key={agent.id} className={`p-6 ${agent.status === "paused" ? "opacity-75" : ""}`}>
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
@@ -135,44 +128,25 @@ export default function YourAgentsSection() {
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="flex items-center space-x-2">
-                        <Switch
-                          id={`agent-status-${agent.id}`}
-                          checked={agent.status === 'running'}
-                          onCheckedChange={() => handleToggleAgentStatus(agent.uuid)}
-                        />
+                        <Switch id={`agent-status-${agent.id}`} checked={agent.status === "running"} onCheckedChange={() => handleToggleAgentStatus(agent.uuid)} />
                         <Label htmlFor={`agent-status-${agent.id}`} className="text-xs">
-                          {agent.status === 'running' ? 'Running' : 'Paused'}
+                          {agent.status === "running" ? "Running" : "Paused"}
                         </Label>
                       </div>
-                      <Button 
-                        onClick={() => setAgentToDelete({ id: agent.id, name: agent.name })} 
-                        variant="ghost" 
-                        size="icon" 
-                        className="text-muted-foreground hover:text-foreground"
-                      >
+                      <Button onClick={() => setAgentToDelete({ id: agent.id, name: agent.name })} variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
                         <Trash2 className="h-4 w-4" />
                         <span className="sr-only">Delete agent</span>
                       </Button>
                     </div>
                   </div>
-                  
+
                   {agent.tokenAddress && (
                     <div className="mt-4 mb-2">
                       <div className="flex flex-col gap-2 text-sm">
-                        <CopyableText 
-                          text={agent.tokenAddress}
-                          label="Token Address"
-                          className="text-xs"
-                          successMessage="Token address copied to clipboard!"
-                        />
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs font-medium text-muted-foreground">Pump.fun</span>
-                          <a 
-                            href={`${SOCIAL_CONFIG.PUMP_FUN_COIN_URL}${agent.tokenAddress}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center gap-1 text-xs rounded-md font-medium transition-colors hover:bg-primary/90 hover:text-primary-foreground px-2 py-1 border"
-                          >
+                        <CopyableText text={agent.tokenAddress} label="Token Address" className="text-xs" successMessage="Token address copied to clipboard!" />
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground text-xs font-medium">Pump.fun</span>
+                          <a href={`${SOCIAL_CONFIG.PUMP_FUN_COIN_URL}${agent.tokenAddress}`} target="_blank" rel="noopener noreferrer" className="hover:bg-primary/90 hover:text-primary-foreground inline-flex items-center justify-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors">
                             <ExternalLink className="h-3 w-3" />
                             Open
                           </a>
@@ -180,7 +154,7 @@ export default function YourAgentsSection() {
                       </div>
                     </div>
                   )}
-                  
+
                   <div className="mt-4 mb-2">
                     <Button variant="outline" className="w-full" link={`/my-agent/${agent.uuid}`}>
                       Configure
@@ -194,13 +168,7 @@ export default function YourAgentsSection() {
       </div>
 
       {/* Payment Dialog */}
-      <PaymentDialog
-        open={showPaymentDialog}
-        onOpenChange={setShowPaymentDialog}
-        onPaymentSuccess={handlePaymentSuccess}
-        title="Activate Your Agent"
-        description="A one-time payment is required to activate your agent. After payment, you can activate up to 50 agents."
-      />
+      <PaymentDialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog} onPaymentSuccess={handlePaymentSuccess} title="Activate Your Agent" description="A one-time payment is required to activate your agent. After payment, you can activate up to 50 agents." />
 
       {/* Validation Error Modal */}
       <Dialog open={showValidationErrorModal} onOpenChange={setShowValidationErrorModal}>
@@ -234,9 +202,7 @@ export default function YourAgentsSection() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Delete Agent</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete {agentToDelete?.name}? This action cannot be undone.
-            </DialogDescription>
+            <DialogDescription>Are you sure you want to delete {agentToDelete?.name}? This action cannot be undone.</DialogDescription>
           </DialogHeader>
 
           <DialogFooter className="flex justify-end gap-2">
@@ -244,10 +210,7 @@ export default function YourAgentsSection() {
               Cancel
             </Button>
             {agentToDelete && (
-              <Button 
-                variant="destructive" 
-                onClick={() => handleDeleteAgent(agentToDelete.id)}
-              >
+              <Button variant="destructive" onClick={() => handleDeleteAgent(agentToDelete.id)}>
                 Delete
               </Button>
             )}

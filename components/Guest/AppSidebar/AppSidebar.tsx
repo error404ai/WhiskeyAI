@@ -1,6 +1,6 @@
 "use client";
 
-import { User2 } from "lucide-react";
+import { Logs, User2 } from "lucide-react";
 
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Link } from "next-view-transitions";
@@ -13,6 +13,11 @@ const items = [
     title: "My Agent",
     url: "/my-agent",
     icon: User2,
+  },
+  {
+    title: "Agent Logs",
+    url: "/agent-logs",
+    icon: Logs,
   },
 ];
 

@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getFearAndGreedHistorical, getFearAndGreedLatest, getMetadata, getQuotesHistorical, getQuotesLatest, getTrendingGainersLosers, getTrendingLatest, getTrendingMostVisited } from "@/http/controllers/coinmarket/coinmarketController";
+import { getFearAndGreedHistorical, getFearAndGreedLatest, getMetadata, getQuotesHistorical, getQuotesLatest, getTrendingGainersLosers, getTrendingLatest, getTrendingMostVisited } from "@/http/controllers/externalApi/coinmarketController";
 import { metadataSchema, quotesHistoricalSchema, quotesLatestSchema, trendingBaseSchema, trendingGainersLosersSchema } from "@/http/zodSchema/coinmarketSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, CheckCircle, LineChart } from "lucide-react";
@@ -78,7 +78,7 @@ export default function CoinMarketTest() {
 
     try {
       const response = await apiCall();
-      
+
       // Check if response is an error response from CoinMarketCap
       const errorResponse = response as CoinMarketError;
       if (errorResponse?.status?.error_code) {
@@ -90,7 +90,7 @@ export default function CoinMarketTest() {
         console.log(`${actionName} response:`, response);
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
       setError(errorMessage);
       console.error(`${actionName} unexpected error:`, err);
     } finally {
@@ -188,9 +188,7 @@ export default function CoinMarketTest() {
   // Try to parse error details if they exist
   const getErrorDetails = () => {
     if (!error) return null;
-    return (
-      <div className="mt-3 w-full text-xs whitespace-normal">{error}</div>
-    );
+    return <div className="mt-3 w-full text-xs whitespace-normal">{error}</div>;
   };
 
   return (
@@ -607,9 +605,7 @@ export default function CoinMarketTest() {
               <CardTitle>{result.action} Results</CardTitle>
             </CardHeader>
             <CardContent>
-              <pre className="whitespace-pre-wrap text-sm">
-                {JSON.stringify(result.data, null, 2)}
-              </pre>
+              <pre className="text-sm whitespace-pre-wrap">{JSON.stringify(result.data, null, 2)}</pre>
             </CardContent>
           </Card>
         )}

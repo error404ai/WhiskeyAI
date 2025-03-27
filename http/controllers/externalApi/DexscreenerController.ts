@@ -1,5 +1,5 @@
 "use server";
-import dexscreenerService from "@/http/services/Rpc/DexscreenerService";
+import dexscreenerService from "@/http/services/externalApi/DexscreenerService";
 import { DexScreenerResponse } from "@/types/dexscreener";
 
 export const getLatestTokenProfiles = async (): Promise<DexScreenerResponse> => {

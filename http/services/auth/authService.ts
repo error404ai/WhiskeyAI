@@ -4,8 +4,8 @@ import { usersTable, UserType } from "@/db/schema/usersTable";
 import { eq } from "drizzle-orm";
 import { JwtPayload, sign, verify } from "jsonwebtoken";
 import { headers } from "next/headers";
-import UserResource, { UserResourceType } from "../resource/userResource";
-import UserService from "./userService";
+import UserResource, { UserResourceType } from "../../resource/userResource";
+import UserService from "../userService";
 
 class AuthService {
   static async getAuthUser(): Promise<UserResourceType | null> {
