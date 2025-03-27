@@ -1,30 +1,27 @@
 import { db } from "@/db/db";
 import { NewTriggerLog, TriggerLog, triggerLogsTable } from "@/db/schema/triggerLogsTable";
-import { and, desc, eq, gt, ilike, inArray, or } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import AuthService from "../auth/authService";
 import { DrizzlePaginatorService, PaginationResult } from "../pagination/DrizzlePaginatorService";
 
 /**
  * Interface for filtered log parameters
  */
-interface FilteredLogsParams {
-  userId: number;
-  agentIds?: number[];
-  status?: string;
-  functionName?: string;
-  searchTerm?: string;
-  fromDate?: Date;
-  page?: number;
-  perPage?: number;
-  sortColumn?: string;
-  sortOrder?: "asc" | "desc";
-}
+// interface FilteredLogsParams {
+//   userId: number;
+//   agentIds?: number[];
+//   status?: string;
+//   functionName?: string;
+//   searchTerm?: string;
+//   fromDate?: Date;
+//   page?: number;
+//   perPage?: number;
+//   sortColumn?: string;
+//   sortOrder?: "asc" | "desc";
+// }
 
-/**
- * Service for managing trigger execution logs
- */
 export class TriggerLogService {
-  static async getUserTriggerLogs({ perPage = 10, page = 1, sortColumn = "id", sortOrder = "asc" }: PaginatedProps): Promise<PaginationResult<TriggerLog>> {
+  static async getUserTriggerLogs({ perPage = 10, page = 1 }: PaginatedProps): Promise<PaginationResult<TriggerLog>> {
     const authUser = await AuthService.getAuthUser();
 
     if (!authUser || !authUser.id) {
@@ -47,61 +44,61 @@ export class TriggerLogService {
     const paginator = new DrizzlePaginatorService<TriggerLog>(query).page(page).allowColumns(["id", "user_id", "agent_id", "function_name", "status", "error_details"]);
 
     // Set ordering
-    paginator.orderBy(sortColumn, sortOrder);
+    paginator.orderBy("id", "desc");
 
     return paginator.paginate(perPage);
   }
 
-  /**
-   * Advanced method to get filtered and paginated trigger logs
-   * Demonstrates the flexibility of the new DrizzlePaginatorService
-   */
-  static async getFilteredTriggerLogs({ userId, agentIds = [], status, functionName, searchTerm, fromDate, page = 1, perPage = 10, sortColumn = "created_at", sortOrder = "desc" }: FilteredLogsParams): Promise<PaginationResult<TriggerLog>> {
-    // Build conditions for the query
-    const conditions = [];
+  // /**
+  //  * Advanced method to get filtered and paginated trigger logs
+  //  * Demonstrates the flexibility of the new DrizzlePaginatorService
+  //  */
+  // static async getFilteredTriggerLogs({ userId, agentIds = [], status, functionName, searchTerm, fromDate, page = 1, perPage = 10, sortColumn = "created_at", sortOrder = "desc" }: FilteredLogsParams): Promise<PaginationResult<TriggerLog>> {
+  //   // Build conditions for the query
+  //   const conditions = [];
 
-    // User filter (required)
-    conditions.push(eq(triggerLogsTable.userId, userId));
+  //   // User filter (required)
+  //   conditions.push(eq(triggerLogsTable.userId, userId));
 
-    // Agent filter (optional)
-    if (agentIds.length > 0) {
-      conditions.push(inArray(triggerLogsTable.agentId, agentIds));
-    }
+  //   // Agent filter (optional)
+  //   if (agentIds.length > 0) {
+  //     conditions.push(inArray(triggerLogsTable.agentId, agentIds));
+  //   }
 
-    // Status filter (optional)
-    if (status) {
-      conditions.push(eq(triggerLogsTable.status, status));
-    }
+  //   // Status filter (optional)
+  //   if (status) {
+  //     conditions.push(eq(triggerLogsTable.status, status));
+  //   }
 
-    // Function name filter (optional)
-    if (functionName) {
-      conditions.push(eq(triggerLogsTable.functionName, functionName));
-    }
+  //   // Function name filter (optional)
+  //   if (functionName) {
+  //     conditions.push(eq(triggerLogsTable.functionName, functionName));
+  //   }
 
-    // Date filter (optional)
-    if (fromDate) {
-      conditions.push(gt(triggerLogsTable.createdAt, fromDate));
-    }
+  //   // Date filter (optional)
+  //   if (fromDate) {
+  //     conditions.push(gt(triggerLogsTable.createdAt, fromDate));
+  //   }
 
-    // Search term (optional) - search in function name and error details
-    if (searchTerm) {
-      conditions.push(or(ilike(triggerLogsTable.functionName, `%${searchTerm}%`), ilike(triggerLogsTable.errorDetails, `%${searchTerm}%`)));
-    }
+  //   // Search term (optional) - search in function name and error details
+  //   if (searchTerm) {
+  //     conditions.push(or(ilike(triggerLogsTable.functionName, `%${searchTerm}%`), ilike(triggerLogsTable.errorDetails, `%${searchTerm}%`)));
+  //   }
 
-    // Build query with all conditions
-    const query = db
-      .select()
-      .from(triggerLogsTable)
-      .where(and(...conditions));
+  //   // Build query with all conditions
+  //   const query = db
+  //     .select()
+  //     .from(triggerLogsTable)
+  //     .where(and(...conditions));
 
-    // Use the DrizzlePaginatorService with the complex query
-    const paginator = new DrizzlePaginatorService<TriggerLog>(query).page(page).allowColumns(["id", "user_id", "agent_id", "function_name", "status", "error_details", "created_at"]);
+  //   // Use the DrizzlePaginatorService with the complex query
+  //   const paginator = new DrizzlePaginatorService<TriggerLog>(query).page(page).allowColumns(["id", "user_id", "agent_id", "function_name", "status", "error_details", "created_at"]);
 
-    // Set ordering
-    paginator.orderBy(sortColumn, sortOrder);
+  //   // Set ordering
+  //   paginator.orderBy(sortColumn, sortOrder);
 
-    return paginator.paginate(perPage);
-  }
+  //   return paginator.paginate(perPage);
+  // }
 
   /**
    * Create a new log entry
