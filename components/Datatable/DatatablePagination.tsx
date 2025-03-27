@@ -9,6 +9,7 @@ interface DataTablePaginationProps<TData> {
 }
 
 export function DataTablePagination<TData>({ table }: DataTablePaginationProps<TData>) {
+  'use no memo'
   const pageCount = table.getPageCount();
   const currentPageIndex = table.getState().pagination.pageIndex;
   const maxVisiblePages = 5;

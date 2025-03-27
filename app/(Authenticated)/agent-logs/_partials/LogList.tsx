@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 
 const LogList = () => {
-  'use no memo'
   const tableRef = useRef<DataTableRef>(null);
 
   const columns: ColumnDef<TriggerLog>[] = [
