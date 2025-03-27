@@ -2,16 +2,28 @@ import { db } from "@/db/db";
 import { NewTriggerLog, TriggerLog, triggerLogsTable } from "@/db/schema/triggerLogsTable";
 import { desc, eq } from "drizzle-orm";
 import AuthService from "../auth/authService";
-import { DrizzlePaginatorService } from "../pagination/DrizzlePaginatorService";
+import { DrizzlePaginatorService, PaginationResult } from "../pagination/DrizzlePaginatorService";
 
 /**
  * Service for managing trigger execution logs
  */
 export class TriggerLogService {
-  static getUserTriggerLogs({ perPage = 10, page = 1, sortColumn = "id", sortOrder = "asc" }: PaginatedProps) {
-    const authUser = AuthService.getAuthUser();
-    const paginator = new DrizzlePaginatorService<TriggerLog>("trigger_logs").page(page).allowColumns(["id", "user_id", "agent_id", "function_name", "status", "error_details"]);
+  static async getUserTriggerLogs({ perPage = 10, page = 1, sortColumn = "id", sortOrder = "asc" }: PaginatedProps): Promise<PaginationResult<TriggerLog>> {
+    const authUser = await AuthService.getAuthUser();
+    
+    if (!authUser || !authUser.id) {
+      throw new Error("Authentication required to access trigger logs");
+    }
+    
+    const paginator = new DrizzlePaginatorService<TriggerLog>("trigger_logs")
+      .page(page)
+      .allowColumns(["id", "user_id", "agent_id", "function_name", "status", "error_details"]);
 
+    // Filter to only show logs for the authenticated user
+    // Use parameterized query for security
+    paginator.where("user_id = $1", [authUser.id]);
+    
+    // Set ordering
     paginator.orderBy(sortColumn, sortOrder);
 
     return paginator.paginate(perPage);
