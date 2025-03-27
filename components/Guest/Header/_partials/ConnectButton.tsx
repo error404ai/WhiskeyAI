@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import * as AuthController from "@/http/controllers/auth/authController";
+import * as AuthController from "@/server/controllers/auth/authController";
 import bs58 from "bs58";
 
 const ConnectButton = ({ children, ...props }: React.ComponentProps<typeof Button>) => {

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AgentPlatformList } from "@/db/schema";
-import * as AgentController from "@/http/controllers/agent/AgentController";
+import * as AgentController from "@/server/controllers/agent/AgentController";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Settings2, Trash2, Twitter } from "lucide-react";
 import { useParams } from "next/navigation";

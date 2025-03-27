@@ -1,6 +1,6 @@
 "use server";
 
-import quickNodeRpcService from "@/http/services/externalApi/QuickNodeRpcService";
+import quickNodeRpcService from "@/server/services/externalApi/QuickNodeRpcService";
 
 // Define response type to match what the component expects
 type RpcResponse = {

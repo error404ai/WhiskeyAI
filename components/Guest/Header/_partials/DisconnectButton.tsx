@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { logout } from "@/http/controllers/auth/authController";
+import { logout } from "@/server/controllers/auth/authController";
 import { LogOut } from "lucide-react";
 import { useState } from "react";
 

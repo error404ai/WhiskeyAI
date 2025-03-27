@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getAccountInfo, getBalance, getBlock } from "@/http/controllers/externalApi/RpcController";
+import { getAccountInfo, getBalance, getBlock } from "@/server/controllers/externalApi/RpcController";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, CheckCircle, Server } from "lucide-react";
 import { useState } from "react";

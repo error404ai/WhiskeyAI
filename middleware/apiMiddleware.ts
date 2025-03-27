@@ -1,4 +1,4 @@
-import AuthService from "@/http/services/auth/authService";
+import AuthService from "@/server/services/auth/authService";
 
 const withApiMiddleware = (handler: (request: Request) => Promise<Response>) => {
   return async (request: Request): Promise<Response> => {

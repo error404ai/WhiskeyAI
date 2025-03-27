@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AgentPlatform } from "@/db/schema";
-import * as PlatformController from "@/http/controllers/platformController";
+import * as PlatformController from "@/server/controllers/platformController";
 import { useQuery } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -18,9 +18,9 @@ import CoinMarketTest from "./_partials/CoinMarketTest";
 import DexscreenerTest from "./_partials/DexscreenerTest";
 import LaunchToken from "./_partials/LaunchToken";
 import RpcTest from "./_partials/RpcTest";
+import SolanaTrackerTest from "./_partials/SolanaTrackerTest";
 import TokenAddressTest from "./_partials/TokenAddressTest";
 import TwitterAgentTest from "./_partials/TwitterAgentTest";
-import SolanaTrackerTest from "./_partials/SolanaTrackerTest";
 
 type TabType = "memory" | "simulation" | "connect" | "launch" | "custom_texts" | "post_id";
 
@@ -124,7 +124,7 @@ function LaunchStep() {
         </div>
         <div>
           <Tabs value={activeApiTab} onValueChange={setActiveApiTab} className="w-full">
-            <TabsList className="mb-4 flex flex-wrap gap-2 h-fit w-fit mx-auto">
+            <TabsList className="mx-auto mb-4 flex h-fit w-fit flex-wrap gap-2">
               <TabsTrigger value="twitter">Twitter API</TabsTrigger>
               <TabsTrigger value="dexscreener">Dexscreener API</TabsTrigger>
               <TabsTrigger value="coinmarket">Coinmarket API</TabsTrigger>

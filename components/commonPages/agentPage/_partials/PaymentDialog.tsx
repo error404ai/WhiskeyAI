@@ -3,8 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PAYMENT_CONFIG, SOCIAL_CONFIG } from "@/config";
-import * as AgentController from "@/http/controllers/agent/AgentController";
 import { sendAgentPaymentTx } from "@/lib/solanaPaymentUtils";
+import * as AgentController from "@/server/controllers/agent/AgentController";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";

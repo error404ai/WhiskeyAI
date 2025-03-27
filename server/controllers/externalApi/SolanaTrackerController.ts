@@ -1,6 +1,6 @@
 "use server";
 
-import solanaTrackingService from "@/http/services/externalApi/SolanaTrackingService";
+import solanaTrackingService from "@/server/services/externalApi/SolanaTrackingService";
 
 export type SolanaTrackerResponse = {
   status: "success" | "error";

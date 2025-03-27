@@ -2,7 +2,7 @@
 import { db } from "@/db/db";
 import { Agent, type Function, agentPlatformsTable, agentTriggersTable, functionsTable } from "@/db/schema";
 import { AgentTrigger } from "@/db/schema/agentTriggersTable";
-import TwitterService from "@/http/services/TwitterService";
+import TwitterService from "@/server/services/TwitterService";
 import { and, eq, lte, ne } from "drizzle-orm";
 import { OpenAIService } from "../OpenAIService";
 import { TriggerLogService } from "./TriggerLogService";
