@@ -71,7 +71,13 @@ const LogList = () => {
 
   return (
     <div>
-      <DataTable ref={tableRef} columns={columns} serverAction={TriggerLogController.getUserTriggerLogs} queryKey="triggerLogsList" />
+      <DataTable<TriggerLog, unknown> 
+        ref={tableRef} 
+        columns={columns} 
+        serverAction={TriggerLogController.getUserTriggerLogs} 
+        queryKey="triggerLogsList"
+        searchAble={false} 
+      />
     </div>
   );
 };
