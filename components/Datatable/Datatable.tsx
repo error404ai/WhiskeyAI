@@ -17,7 +17,7 @@ interface DataTableProps<TData, TValue> {
   searchColumns?: string[];
   serverAction: (props: PaginatedProps) => Promise<Pagination<TData[]>>;
   queryKey: string;
-  searchAble: boolean;
+  searchAble?: boolean;
 }
 
 export interface DataTableRef {
@@ -26,7 +26,7 @@ export interface DataTableRef {
 
 // Create a more specific forwardRef implementation for DataTable
 function DataTableComponent<TData, TValue>(props: DataTableProps<TData, TValue>, ref: ForwardedRef<DataTableRef>) {
-  const { columns, serverAction, searchColumns, queryKey } = props;
+  const { columns, serverAction, searchColumns, queryKey, searchAble = true } = props;
   const router = useRouter();
   const pathName = usePathname();
   const searchParams = useSearchParams();
@@ -157,10 +157,19 @@ function DataTableComponent<TData, TValue>(props: DataTableProps<TData, TValue>,
   return (
     <div className="animate-in fade-in-50 space-y-4 duration-300">
       <div className="flex items-center justify-between py-4">
-        <div className="relative w-full max-w-sm">
-          {props.searchAble && <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />}
-          <Input placeholder="Search..." value={globalFilter} onChange={handleSearchChange} className="bg-background border-border/60 w-full rounded-md pl-9 transition-all duration-200 focus-visible:ring-blue-500" />
-        </div>
+        {searchAble ? (
+          <div className="relative w-full max-w-sm">
+            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+            <Input 
+              placeholder="Search..." 
+              value={globalFilter} 
+              onChange={handleSearchChange} 
+              className="bg-background border-border/60 w-full rounded-md pl-9 transition-all duration-200 focus-visible:ring-blue-500" 
+            />
+          </div>
+        ) : (
+          <div></div>
+        )}
         <DataTableViewOptions table={table} />
       </div>
 
