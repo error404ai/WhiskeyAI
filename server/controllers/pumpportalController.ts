@@ -1,7 +1,7 @@
 "use server";
+import { API_CONFIG, SOCIAL_CONFIG, SOLANA_CONFIG } from "@/server/config";
 import { Metaplex } from "@metaplex-foundation/js";
 import { Connection, PublicKey } from "@solana/web3.js";
-import { SOLANA_CONFIG, API_CONFIG, SOCIAL_CONFIG } from "@/config";
 
 const RPC_ENDPOINT = SOLANA_CONFIG.RPC_ENDPOINT;
 const PUMP_FUN_API = API_CONFIG.PUMP_FUN_API;

@@ -7,7 +7,7 @@ import { CopyableText } from "@/components/ui/copyable-text";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { SOCIAL_CONFIG } from "@/config";
+import { SOCIAL_CONFIG } from "@/server/config";
 import * as AgentController from "@/server/controllers/agent/AgentController";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, ExternalLink, RefreshCw, Trash2 } from "lucide-react";
