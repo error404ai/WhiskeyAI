@@ -1,45 +1,37 @@
 "use client";
 import { DataTable, DataTableRef } from "@/components/Datatable/Datatable";
 import { DataTableColumnHeader } from "@/components/Datatable/DatatableColumnHeader";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { TriggerLog } from "@/db/schema";
 import * as TriggerLogController from "@/server/controllers/triggerLogController";
 import { ColumnDef } from "@tanstack/react-table";
+import { formatDistanceToNow } from "date-fns";
 import { useRef } from "react";
-import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
 
 const LogList = () => {
   const tableRef = useRef<DataTableRef>(null);
 
   const columns: ColumnDef<TriggerLog>[] = [
     {
-      id: "select",
-      header: ({ table }) => <Checkbox checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")} onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)} aria-label="Select all" />,
-      cell: ({ row }) => <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" />,
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
       accessorKey: "id",
       header: ({ column }) => {
         return <DataTableColumnHeader column={column} title="ID" />;
       },
-      enableSorting: true,
+      enableSorting: false,
     },
     {
-      accessorKey: "agent_id",
+      accessorKey: "agentId",
       header: ({ column }) => {
         return <DataTableColumnHeader column={column} title="Agent ID" />;
       },
-      enableSorting: true,
+      enableSorting: false,
     },
     {
-      accessorKey: "function_name",
+      accessorKey: "functionName",
       header: ({ column }) => {
         return <DataTableColumnHeader column={column} title="Function" />;
       },
-      enableSorting: true,
+      enableSorting: false,
     },
     {
       accessorKey: "status",
@@ -48,37 +40,38 @@ const LogList = () => {
       },
       cell: ({ row }) => {
         const status = row.getValue("status") as string;
-        return (
-          <Badge variant={status === "success" ? "success" : status === "error" ? "destructive" : "outline"}>
-            {status}
-          </Badge>
-        );
+        return <Badge variant={status === "success" ? "success" : status === "error" ? "destructive" : "outline"}>{status}</Badge>;
       },
-      enableSorting: true,
+      enableSorting: false,
     },
     {
-      accessorKey: "created_at",
+      accessorKey: "errorDetails",
       header: ({ column }) => {
-        return <DataTableColumnHeader column={column} title="Date" />;
+        return <DataTableColumnHeader column={column} title="Error Details" />;
       },
       cell: ({ row }) => {
-        const date = row.getValue("created_at") as string;
-        // Format date if it exists
-        return date ? format(new Date(date), "MMM dd, yyyy HH:mm:ss") : "N/A";
+        const errorDetails = row.getValue("errorDetails") as string;
+        return <div className="max-w-44">{errorDetails}</div>;
       },
-      enableSorting: true,
+      enableSorting: false,
+    },
+    {
+      accessorKey: "createdAt",
+      header: ({ column }) => {
+        return <DataTableColumnHeader column={column} title="Time" />;
+      },
+      cell: ({ row }) => {
+        const date = row.getValue("createdAt") as string;
+        // Format date if it exists
+        return date ? formatDistanceToNow(new Date(date), { addSuffix: true }) : "N/A";
+      },
+      enableSorting: false,
     },
   ];
 
   return (
     <div>
-      <DataTable 
-        ref={tableRef} 
-        columns={columns} 
-        serverAction={TriggerLogController.getUserTriggerLogs} 
-        searchColumns={["function_name", "status"]} 
-        queryKey="triggerLogsList" 
-      />
+      <DataTable ref={tableRef} columns={columns} serverAction={TriggerLogController.getUserTriggerLogs} queryKey="triggerLogsList" />
     </div>
   );
 };

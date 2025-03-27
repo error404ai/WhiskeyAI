@@ -4,19 +4,19 @@ import { agentTriggersTable } from "./agentTriggersTable";
 import { agentsTable } from "./agentsTable";
 import { usersTable } from "./usersTable";
 
-export const triggerLogsTable = pgTable("trigger_logs", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => usersTable.id, { onDelete: "set null" }),
-  agentId: integer("agent_id").references(() => agentsTable.id, { onDelete: "set null" }),
-  triggerId: integer("trigger_id").references(() => agentTriggersTable.id, { onDelete: "set null" }),
-  functionName: text("function_name").notNull(),
-  status: text("status").notNull(), // "success", "error", "no_trigger"
-  executionTime: integer("execution_time"), // in milliseconds
-  errorDetails: text("error_details"), // Details if there was an error
-  conversationData: json("conversation_data"), // Store AI chat conversation
-  functionData: json("function_data"), // Store function call and response
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  metadata: json("metadata"), // For any additional data we might want to store
+export const triggerLogsTable = pgTable("triggerLogs", {
+  id: serial().primaryKey(),
+  userId: integer().references(() => usersTable.id, { onDelete: "set null" }),
+  agentId: integer().references(() => agentsTable.id, { onDelete: "set null" }),
+  triggerId: integer().references(() => agentTriggersTable.id, { onDelete: "set null" }),
+  functionName: text().notNull(),
+  status: text().notNull(), // "success", "error", "no_trigger"
+  executionTime: integer(), // in milliseconds
+  errorDetails: text(), // Details if there was an error
+  conversationData: json(), // Store AI chat conversation
+  functionData: json(), // Store function call and response
+  createdAt: timestamp().defaultNow().notNull(),
+  metadata: json(), // For any additional data we might want to store
 });
 
 // Define relations for the logs table
