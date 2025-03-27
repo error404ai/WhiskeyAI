@@ -1,4 +1,4 @@
-import { Github, Twitter, Mail } from "lucide-react"
+import { Github, Mail, Twitter } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -7,8 +7,7 @@ export default function Footer() {
         <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-2">
           <div className="space-y-4">
             <h4 className="text-lg font-semibold">Product</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-
+            <ul className="text-muted-foreground space-y-2 text-sm">
               <li>
                 <a href="https://whiskey-ai.gitbook.io/whiskey-ai" target="_blank" className="hover:text-primary">
                   Documentation
@@ -16,11 +15,10 @@ export default function Footer() {
               </li>
             </ul>
           </div>
-          
-          
+
           <div className="space-y-4">
             <h4 className="text-lg font-semibold">Legal</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+            <ul className="text-muted-foreground space-y-2 text-sm">
               <li>
                 <a href="/faq" className="hover:text-primary">
                   FAQ
@@ -34,14 +32,14 @@ export default function Footer() {
             </ul>
           </div>
         </div>
-        <div className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-4 border-t pt-8">
-          <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} WhiskeyAI Agent. All rights reserved.</p>
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t pt-8 sm:flex-row">
+          <p className="text-muted-foreground text-sm">&copy; {new Date().getFullYear()} WhiskeyAI Agent. All rights reserved.</p>
           <div className="flex items-center space-x-4">
             <a href="https://github.com/error404ai/WhiskeyAI" target="_blank" className="text-muted-foreground hover:text-primary">
               <Github className="h-5 w-5" />
               <span className="sr-only">Github</span>
             </a>
-            <a href="https://x.com/whiskey_io" target="_blank" className="text-muted-foreground hover:text-primary">
+            <a href="https://x.com/thewhiskeyai" target="_blank" className="text-muted-foreground hover:text-primary">
               <Twitter className="h-5 w-5" />
               <span className="sr-only">Twitter</span>
             </a>
@@ -49,11 +47,9 @@ export default function Footer() {
               <Mail className="h-5 w-5" />
               <span className="sr-only">Email</span>
             </a>
-
           </div>
         </div>
       </div>
     </footer>
-  )
+  );
 }
-
