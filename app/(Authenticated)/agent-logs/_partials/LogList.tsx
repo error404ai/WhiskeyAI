@@ -3,6 +3,7 @@ import { DataTable, DataTableRef } from "@/components/Datatable/Datatable";
 import { DataTableColumnHeader } from "@/components/Datatable/DatatableColumnHeader";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TriggerLog } from "@/db/schema";
+import * as TriggerLogController from "@/server/controllers/triggerLogController";
 import { ColumnDef } from "@tanstack/react-table";
 import { useRef } from "react";
 
@@ -24,11 +25,18 @@ const LogList = () => {
       },
       enableSorting: true,
     },
+    {
+      accessorKey: "user_id",
+      header: ({ column }) => {
+        return <DataTableColumnHeader column={column} title="User ID" />;
+      },
+      enableSorting: true,
+    },
   ];
 
   return (
     <div>
-      <DataTable ref={tableRef} columns={columns} serverAction={ContentController.getContentList} searchColumns={["title", "slug"]} queryKey="contentList" />
+      <DataTable ref={tableRef} columns={columns} serverAction={TriggerLogController.getUserTriggerLogs} searchColumns={["title", "slug"]} queryKey="contentList" />
     </div>
   );
 };
