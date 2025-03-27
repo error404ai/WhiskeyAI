@@ -5,23 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  getLatestTokenProfiles, 
-  getLatestBoostedTokens, 
-  getTopBoostedTokens,
-  getTokenOrders,
-  getPairsByChainAndPairAddress,
-  searchPairs,
-  getTokenPairs,
-  getTokensByAddress
-} from "@/http/controllers/agent/DexscreenerController";
-import { 
-  tokenOrdersSchema, 
-  pairsByChainAndPairAddressSchema, 
-  searchPairsSchema, 
-  tokenPairsSchema, 
-  tokensByAddressSchema 
-} from "@/http/zodSchema/dexscreenerSchema";
+import { getLatestBoostedTokens, getLatestTokenProfiles, getPairsByChainAndPairAddress, getTokenOrders, getTokenPairs, getTokensByAddress, getTopBoostedTokens, searchPairs } from "@/server/controllers/externalApi/DexscreenerController";
+import { pairsByChainAndPairAddressSchema, searchPairsSchema, tokenOrdersSchema, tokenPairsSchema, tokensByAddressSchema } from "@/server/zodSchema/dexscreenerSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, CheckCircle, LineChart } from "lucide-react";
 import { useState } from "react";
@@ -75,10 +60,10 @@ export default function DexscreenerTest() {
 
     try {
       const response = await apiCall();
-      
+
       // Check if response is an error response from Dexscreener
-      if (response && typeof response === 'object' && 'error' in response) {
-        const errorMessage = typeof response.error === 'string' ? response.error : 'An error occurred';
+      if (response && typeof response === "object" && "error" in response) {
+        const errorMessage = typeof response.error === "string" ? response.error : "An error occurred";
         setError(errorMessage);
         console.error(`${actionName} error:`, errorMessage);
       } else {
@@ -87,7 +72,7 @@ export default function DexscreenerTest() {
         console.log(`${actionName} response:`, response);
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
       setError(errorMessage);
       console.error(`${actionName} unexpected error:`, err);
     } finally {
@@ -114,10 +99,7 @@ export default function DexscreenerTest() {
   };
 
   const handleGetPairsByChain = (data: z.infer<typeof pairsByChainAndPairAddressSchema>) => {
-    handleApiCall(
-      () => getPairsByChainAndPairAddress(data.chainId, data.pairId),
-      "Get Pairs by Chain and Pair Address"
-    );
+    handleApiCall(() => getPairsByChainAndPairAddress(data.chainId, data.pairId), "Get Pairs by Chain and Pair Address");
     pairsByChainForm.reset();
   };
 
@@ -137,7 +119,7 @@ export default function DexscreenerTest() {
   };
 
   return (
-    <div className="mt-4 container mx-auto p-4">
+    <div className="container mx-auto mt-4 p-4">
       <div className="mb-6 flex items-center gap-2">
         <LineChart className="text-blue-500" size={24} />
         <h1 className="text-2xl font-bold">Dexscreener API Test</h1>
@@ -145,15 +127,31 @@ export default function DexscreenerTest() {
 
       <Tabs defaultValue="latest" className="w-full">
         {/* Make the tabs more responsive with a different layout on smaller screens */}
-        <TabsList className="mb-4 h-fit flex flex-wrap gap-2">
-          <TabsTrigger value="latest" className="text-xs sm:text-sm">Latest Profiles</TabsTrigger>
-          <TabsTrigger value="boosted" className="text-xs sm:text-sm">Latest Boosted</TabsTrigger>
-          <TabsTrigger value="topboosted" className="text-xs sm:text-sm">Top Boosted</TabsTrigger>
-          <TabsTrigger value="orders" className="text-xs sm:text-sm">Token Orders</TabsTrigger>
-          <TabsTrigger value="pairs" className="text-xs sm:text-sm">Pairs by Chain</TabsTrigger>
-          <TabsTrigger value="search" className="text-xs sm:text-sm">Search Pairs</TabsTrigger>
-          <TabsTrigger value="tokenpairs" className="text-xs sm:text-sm">Token Pairs</TabsTrigger>
-          <TabsTrigger value="tokensbyaddress" className="text-xs sm:text-sm">Tokens by Address</TabsTrigger>
+        <TabsList className="mb-4 flex h-fit flex-wrap gap-2">
+          <TabsTrigger value="latest" className="text-xs sm:text-sm">
+            Latest Profiles
+          </TabsTrigger>
+          <TabsTrigger value="boosted" className="text-xs sm:text-sm">
+            Latest Boosted
+          </TabsTrigger>
+          <TabsTrigger value="topboosted" className="text-xs sm:text-sm">
+            Top Boosted
+          </TabsTrigger>
+          <TabsTrigger value="orders" className="text-xs sm:text-sm">
+            Token Orders
+          </TabsTrigger>
+          <TabsTrigger value="pairs" className="text-xs sm:text-sm">
+            Pairs by Chain
+          </TabsTrigger>
+          <TabsTrigger value="search" className="text-xs sm:text-sm">
+            Search Pairs
+          </TabsTrigger>
+          <TabsTrigger value="tokenpairs" className="text-xs sm:text-sm">
+            Token Pairs
+          </TabsTrigger>
+          <TabsTrigger value="tokensbyaddress" className="text-xs sm:text-sm">
+            Tokens by Address
+          </TabsTrigger>
         </TabsList>
 
         {/* Latest Profiles Tab */}
@@ -164,12 +162,7 @@ export default function DexscreenerTest() {
               <CardDescription>Fetch the latest token profiles from Dexscreener</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button 
-                parentClass="w-fit" 
-                onClick={handleGetLatestTokenProfiles} 
-                disabled={loading} 
-                className="bg-blue-500 hover:bg-blue-600"
-              >
+              <Button parentClass="w-fit" onClick={handleGetLatestTokenProfiles} disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                 {loading ? "Loading..." : "Get Latest Token Profiles"}
               </Button>
             </CardContent>
@@ -184,12 +177,7 @@ export default function DexscreenerTest() {
               <CardDescription>Fetch the latest boosted tokens from Dexscreener</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button 
-                parentClass="w-fit" 
-                onClick={handleGetLatestBoostedTokens} 
-                disabled={loading} 
-                className="bg-blue-500 hover:bg-blue-600"
-              >
+              <Button parentClass="w-fit" onClick={handleGetLatestBoostedTokens} disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                 {loading ? "Loading..." : "Get Latest Boosted Tokens"}
               </Button>
             </CardContent>
@@ -204,12 +192,7 @@ export default function DexscreenerTest() {
               <CardDescription>Fetch tokens with most active boosts from Dexscreener</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button 
-                parentClass="w-fit" 
-                onClick={handleGetTopBoostedTokens} 
-                disabled={loading} 
-                className="bg-blue-500 hover:bg-blue-600"
-              >
+              <Button parentClass="w-fit" onClick={handleGetTopBoostedTokens} disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                 {loading ? "Loading..." : "Get Top Boosted Tokens"}
               </Button>
             </CardContent>
@@ -228,12 +211,7 @@ export default function DexscreenerTest() {
                 <CardContent className="space-y-4">
                   <Input name="chainId" label="Chain ID" placeholder="e.g., ethereum, solana, bsc" required />
                   <Input name="tokenAddress" label="Token Address" placeholder="Enter token address" required />
-                  <Button 
-                    parentClass="w-fit" 
-                    type="submit" 
-                    disabled={loading} 
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Loading..." : "Get Token Orders"}
                   </Button>
                 </CardContent>
@@ -254,12 +232,7 @@ export default function DexscreenerTest() {
                 <CardContent className="space-y-4">
                   <Input name="chainId" label="Chain ID" placeholder="e.g., ethereum, solana, bsc" required />
                   <Input name="pairId" label="Pair ID" placeholder="Enter pair ID" required />
-                  <Button 
-                    parentClass="w-fit" 
-                    type="submit" 
-                    disabled={loading} 
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Loading..." : "Get Pairs"}
                   </Button>
                 </CardContent>
@@ -279,12 +252,7 @@ export default function DexscreenerTest() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Input name="query" label="Search Query" placeholder="e.g., SOL/USDC" required />
-                  <Button 
-                    parentClass="w-fit" 
-                    type="submit" 
-                    disabled={loading} 
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Searching..." : "Search Pairs"}
                   </Button>
                 </CardContent>
@@ -305,12 +273,7 @@ export default function DexscreenerTest() {
                 <CardContent className="space-y-4">
                   <Input name="chainId" label="Chain ID" placeholder="e.g., ethereum, solana, bsc" required />
                   <Input name="tokenAddress" label="Token Address" placeholder="Enter token address" required />
-                  <Button 
-                    parentClass="w-fit" 
-                    type="submit" 
-                    disabled={loading} 
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Loading..." : "Get Token Pairs"}
                   </Button>
                 </CardContent>
@@ -330,18 +293,8 @@ export default function DexscreenerTest() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Input name="chainId" label="Chain ID" placeholder="e.g., ethereum, solana, bsc" required />
-                  <Input 
-                    name="tokenAddresses" 
-                    label="Token Addresses" 
-                    placeholder="Enter comma-separated token addresses (up to 30)" 
-                    required 
-                  />
-                  <Button 
-                    parentClass="w-fit" 
-                    type="submit" 
-                    disabled={loading} 
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
+                  <Input name="tokenAddresses" label="Token Addresses" placeholder="Enter comma-separated token addresses (up to 30)" required />
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Loading..." : "Get Tokens"}
                   </Button>
                 </CardContent>
@@ -377,13 +330,11 @@ export default function DexscreenerTest() {
               <CardTitle>{result.action} Results</CardTitle>
             </CardHeader>
             <CardContent>
-              <pre className="whitespace-pre-wrap text-sm">
-                {JSON.stringify(result.data, null, 2)}
-              </pre>
+              <pre className="text-sm whitespace-pre-wrap">{JSON.stringify(result.data, null, 2)}</pre>
             </CardContent>
           </Card>
         )}
       </div>
     </div>
   );
-} 
+}

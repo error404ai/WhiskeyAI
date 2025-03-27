@@ -12,6 +12,7 @@ interface DataTableViewOptionsProps<TData> {
 }
 
 export function DataTableViewOptions<TData>({ table }: DataTableViewOptionsProps<TData>) {
+   'use no memo'
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

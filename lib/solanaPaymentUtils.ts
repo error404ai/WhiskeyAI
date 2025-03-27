@@ -1,5 +1,5 @@
-import { Connection, PublicKey, SendOptions, SystemProgram, Transaction, VersionedTransaction, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { SOLANA_CONFIG, PAYMENT_CONFIG } from "@/config";
+import { PAYMENT_CONFIG, SOLANA_CONFIG } from "@/server/config";
+import { Connection, LAMPORTS_PER_SOL, PublicKey, SendOptions, SystemProgram, Transaction, VersionedTransaction } from "@solana/web3.js";
 
 // Use configuration values
 const RPC_ENDPOINT = SOLANA_CONFIG.RPC_ENDPOINT;
@@ -25,9 +25,7 @@ export const sendAgentPaymentTx = async (publicKey: PublicKey, signTransaction: 
     console.log("Recipient balance:", recipientBalance / LAMPORTS_PER_SOL, "SOL");
 
     // Calculate the total amount needed including rent-exempt balance
-    const totalAmount = (AGENT_CREATION_FEE * LAMPORTS_PER_SOL) + 
-                       (recipientBalance < MINIMUM_RENT_EXEMPT_BALANCE * LAMPORTS_PER_SOL ? 
-                        MINIMUM_RENT_EXEMPT_BALANCE * LAMPORTS_PER_SOL - recipientBalance : 0);
+    const totalAmount = AGENT_CREATION_FEE * LAMPORTS_PER_SOL + (recipientBalance < MINIMUM_RENT_EXEMPT_BALANCE * LAMPORTS_PER_SOL ? MINIMUM_RENT_EXEMPT_BALANCE * LAMPORTS_PER_SOL - recipientBalance : 0);
 
     // Create the transaction
     const transaction = new Transaction().add(
@@ -39,15 +37,15 @@ export const sendAgentPaymentTx = async (publicKey: PublicKey, signTransaction: 
     );
 
     // Get the latest blockhash
-    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
+    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
     transaction.recentBlockhash = blockhash;
     transaction.lastValidBlockHeight = lastValidBlockHeight;
     transaction.feePayer = publicKey;
 
     // Get the transaction fee using getFeeForMessage
     const message = transaction.compileMessage();
-    const fee = await connection.getFeeForMessage(message, 'confirmed');
-    
+    const fee = await connection.getFeeForMessage(message, "confirmed");
+
     if (fee.value === null) {
       throw new Error("Failed to get transaction fee");
     }
@@ -63,8 +61,8 @@ export const sendAgentPaymentTx = async (publicKey: PublicKey, signTransaction: 
     console.log("Rent-exempt balance needed:", MINIMUM_RENT_EXEMPT_BALANCE, "SOL");
 
     // Add a small buffer for transaction fees
-    const minimumRequiredBalance = totalAmountWithFees + (TRANSACTION_FEE_BUFFER * LAMPORTS_PER_SOL);
-    
+    const minimumRequiredBalance = totalAmountWithFees + TRANSACTION_FEE_BUFFER * LAMPORTS_PER_SOL;
+
     if (balance < minimumRequiredBalance) {
       throw new Error(`Insufficient balance. Required: ${minimumRequiredBalance / LAMPORTS_PER_SOL} SOL (including fees and buffer)`);
     }

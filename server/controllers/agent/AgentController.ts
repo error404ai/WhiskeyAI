@@ -1,9 +1,9 @@
 "use server";
 
 import { AgentPlatformList } from "@/db/schema";
-import { AgentService, ValidationResult } from "@/http/services/agent/AgentService";
-import { agentCreateSchema } from "@/http/zodSchema/agentCreateSchema";
-import { agentInformationSchema } from "@/http/zodSchema/agentInformationSchema";
+import { AgentService, ValidationResult } from "@/server/services/agent/AgentService";
+import { agentCreateSchema } from "@/server/zodSchema/agentCreateSchema";
+import { agentInformationSchema } from "@/server/zodSchema/agentInformationSchema";
 import { z, ZodError } from "zod";
 
 export const createAgent = async (data: unknown): Promise<boolean | string> => {
