@@ -1,14 +1,26 @@
 import { db } from "@/db/db";
 import { NewTriggerLog, TriggerLog, triggerLogsTable } from "@/db/schema/triggerLogsTable";
-import { eq, desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
+import AuthService from "../auth/authService";
+import { DrizzlePaginatorService } from "../pagination/DrizzlePaginatorService";
 
 /**
  * Service for managing trigger execution logs
  */
 export class TriggerLogService {
+  static getUserTriggerLogs({ perPage = 10, page = 1, sortColumn = "id", sortOrder = "asc" }: PaginatedProps) {
+    const authUser = AuthService.getAuthUser();
+    const paginator = new DrizzlePaginatorService<TriggerLog>("trigger_logs").page(page).allowColumns(["id", "user_id", "agent_id", "function_name", "status", "error_details"]);
+
+    paginator.orderBy(sortColumn, sortOrder);
+
+    return paginator.paginate(perPage);
+  }
+
   /**
    * Create a new log entry
    */
+
   static async createLog(logData: NewTriggerLog): Promise<TriggerLog> {
     try {
       const [result] = await db.insert(triggerLogsTable).values(logData).returning();
@@ -23,43 +35,27 @@ export class TriggerLogService {
    * Get logs for a specific trigger
    */
   static async getLogsByTriggerId(triggerId: number, limit = 100): Promise<TriggerLog[]> {
-    return await db.select().from(triggerLogsTable)
-      .where(eq(triggerLogsTable.triggerId, triggerId))
-      .orderBy(desc(triggerLogsTable.createdAt))
-      .limit(limit);
+    return await db.select().from(triggerLogsTable).where(eq(triggerLogsTable.triggerId, triggerId)).orderBy(desc(triggerLogsTable.createdAt)).limit(limit);
   }
 
   /**
    * Get logs for a specific agent
    */
   static async getLogsByAgentId(agentId: number, limit = 100): Promise<TriggerLog[]> {
-    return await db.select().from(triggerLogsTable)
-      .where(eq(triggerLogsTable.agentId, agentId))
-      .orderBy(desc(triggerLogsTable.createdAt))
-      .limit(limit);
+    return await db.select().from(triggerLogsTable).where(eq(triggerLogsTable.agentId, agentId)).orderBy(desc(triggerLogsTable.createdAt)).limit(limit);
   }
 
   /**
    * Get logs for a specific user
    */
   static async getLogsByUserId(userId: number, limit = 100): Promise<TriggerLog[]> {
-    return await db.select().from(triggerLogsTable)
-      .where(eq(triggerLogsTable.userId, userId))
-      .orderBy(desc(triggerLogsTable.createdAt))
-      .limit(limit);
+    return await db.select().from(triggerLogsTable).where(eq(triggerLogsTable.userId, userId)).orderBy(desc(triggerLogsTable.createdAt)).limit(limit);
   }
 
   /**
    * Log a successful trigger execution with conversation and function data
    */
-  static async logSuccessfulTrigger(
-    trigger: { id: number; agentId: number; name: string; functionName: string },
-    userId: number,
-    executionTime?: number,
-    conversationData?: Record<string, unknown>,
-    functionData?: Record<string, unknown>,
-    metadata?: Record<string, unknown>
-  ): Promise<TriggerLog> {
+  static async logSuccessfulTrigger(trigger: { id: number; agentId: number; name: string; functionName: string }, userId: number, executionTime?: number, conversationData?: Record<string, unknown>, functionData?: Record<string, unknown>, metadata?: Record<string, unknown>): Promise<TriggerLog> {
     const logData: NewTriggerLog = {
       triggerId: trigger.id,
       agentId: trigger.agentId,
@@ -78,15 +74,7 @@ export class TriggerLogService {
   /**
    * Log a failed trigger execution with error details
    */
-  static async logFailedTrigger(
-    trigger: { id: number; agentId: number; name: string; functionName: string },
-    userId: number,
-    errorDetails: string,
-    executionTime?: number,
-    conversationData?: Record<string, unknown>,
-    functionData?: Record<string, unknown>,
-    metadata?: Record<string, unknown>
-  ): Promise<TriggerLog> {
+  static async logFailedTrigger(trigger: { id: number; agentId: number; name: string; functionName: string }, userId: number, errorDetails: string, executionTime?: number, conversationData?: Record<string, unknown>, functionData?: Record<string, unknown>, metadata?: Record<string, unknown>): Promise<TriggerLog> {
     const logData: NewTriggerLog = {
       triggerId: trigger.id,
       agentId: trigger.agentId,
@@ -106,10 +94,7 @@ export class TriggerLogService {
   /**
    * Log when no triggers are found to process
    */
-  static async logNoTriggersFound(
-    userId: number,
-    metadata?: Record<string, unknown>
-  ): Promise<TriggerLog> {
+  static async logNoTriggersFound(userId: number, metadata?: Record<string, unknown>): Promise<TriggerLog> {
     const logData: NewTriggerLog = {
       userId,
       agentId: null,
@@ -126,30 +111,21 @@ export class TriggerLogService {
    * Update a log entry with execution time
    */
   static async updateLogExecutionTime(logId: number, executionTime: number): Promise<void> {
-    await db
-      .update(triggerLogsTable)
-      .set({ executionTime })
-      .where(eq(triggerLogsTable.id, logId));
+    await db.update(triggerLogsTable).set({ executionTime }).where(eq(triggerLogsTable.id, logId));
   }
 
   /**
    * Update a log entry with conversation data
    */
   static async updateConversationData(logId: number, conversationData: Record<string, unknown>): Promise<void> {
-    await db
-      .update(triggerLogsTable)
-      .set({ conversationData })
-      .where(eq(triggerLogsTable.id, logId));
+    await db.update(triggerLogsTable).set({ conversationData }).where(eq(triggerLogsTable.id, logId));
   }
 
   /**
    * Update a log entry with function data
    */
   static async updateFunctionData(logId: number, functionData: Record<string, unknown>): Promise<void> {
-    await db
-      .update(triggerLogsTable)
-      .set({ functionData })
-      .where(eq(triggerLogsTable.id, logId));
+    await db.update(triggerLogsTable).set({ functionData }).where(eq(triggerLogsTable.id, logId));
   }
 
   /**
@@ -158,9 +134,9 @@ export class TriggerLogService {
   static async updateLogError(logId: number, errorDetails: string): Promise<void> {
     await db
       .update(triggerLogsTable)
-      .set({ 
+      .set({
         errorDetails,
-        status: "error"
+        status: "error",
       })
       .where(eq(triggerLogsTable.id, logId));
   }
@@ -180,7 +156,7 @@ export class TriggerLogService {
       responseData?: Record<string, unknown>;
       errorDetails?: string;
       metadata?: Record<string, unknown>;
-    }
+    },
   ): Promise<TriggerLog> {
     // Map old format to new format
     if (details.status === "error" || details.step.includes("error")) {
@@ -190,11 +166,11 @@ export class TriggerLogService {
         details.errorDetails || details.message || `Error: ${action}`,
         undefined,
         { step: details.step },
-        { 
+        {
           request: details.requestData || null,
-          response: details.responseData || null
+          response: details.responseData || null,
         },
-        details.metadata
+        details.metadata,
       );
     } else if (details.status === "success" || details.step === "execution_complete") {
       return await this.logSuccessfulTrigger(
@@ -202,11 +178,11 @@ export class TriggerLogService {
         userId,
         undefined,
         { step: details.step },
-        { 
+        {
           request: details.requestData || null,
-          response: details.responseData || null
+          response: details.responseData || null,
         },
-        details.metadata
+        details.metadata,
       );
     } else {
       // For "pending" status or other non-final steps, just log with status
@@ -219,11 +195,11 @@ export class TriggerLogService {
         metadata: {
           step: details.step,
           message: details.message || `${action} - ${trigger.name}`,
-          ...details.metadata
-        }
+          ...details.metadata,
+        },
       };
 
       return await this.createLog(logData);
     }
   }
-} 
+}

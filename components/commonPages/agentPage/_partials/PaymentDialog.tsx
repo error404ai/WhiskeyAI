@@ -2,8 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { PAYMENT_CONFIG, SOCIAL_CONFIG } from "@/config";
 import { sendAgentPaymentTx } from "@/lib/solanaPaymentUtils";
+import { PAYMENT_CONFIG, SOCIAL_CONFIG } from "@/server/config";
 import * as AgentController from "@/server/controllers/agent/AgentController";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
