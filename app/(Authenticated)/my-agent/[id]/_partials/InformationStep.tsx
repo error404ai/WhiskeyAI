@@ -2,9 +2,9 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import * as AgentController from "@/http/controllers/agent/AgentController";
-import { agentInformationSchema } from "@/http/zodSchema/agentInformationSchema";
 import { RootState } from "@/redux/store/store";
+import * as AgentController from "@/server/controllers/agent/AgentController";
+import { agentInformationSchema } from "@/server/zodSchema/agentInformationSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";

@@ -3,7 +3,7 @@
 
 import NoSsr from "@/components/NoSsr/NoSsr";
 import { Card } from "@/components/ui/card";
-import * as AgentController from "@/http/controllers/agent/AgentController";
+import * as AgentController from "@/server/controllers/agent/AgentController";
 import { useQuery } from "@tanstack/react-query";
 import { Info, Rocket, Share2, Wrench, Zap } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";

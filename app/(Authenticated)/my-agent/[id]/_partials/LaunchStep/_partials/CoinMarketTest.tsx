@@ -6,8 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getFearAndGreedHistorical, getFearAndGreedLatest, getMetadata, getQuotesHistorical, getQuotesLatest, getTrendingGainersLosers, getTrendingLatest, getTrendingMostVisited } from "@/http/controllers/externalApi/coinmarketController";
-import { metadataSchema, quotesHistoricalSchema, quotesLatestSchema, trendingBaseSchema, trendingGainersLosersSchema } from "@/http/zodSchema/coinmarketSchema";
+import { getFearAndGreedHistorical, getFearAndGreedLatest, getMetadata, getQuotesHistorical, getQuotesLatest, getTrendingGainersLosers, getTrendingLatest, getTrendingMostVisited } from "@/server/controllers/externalApi/coinmarketController";
+import { metadataSchema, quotesHistoricalSchema, quotesLatestSchema, trendingBaseSchema, trendingGainersLosersSchema } from "@/server/zodSchema/coinmarketSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, CheckCircle, LineChart } from "lucide-react";
 import { useState } from "react";

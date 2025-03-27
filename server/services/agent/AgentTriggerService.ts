@@ -1,7 +1,7 @@
 import { db } from "@/db/db";
 import { agentPlatformsTable, agentTriggersTable } from "@/db/schema";
 import { AgentTrigger } from "@/db/schema/agentTriggersTable";
-import { agentTriggerCreateSchema } from "@/http/zodSchema/agentTriggerCreateSchema";
+import { agentTriggerCreateSchema } from "@/server/zodSchema/agentTriggerCreateSchema";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import AuthService from "../auth/authService";

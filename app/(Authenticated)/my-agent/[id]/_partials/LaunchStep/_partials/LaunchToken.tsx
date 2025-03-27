@@ -7,11 +7,11 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import * as AgentController from "@/http/controllers/agent/AgentController";
-import * as PumpportailController from "@/http/controllers/pumpportalController";
-import { tokenMetadataSchema } from "@/http/zodSchema/tokenMetadataSchema";
 import { sendWalletCreateTx } from "@/lib/pumpportalUtils";
 import { getTokenAddressFromSignature } from "@/lib/solanaPaymentUtils";
+import * as AgentController from "@/server/controllers/agent/AgentController";
+import * as PumpportailController from "@/server/controllers/pumpportalController";
+import { tokenMetadataSchema } from "@/server/zodSchema/tokenMetadataSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";

@@ -1,6 +1,6 @@
 "use server";
-import { AgentService } from "@/http/services/agent/AgentService";
-import TwitterService from "@/http/services/TwitterService";
+import { AgentService } from "@/server/services/agent/AgentService";
+import TwitterService from "@/server/services/TwitterService";
 import { TwitterResponse } from "@/types/twitter.d";
 
 // Helper function to get Twitter service for an agent
@@ -19,27 +19,31 @@ const handleTwitterError = (error: unknown): TwitterResponse => {
   // Convert the error to a string to ensure serializability
   const errorString = String(error);
   const isRateLimit = errorString.includes("429") || errorString.includes("rate limit");
-  
+
   // Extract error code if available
   const codeMatch = errorString.match(/code (\d+)/);
   const code = codeMatch ? parseInt(codeMatch[1]) : undefined;
-  
+
   // Create a serializable error object (no Error instances)
   return {
     status: "error",
     code,
-    message: isRateLimit 
-      ? "Twitter API rate limit exceeded. Please wait a few minutes before trying again." 
-      : `Twitter API error: ${errorString}`,
+    message: isRateLimit ? "Twitter API rate limit exceeded. Please wait a few minutes before trying again." : `Twitter API error: ${errorString}`,
     isRateLimit,
     // Convert error object to a safe string representation instead of passing the Error instance
-    errorDetails: typeof error === 'object' && error !== null 
-      ? JSON.stringify(Object.getOwnPropertyNames(error).reduce((acc, key) => {
-          // @ts-expect-error - dynamic property access
-          acc[key] = String(error[key]);
-          return acc;
-        }, {} as Record<string, string>))
-      : String(error)
+    errorDetails:
+      typeof error === "object" && error !== null
+        ? JSON.stringify(
+            Object.getOwnPropertyNames(error).reduce(
+              (acc, key) => {
+                // @ts-expect-error - dynamic property access
+                acc[key] = String(error[key]);
+                return acc;
+              },
+              {} as Record<string, string>,
+            ),
+          )
+        : String(error),
   };
 };
 
