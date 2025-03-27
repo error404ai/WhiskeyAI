@@ -1,4 +1,4 @@
-import AuthService from "@/http/services/authService";
+import AuthService from "@/http/services/auth/authService";
 import { parseRequest } from "@/lib/api/parseRequest";
 
 export const POST = async (request: Request) => {

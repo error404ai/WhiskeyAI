@@ -1,7 +1,7 @@
 import { db } from "@/db/db";
 import { AgentPlatform, agentPlatformsTable, Credentials } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import AuthService from "../authService";
+import AuthService from "../auth/authService";
 import { AgentService } from "./AgentService";
 
 export class AgentPlatformService {

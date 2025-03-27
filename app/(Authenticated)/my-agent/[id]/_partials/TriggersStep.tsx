@@ -20,8 +20,8 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import Skeleton from "react-loading-skeleton";
-import type { z } from "zod";
 import { toast } from "sonner";
+import type { z } from "zod";
 
 const TriggersStep = () => {
   const params = useParams();
@@ -179,9 +179,7 @@ const TriggersStep = () => {
                       <DialogContent>
                         <DialogHeader>
                           <DialogTitle>Test Trigger</DialogTitle>
-                          <DialogDescription>
-                            This will run the trigger immediately to test its functionality.
-                          </DialogDescription>
+                          <DialogDescription>This will run the trigger immediately to test its functionality.</DialogDescription>
                         </DialogHeader>
                         <DialogFooter>
                           <Button onClick={() => handleTestTrigger(trigger.id)} disabled={isTesting}>
@@ -252,12 +250,7 @@ const TriggersStep = () => {
                           <div className="space-y-2">
                             <Label>How Often Should The Trigger Run?</Label>
                             <div className="flex gap-2">
-                              <Input
-                                name="interval"
-                                type="number"
-                                className="w-24"
-                                defaultValue={methods.getValues("interval")?.toString() || ""}
-                              />
+                              <Input name="interval" type="number" className="w-24" defaultValue={methods.getValues("interval")?.toString() || ""} />
                               <div>
                                 <select {...methods.register("runEvery")} className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50" defaultValue={methods.getValues("runEvery") || ""}>
                                   <option value="" disabled>
@@ -328,9 +321,7 @@ const TriggersStep = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Twitter Account Required</DialogTitle>
-            <DialogDescription>
-              To test this trigger, you need to connect your Twitter account first. Please go to the Launch tab and connect your Twitter account.
-            </DialogDescription>
+            <DialogDescription>To test this trigger, you need to connect your Twitter account first. Please go to the Launch tab and connect your Twitter account.</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button onClick={() => setShowTwitterModal(false)}>Close</Button>

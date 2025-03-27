@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getAccountInfo, getBalance, getBlock } from "@/http/controllers/externalApi/RpcController";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, CheckCircle, Server } from "lucide-react";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { getAccountInfo, getBalance, getBlock } from "@/http/controllers/agent/RpcController";
 
 // Zod schemas for form validation
 const accountInfoSchema = z.object({
@@ -22,13 +22,16 @@ const balanceSchema = z.object({
 });
 
 const blockSchema = z.object({
-  slot: z.string().min(1, "Slot is required").refine(
-    (val) => {
-      const num = parseInt(val, 10);
-      return !isNaN(num) && num >= 0;
-    },
-    { message: "Slot must be a non-negative number" }
-  ),
+  slot: z
+    .string()
+    .min(1, "Slot is required")
+    .refine(
+      (val) => {
+        const num = parseInt(val, 10);
+        return !isNaN(num) && num >= 0;
+      },
+      { message: "Slot must be a non-negative number" },
+    ),
 });
 
 type RpcResponse = {
@@ -142,7 +145,7 @@ export default function RpcTest() {
   };
 
   return (
-    <div className="mt-4 container mx-auto p-4">
+    <div className="container mx-auto mt-4 p-4">
       <div className="mb-6 flex items-center gap-2">
         <Server className="text-blue-500" size={24} />
         <h1 className="text-2xl font-bold">RPC API Test</h1>
@@ -165,18 +168,8 @@ export default function RpcTest() {
                   <CardDescription>Get account information for a Solana public key</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Input 
-                    name="publicKey" 
-                    label="Public Key" 
-                    placeholder="Enter Solana public key" 
-                    required
-                  />
-                  <Button 
-                    parentClass="w-fit" 
-                    type="submit" 
-                    disabled={loading} 
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
+                  <Input name="publicKey" label="Public Key" placeholder="Enter Solana public key" required />
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Loading..." : "Get Account Info"}
                   </Button>
                 </CardContent>
@@ -195,18 +188,8 @@ export default function RpcTest() {
                   <CardDescription>Get balance for a Solana public key</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Input 
-                    name="publicKey" 
-                    label="Public Key" 
-                    placeholder="Enter Solana public key" 
-                    required
-                  />
-                  <Button 
-                    parentClass="w-fit" 
-                    type="submit" 
-                    disabled={loading} 
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
+                  <Input name="publicKey" label="Public Key" placeholder="Enter Solana public key" required />
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Loading..." : "Get Balance"}
                   </Button>
                 </CardContent>
@@ -225,20 +208,8 @@ export default function RpcTest() {
                   <CardDescription>Get a block at the specified slot</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Input 
-                    name="slot" 
-                    label="Slot" 
-                    placeholder="Enter slot number" 
-                    required
-                    type="number"
-                    min={0}
-                  />
-                  <Button 
-                    parentClass="w-fit" 
-                    type="submit" 
-                    disabled={loading} 
-                    className="bg-blue-500 hover:bg-blue-600"
-                  >
+                  <Input name="slot" label="Slot" placeholder="Enter slot number" required type="number" min={0} />
+                  <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Loading..." : "Get Block"}
                   </Button>
                 </CardContent>
@@ -296,4 +267,4 @@ export default function RpcTest() {
       </div>
     </div>
   );
-} 
+}

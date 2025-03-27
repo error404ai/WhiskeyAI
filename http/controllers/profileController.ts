@@ -3,7 +3,7 @@
 import UserService from "@/http/services/userService";
 import { profileBasicInfoSchema } from "@/http/zodSchema/profileUpdateSchema";
 import { UserResourceType } from "../resource/userResource";
-import AuthService from "../services/authService";
+import AuthService from "../services/auth/authService";
 
 export const updateProfileBasicInfo = async (formData: FormData): Promise<boolean> => {
   const formDataObject = Object.fromEntries(formData.entries()) as Record<string, unknown>;

@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import AuthService from "@/http/services/authService";
+import AuthService from "@/http/services/auth/authService";
 import { getIntendedRoute } from "@/lib/utils";
 import { redirect } from "next/navigation";
 
