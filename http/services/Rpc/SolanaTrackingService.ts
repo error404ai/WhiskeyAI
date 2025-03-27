@@ -48,7 +48,13 @@ class SolanaTrackingService {
 
   async getTrendingTokensByTimeframe(timeframe: string) {
     const response = await this.axios.get(`/tokens/trending/${timeframe}`);
-    return response.data;
+    const data = response.data.slice(0, 10);
+    return data.map((item: any) => ({
+      name: item.token.name,
+      symbol: item.token.symbol,
+      mint: item.token.mint,
+      price: item.pools[0].price.usd,
+    }));
   }
   async getTopVolumeTokens() {
     const response = await this.axios.get(`/tokens/volume`);
@@ -63,7 +69,13 @@ class SolanaTrackingService {
 
   async getVolumeTokensByTimeframe(timeframe: string) {
     const response = await this.axios.get(`/tokens/volume/${timeframe}`);
-    return response.data;
+    const data = response.data.slice(0, 10);
+    return data.map((item: any) => ({
+      name: item.token.name,
+      symbol: item.token.symbol,
+      mint: item.token.mint,
+      price: item.pools[0].price.usd,
+    }));
   }
 
   async getMultiAllTokens() {
