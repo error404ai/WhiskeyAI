@@ -1,4 +1,4 @@
-import { OAuthUser } from "@/http/services/oAuthService/OAuthProvider";
+import { OAuthUser } from "@/server/services/oAuthService/OAuthProvider";
 import { relations } from "drizzle-orm";
 import { boolean, integer, jsonb, pgTable, varchar } from "drizzle-orm/pg-core";
 import { agentsTable } from "./agentsTable";

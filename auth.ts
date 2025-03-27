@@ -3,8 +3,8 @@ import { Jwt } from "jsonwebtoken";
 import NextAuth, { DefaultSession } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import * as nacl from "tweetnacl";
-import { UserResourceType } from "./http/resource/userResource";
-import UserService from "./http/services/userService";
+import { UserResourceType } from "./server/resource/userResource";
+import UserService from "./server/services/userService";
 
 declare module "next-auth" {
   interface Session {

@@ -1,6 +1,6 @@
-import { AgentPlatformService } from "@/http/services/agent/AgentPlatformService";
-import { AgentService } from "@/http/services/agent/AgentService";
-import SocialiteService from "@/http/services/oAuthService/SocialiteService";
+import { AgentPlatformService } from "@/server/services/agent/AgentPlatformService";
+import { AgentService } from "@/server/services/agent/AgentService";
+import SocialiteService from "@/server/services/oAuthService/SocialiteService";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 
@@ -21,22 +21,22 @@ export const GET = async (request: Request) => {
   try {
     // Decode state from URL parameter
     const url = new URL(request.url);
-    const stateParam = url.searchParams.get('state');
-    
+    const stateParam = url.searchParams.get("state");
+
     if (!stateParam) {
       return createErrorResponse("Missing state parameter");
     }
-    
+
     const base64StateString = stateParam;
     const stateString = atob(base64StateString);
-     state = JSON.parse(stateString);
+    state = JSON.parse(stateString);
 
     // Get agent information including Twitter credentials
     const agent = await AgentService.getAgentByUuid(state.agentUuid);
     if (!agent) {
       return createErrorResponse("Agent not found");
     }
-    
+
     if (!agent.twitterClientId || !agent.twitterClientSecret) {
       return createErrorResponse("Twitter credentials not found for this agent");
     }
@@ -44,18 +44,18 @@ export const GET = async (request: Request) => {
     // Initialize Twitter provider with agent credentials
     const twitterCredentials = {
       clientId: agent.twitterClientId,
-      clientSecret: agent.twitterClientSecret
+      clientSecret: agent.twitterClientSecret,
     };
-    
+
     const twitterProvider = new SocialiteService(twitterCredentials).driver("twitter");
-    
+
     try {
       // Exchange code for token
       const res = await twitterProvider.exchangeCodeForToken(request);
-      
+
       try {
         const profile = await twitterProvider.getUserInfo(res.accessToken);
-        
+
         // Store the platform credentials
         await AgentPlatformService.storeAgentPlatform({
           name: "twitter",
@@ -71,38 +71,28 @@ export const GET = async (request: Request) => {
           },
           account: profile,
         });
-        
-
       } catch (error) {
         const userInfoError = error as TwitterApiError;
         console.error("User info request failed:", userInfoError);
-        
-        if (userInfoError.message?.includes("client-not-enrolled") || 
-            (userInfoError.response?.data && userInfoError.response.data.reason === "client-not-enrolled")) {
-          return createErrorResponse(
-            "Twitter API Project Error",
-            "Your Twitter app needs to be associated with a Project in the Twitter developer portal. " +
-            "Please visit the Twitter developer portal, create a project, and attach your app to it. " +
-            "Make sure your project has the appropriate level of API access."
-          );
+
+        if (userInfoError.message?.includes("client-not-enrolled") || (userInfoError.response?.data && userInfoError.response.data.reason === "client-not-enrolled")) {
+          return createErrorResponse("Twitter API Project Error", "Your Twitter app needs to be associated with a Project in the Twitter developer portal. " + "Please visit the Twitter developer portal, create a project, and attach your app to it. " + "Make sure your project has the appropriate level of API access.");
         }
-        
+
         return createErrorResponse(`Failed to fetch user info: ${userInfoError.message || JSON.stringify(userInfoError)}`);
       }
     } catch (error) {
-      
       const tokenError = error as TwitterApiError;
       console.error("Token exchange failed:", tokenError);
       return createErrorResponse(`Failed to exchange token: ${tokenError.message || JSON.stringify(tokenError)}`);
     }
   } catch (error) {
-    
     const genericError = error as Error;
     console.error("Twitter OAuth callback error:", genericError);
     return createErrorResponse(`Twitter authentication failed: ${genericError.message || JSON.stringify(genericError)}`);
   }
 
-  if(state){
+  if (state) {
     return redirect(state.url);
   }
 };
@@ -170,7 +160,7 @@ function createErrorResponse(title: string, message?: string): Response {
     <div class="error-container">
       <h1>Twitter Authentication Error</h1>
       <div class="error-title">${title}</div>
-      ${message ? `<div class="error-message">${message}</div>` : ''}
+      ${message ? `<div class="error-message">${message}</div>` : ""}
       <button class="back-button" onclick="window.history.back()">Go Back</button>
     </div>
     <script>
@@ -186,7 +176,7 @@ function createErrorResponse(title: string, message?: string): Response {
   return new NextResponse(htmlContent, {
     status: 400,
     headers: {
-      'Content-Type': 'text/html',
+      "Content-Type": "text/html",
     },
   });
 }

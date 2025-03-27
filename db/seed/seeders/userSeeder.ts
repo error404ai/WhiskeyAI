@@ -1,6 +1,6 @@
 import { db } from "@/db/db";
 import { usersTable } from "@/db/schema/usersTable";
-import UserService from "@/http/services/userService";
+import UserService from "@/server/services/userService";
 import { Seeder } from "../SeederInterface";
 
 export class UserSeeder implements Seeder {

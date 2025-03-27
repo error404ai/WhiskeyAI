@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { API_CONFIG, SOLANA_CONFIG } from "@/server/config";
 import { Connection, Keypair, PublicKey, SendOptions, Transaction, VersionedTransaction } from "@solana/web3.js";
-import { SOLANA_CONFIG, API_CONFIG } from "@/config";
 
 const RPC_ENDPOINT = SOLANA_CONFIG.RPC_ENDPOINT;
 const PUMP_PORTAL_API = API_CONFIG.PUMP_PORTAL_API;

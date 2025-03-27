@@ -6,8 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getFirstBuyers, getLatestTokens, getMultiAllTokens, getMultiGraduatedTokens, getMultiTokenPrices, getTokenChart, getTokenHolders, getTokenHoldersChart, getTokenPoolChart, getTokenPrice, getTopTokenHolders, getTopVolumeTokens, getTrendingTokens, getTrendingTokensByTimeframe, getVolumeTokensByTimeframe, getWalletTokens, getWalletTrades, type SolanaTrackerResponse } from "@/http/controllers/agent/SolanaTrackerController";
-import { firstBuyersSchema, multiTokenPricesSchema, tokenChartSchema, tokenHoldersChartSchema, tokenHoldersSchema, tokenPoolChartSchema, tokenPriceSchema, walletTokensSchema, walletTradesSchema } from "@/http/zodSchema/solanaTrackerSchema";
+import { getFirstBuyers, getLatestTokens, getMultiAllTokens, getMultiGraduatedTokens, getMultiTokenPrices, getTokenChart, getTokenHolders, getTokenHoldersChart, getTokenPoolChart, getTokenPrice, getTopTokenHolders, getTopVolumeTokens, getTrendingTokens, getTrendingTokensByTimeframe, getVolumeTokensByTimeframe, getWalletTokens, getWalletTrades, type SolanaTrackerResponse } from "@/server/controllers/externalApi/SolanaTrackerController";
+import { firstBuyersSchema, multiTokenPricesSchema, tokenChartSchema, tokenHoldersChartSchema, tokenHoldersSchema, tokenPoolChartSchema, tokenPriceSchema, walletTokensSchema, walletTradesSchema } from "@/server/zodSchema/solanaTrackerSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, CheckCircle, LineChart } from "lucide-react";
 import { useState } from "react";

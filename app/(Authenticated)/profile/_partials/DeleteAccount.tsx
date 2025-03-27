@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { deleteUserAccount } from "@/http/controllers/profileController";
+import { deleteUserAccount } from "@/server/controllers/profileController";
 import { useState } from "react";
 
 const DeleteAccount = () => {
@@ -30,4 +30,4 @@ const DeleteAccount = () => {
   );
 };
 
-export default DeleteAccount; 
+export default DeleteAccount;

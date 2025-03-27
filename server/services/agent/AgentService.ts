@@ -1,12 +1,12 @@
 import { db } from "@/db/db";
 import { agentsTable, agentTriggersTable } from "@/db/schema";
 import { Agent, AgentPlatformList } from "@/db/schema/agentsTable";
-import { agentCreateSchema } from "@/http/zodSchema/agentCreateSchema";
-import { agentInformationSchema } from "@/http/zodSchema/agentInformationSchema";
-import { eq, count } from "drizzle-orm";
-import { z } from "zod";
-import AuthService from "../authService";
 import { usersTable } from "@/db/schema/usersTable";
+import { agentCreateSchema } from "@/server/zodSchema/agentCreateSchema";
+import { agentInformationSchema } from "@/server/zodSchema/agentInformationSchema";
+import { count, eq } from "drizzle-orm";
+import { z } from "zod";
+import AuthService from "../auth/authService";
 
 export interface ValidationResult {
   isValid: boolean;
@@ -118,7 +118,7 @@ export class AgentService {
     const authUser = await AuthService.getAuthUser();
     if (!agent || !authUser) throw new Error("User not authenticated");
     if (Number(authUser.id) !== agent.userId) throw new Error("User not authenticated");
-    
+
     const res = await db
       .update(agentsTable)
       .set({
@@ -163,7 +163,7 @@ export class AgentService {
     const authUser = await AuthService.getAuthUser();
     if (!agent || !authUser) throw new Error("User not authenticated");
     if (Number(authUser.id) !== agent.userId) throw new Error("User not authenticated");
-    
+
     const res = await db
       .update(agentsTable)
       .set({
@@ -171,28 +171,28 @@ export class AgentService {
         twitterClientSecret: data.clientSecret,
       })
       .where(eq(agentsTable.uuid, agentUuid));
-    
+
     return !!res;
   }
 
   static async validateAgentReadiness(agentUuid: string): Promise<ValidationResult> {
     const errors: string[] = [];
-    
+
     // Get complete agent data with platforms and triggers
     const agent = await AgentService.getAgentByUuid(agentUuid);
-    
+
     if (!agent) {
       errors.push("Agent not found");
       return { isValid: false, errors };
     }
-    
+
     // Check agent information
     if (!agent.information || !agent.information.description || !agent.information.goal) {
       errors.push("Agent information is incomplete. Please provide a description and goal in the Information tab.");
     }
-    
+
     // Check for Twitter platform
-    const twitterPlatform = agent.agentPlatforms?.find(platform => platform.type === "twitter");
+    const twitterPlatform = agent.agentPlatforms?.find((platform) => platform.type === "twitter");
     if (!twitterPlatform) {
       errors.push("Twitter account is not connected. Please connect your Twitter account.");
     }
@@ -201,19 +201,19 @@ export class AgentService {
     if (!agent.twitterClientId || !agent.twitterClientSecret) {
       errors.push("Twitter client credentials are missing. Please provide your Twitter API client ID and client secret.");
     }
-    
+
     // Check for triggers using separate query
     const triggers = await db.query.agentTriggersTable.findMany({
       where: eq(agentTriggersTable.agentId, agent.id),
     });
-    
+
     if (!triggers || triggers.length === 0) {
       errors.push("No triggers have been set up. Please create at least one trigger in the Triggers tab.");
     }
-    
+
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
@@ -247,7 +247,7 @@ export class AgentService {
     // First verify the transaction on the Solana blockchain
     const { verifyPaymentTransaction } = await import("@/lib/solanaPaymentUtils");
     const verification = await verifyPaymentTransaction(txSignature);
-    
+
     if (!verification.isValid) {
       return { error: verification.error || "Invalid transaction" };
     }
@@ -256,9 +256,9 @@ export class AgentService {
     try {
       // Find the user's first agent using db.query syntax
       const agent = await db.query.agentsTable.findFirst({
-        where: eq(agentsTable.userId, Number(user.id))
+        where: eq(agentsTable.userId, Number(user.id)),
       });
-      
+
       if (agent) {
         // Store payment info in the agent record
         await AgentService.storeAgentPaymentInfo(agent.id, txSignature, amount);
@@ -304,10 +304,10 @@ export class AgentService {
     const timestamp = new Date().toISOString();
     const result = await db
       .update(agentsTable)
-      .set({ 
+      .set({
         paymentTxSignature: txSignature,
         paymentAmount: amount,
-        paymentTimestamp: timestamp
+        paymentTimestamp: timestamp,
       })
       .where(eq(agentsTable.id, agentId));
 
@@ -321,10 +321,7 @@ export class AgentService {
    * @returns Success boolean
    */
   static async updateAgentTokenAddress(agentUuid: string, tokenAddress: string): Promise<boolean> {
-    const result = await db
-      .update(agentsTable)
-      .set({ tokenAddress })
-      .where(eq(agentsTable.uuid, agentUuid));
+    const result = await db.update(agentsTable).set({ tokenAddress }).where(eq(agentsTable.uuid, agentUuid));
 
     return !!result;
   }

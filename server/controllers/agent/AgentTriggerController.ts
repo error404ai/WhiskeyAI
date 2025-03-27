@@ -1,7 +1,7 @@
 "use server";
 
-import { AgentTriggerService } from "@/http/services/agent/AgentTriggerService";
-import { agentTriggerCreateSchema } from "@/http/zodSchema/agentTriggerCreateSchema";
+import { AgentTriggerService } from "@/server/services/agent/AgentTriggerService";
+import { agentTriggerCreateSchema } from "@/server/zodSchema/agentTriggerCreateSchema";
 import { z } from "zod";
 
 export const createAgentTrigger = async (data: z.infer<typeof agentTriggerCreateSchema>) => {

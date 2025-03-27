@@ -1,16 +1,15 @@
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import * as AgentController from "@/http/controllers/agent/AgentController";
-import { agentCreateSchema } from "@/http/zodSchema/agentCreateSchema";
+import { Label } from "@/components/ui/label";
+import * as AgentController from "@/server/controllers/agent/AgentController";
+import { agentCreateSchema } from "@/server/zodSchema/agentCreateSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
-import { useQuery } from "@tanstack/react-query";
-import { Label } from "@/components/ui/label";
-import { DialogDescription } from "@/components/ui/dialog";
 
 type AgentCreateProps = {
   refetch: () => void;
@@ -65,24 +64,18 @@ const AgentCreate: React.FC<AgentCreateProps> = ({ refetch }) => {
           <form className="space-y-6" onSubmit={methods.handleSubmit(handleFormSubmit)}>
             <DialogHeader>
               <DialogTitle>Create New Agent</DialogTitle>
-              <DialogDescription>
-                Create a new AI agent to manage your social media presence.
-              </DialogDescription>
+              <DialogDescription>Create a new AI agent to manage your social media presence.</DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-3">
               <div className="space-y-2">
                 <Label htmlFor="name">Agent Name</Label>
                 <Input id="name" {...methods.register("name")} />
-                {methods.formState.errors.name && (
-                  <p className="text-sm text-red-500">{methods.formState.errors.name.message}</p>
-                )}
+                {methods.formState.errors.name && <p className="text-sm text-red-500">{methods.formState.errors.name.message}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="tickerSymbol">Ticker Symbol</Label>
                 <Input id="tickerSymbol" {...methods.register("tickerSymbol")} />
-                {methods.formState.errors.tickerSymbol && (
-                  <p className="text-sm text-red-500">{methods.formState.errors.tickerSymbol.message}</p>
-                )}
+                {methods.formState.errors.tickerSymbol && <p className="text-sm text-red-500">{methods.formState.errors.tickerSymbol.message}</p>}
               </div>
             </div>
             <div className="rounded-xl bg-blue-50 p-4">
