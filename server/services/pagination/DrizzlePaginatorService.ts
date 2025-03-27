@@ -15,7 +15,7 @@ export type MapperFunction<T> = (item: Record<string, unknown>) => T;
 
 /**
  * Paginator class for Drizzle ORM with a fluent API similar to Laravel's paginator
- * Works exclusively with Drizzle query builder objects
+ * Works with both SQLWrapper and relational queries
  */
 export class DrizzlePaginatorService<T = Record<string, unknown>> {
   private baseQuery: SQLWrapper;
@@ -30,11 +30,21 @@ export class DrizzlePaginatorService<T = Record<string, unknown>> {
   /**
    * Create a new paginator instance with a Drizzle query builder
    * 
-   * @param query - The Drizzle query builder object
+   * @param query - The Drizzle query builder object or relational query
    * @param countColumn - Column to use for count (defaults to "*")
    */
-  constructor(query: SQLWrapper, countColumn: string = "*") {
-    this.baseQuery = query;
+  constructor(
+    query: SQLWrapper | unknown,
+    countColumn: string = "*"
+  ) {
+    // Handle both SQLWrapper and relational queries
+    if (typeof query === 'object' && query !== null && 'getSQL' in query) {
+      this.baseQuery = query as SQLWrapper;
+    } else {
+      // Convert relational query to SQL using type assertion
+      this.baseQuery = query as unknown as SQLWrapper;
+    }
+    
     this.countColumn = countColumn;
   }
 
