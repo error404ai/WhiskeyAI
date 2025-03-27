@@ -2,9 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import * as AgentController from "@/http/controllers/agent/AgentController";
-import { PAYMENT_CONFIG, SOCIAL_CONFIG } from "@/config";
 import { sendAgentPaymentTx } from "@/lib/solanaPaymentUtils";
+import { PAYMENT_CONFIG, SOCIAL_CONFIG } from "@/server/config";
+import * as AgentController from "@/server/controllers/agent/AgentController";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -24,13 +24,7 @@ enum PaymentStatus {
   ERROR = "error",
 }
 
-const PaymentDialog: React.FC<PaymentDialogProps> = ({ 
-  open, 
-  onOpenChange, 
-  onPaymentSuccess,
-  title = "Create Your First AI Agent",
-  description = `A one-time payment of ${PAYMENT_CONFIG.AGENT_CREATION_FEE} SOL is required to create your first agent. After payment, you can create up to ${PAYMENT_CONFIG.MAX_AGENTS_PER_USER} agents.`
-}) => {
+const PaymentDialog: React.FC<PaymentDialogProps> = ({ open, onOpenChange, onPaymentSuccess, title = "Create Your First AI Agent", description = `A one-time payment of ${PAYMENT_CONFIG.AGENT_CREATION_FEE} SOL is required to create your first agent. After payment, you can create up to ${PAYMENT_CONFIG.MAX_AGENTS_PER_USER} agents.` }) => {
   const { publicKey, signTransaction, connect, connected, connecting } = useWallet();
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(PaymentStatus.INITIAL);
   const [paymentError, setPaymentError] = useState<string | null>(null);
@@ -74,9 +68,9 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
 
       // Update user payment status and validate the transaction
       const result = await AgentController.markUserAsPaid(signature, PAYMENT_CONFIG.AGENT_CREATION_FEE.toString());
-      
+
       // Check if validation failed
-      if (result && typeof result === 'object' && 'error' in result) {
+      if (result && typeof result === "object" && "error" in result) {
         setPaymentStatus(PaymentStatus.ERROR);
         setPaymentError(result.error as string);
         return;
@@ -96,12 +90,10 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md p-6">
+      <DialogContent className="p-6 sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-center text-xl">{title}</DialogTitle>
-          <DialogDescription className="text-center mt-2">
-            {description}
-          </DialogDescription>
+          <DialogDescription className="mt-2 text-center">{description}</DialogDescription>
         </DialogHeader>
 
         <div className="mt-4">
@@ -109,7 +101,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
             <div className="flex flex-col items-center justify-center py-8">
               <Loader2 className="h-12 w-12 animate-spin text-blue-500" />
               <p className="mt-4 text-center text-lg">Processing payment...</p>
-              <p className="text-muted-foreground text-center text-sm mt-2">Please sign the transaction in your wallet</p>
+              <p className="text-muted-foreground mt-2 text-center text-sm">Please sign the transaction in your wallet</p>
             </div>
           )}
 
@@ -117,14 +109,9 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
             <div className="flex flex-col items-center justify-center py-8">
               <CheckCircle className="h-12 w-12 text-green-500" />
               <p className="mt-4 text-center text-lg">Payment successful!</p>
-              <p className="text-muted-foreground text-center text-sm mt-2">Thank you for your payment</p>
+              <p className="text-muted-foreground mt-2 text-center text-sm">Thank you for your payment</p>
               {txSignature && (
-                <a 
-                  href={`${SOCIAL_CONFIG.SOLSCAN_TX_URL}${txSignature}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 text-sm text-blue-500 hover:underline"
-                >
+                <a href={`${SOCIAL_CONFIG.SOLSCAN_TX_URL}${txSignature}`} target="_blank" rel="noopener noreferrer" className="mt-2 text-sm text-blue-500 hover:underline">
                   View transaction on Solscan
                 </a>
               )}
@@ -135,12 +122,8 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
             <div className="flex flex-col items-center justify-center py-6">
               <AlertCircle className="h-12 w-12 text-red-500" />
               <p className="mt-4 text-center text-lg">Payment failed</p>
-              <p className="text-red-500 text-center text-sm mt-2">{paymentError}</p>
-              <Button 
-                onClick={() => setPaymentStatus(PaymentStatus.INITIAL)} 
-                className="mt-6"
-                variant="outline"
-              >
+              <p className="mt-2 text-center text-sm text-red-500">{paymentError}</p>
+              <Button onClick={() => setPaymentStatus(PaymentStatus.INITIAL)} className="mt-6" variant="outline">
                 Try again
               </Button>
             </div>
@@ -159,26 +142,15 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
                 {!connected ? (
                   <>
                     {isPhantomAvailable ? (
-                      <Button 
-                        onClick={connectPhantom} 
-                        className="w-full"
-                        disabled={connecting}
-                      >
+                      <Button onClick={connectPhantom} className="w-full" disabled={connecting}>
                         {connecting ? "Connecting..." : "Connect Phantom Wallet"}
                       </Button>
                     ) : (
-                      <Button 
-                        onClick={() => window.open("https://phantom.app/download", "_blank")} 
-                        className="w-full"
-                      >
+                      <Button onClick={() => window.open("https://phantom.app/download", "_blank")} className="w-full">
                         Install Phantom Wallet
                       </Button>
                     )}
-                    <p className="text-xs text-muted-foreground">
-                      {isPhantomAvailable 
-                        ? "You'll need to approve the connection in the Phantom wallet popup" 
-                        : "After installing, refresh this page"}
-                    </p>
+                    <p className="text-muted-foreground text-xs">{isPhantomAvailable ? "You'll need to approve the connection in the Phantom wallet popup" : "After installing, refresh this page"}</p>
                   </>
                 ) : (
                   <Button onClick={handlePayment} className="w-full">
@@ -194,4 +166,4 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
   );
 };
 
-export default PaymentDialog; 
+export default PaymentDialog;

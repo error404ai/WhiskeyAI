@@ -1,10 +1,10 @@
 import { db } from "@/db/db";
-import { agentTriggersTable, agentPlatformsTable } from "@/db/schema";
+import { agentPlatformsTable, agentTriggersTable } from "@/db/schema";
 import { AgentTrigger } from "@/db/schema/agentTriggersTable";
-import { agentTriggerCreateSchema } from "@/http/zodSchema/agentTriggerCreateSchema";
-import { eq, and } from "drizzle-orm";
+import { agentTriggerCreateSchema } from "@/server/zodSchema/agentTriggerCreateSchema";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import AuthService from "../authService";
+import AuthService from "../auth/authService";
 import { AgentService } from "./AgentService";
 import { TriggerSchedulerService } from "./TriggerSchedulerService";
 
@@ -17,7 +17,7 @@ export class AgentTriggerService {
     if (Number(authUser.id) !== agent.userId) throw new Error("User not authenticated");
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { agentUuid, ...triggerData } = data;
-    
+
     // Calculate the initial nextRunAt timestamp
     const now = new Date();
     const nextRunAt = new Date(now);
@@ -28,7 +28,7 @@ export class AgentTriggerService {
     } else if (triggerData.runEvery === "days") {
       nextRunAt.setDate(now.getDate() + Number(triggerData.interval));
     }
-    
+
     const res = await db.insert(agentTriggersTable).values({
       ...triggerData,
       agentId: agent.id,
@@ -36,7 +36,7 @@ export class AgentTriggerService {
       nextRunAt: nextRunAt,
       status: "active",
     });
-    
+
     if (res) {
       return true;
     } else {
@@ -52,10 +52,10 @@ export class AgentTriggerService {
       where: eq(agentTriggersTable.id, triggerId),
       with: {
         agent: {
-          with:{
+          with: {
             user: true,
-          }
-        }
+          },
+        },
       },
     });
 
@@ -64,11 +64,7 @@ export class AgentTriggerService {
 
     // Check if Twitter is connected
     const twitterPlatform = await db.query.agentPlatformsTable.findFirst({
-      where: and(
-        eq(agentPlatformsTable.agentId, trigger.agentId),
-        eq(agentPlatformsTable.type, "twitter"),
-        eq(agentPlatformsTable.enabled, true)
-      ),
+      where: and(eq(agentPlatformsTable.agentId, trigger.agentId), eq(agentPlatformsTable.type, "twitter"), eq(agentPlatformsTable.enabled, true)),
     });
 
     if (!twitterPlatform) {
@@ -178,7 +174,7 @@ export class AgentTriggerService {
 
     return !!res;
   }
-  
+
   static async getTriggerById(triggerId: number): Promise<AgentTrigger | undefined> {
     const authUser = await AuthService.getAuthUser();
     if (!authUser) throw new Error("User not authenticated");
