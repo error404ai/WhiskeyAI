@@ -4,10 +4,10 @@ import { AgentTrigger } from "@/db/schema/agentTriggersTable";
 import { OpenAI } from "openai";
 import { functionEnum } from "../enum/functionEnum";
 import { TriggerLogService } from "./agent/TriggerLogService";
-import coinMarketService from "./Rpc/CoinMarketService";
-import dexscreenerService from "./Rpc/DexscreenerService";
-import QuickNodeRpcService from "./Rpc/QuickNodeRpcService";
-import solanaTrackingService from "./Rpc/SolanaTrackingService";
+import coinMarketService from "./externalApi/CoinMarketService";
+import dexscreenerService from "./externalApi/DexscreenerService";
+import QuickNodeRpcService from "./externalApi/QuickNodeRpcService";
+import solanaTrackingService from "./externalApi/SolanaTrackingService";
 import TwitterService from "./TwitterService";
 
 // Define OpenAI function calling interfaces

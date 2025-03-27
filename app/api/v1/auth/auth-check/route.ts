@@ -1,5 +1,5 @@
-import AuthService from "@/http/services/authService";
 import { parseRequest } from "@/lib/api/parseRequest";
+import AuthService from "@/server/services/auth/authService";
 
 export const POST = async (request: Request) => {
   // return Response.json({ message: "Invalid token" }, { status: 401 });

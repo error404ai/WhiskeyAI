@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
-import AuthService from "@/http/services/authService";
 import { getIntendedRoute } from "@/lib/utils";
+import AuthService from "@/server/services/auth/authService";
 import { redirect } from "next/navigation";
 
 export const GET = async (request: Request): Promise<Response> => {

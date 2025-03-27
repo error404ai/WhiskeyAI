@@ -1,6 +1,6 @@
 "use server";
 
-import quickNodeRpcService from "@/http/services/Rpc/QuickNodeRpcService";
+import quickNodeRpcService from "@/server/services/externalApi/QuickNodeRpcService";
 
 // Define response type to match what the component expects
 type RpcResponse = {
@@ -89,4 +89,4 @@ export async function getBlock(slot: number): Promise<RpcResponse> {
       errorDetails: JSON.stringify(error),
     };
   }
-} 
+}

@@ -8,8 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { getHomeTimeLine, likeTweet, postTweet, quoteTweet, replyTweet, reTweet } from "@/http/controllers/agent/TwitterAgentController";
-import { likeSchema, quoteSchema, replySchema, retweetSchema, tweetSchema } from "@/http/zodSchema/twitterSchema";
+import { getHomeTimeLine, likeTweet, postTweet, quoteTweet, replyTweet, reTweet } from "@/server/controllers/agent/TwitterAgentController";
+import { likeSchema, quoteSchema, replySchema, retweetSchema, tweetSchema } from "@/server/zodSchema/twitterSchema";
 import { TwitterApiError, TwitterResponse } from "@/types/twitter.d";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, CheckCircle, Clock, Twitter } from "lucide-react";
