@@ -1,5 +1,5 @@
 import { db } from "@/db/db";
-import { sql } from "drizzle-orm";
+import { SQLWrapper, sql } from "drizzle-orm";
 
 export interface PaginationResult<T> {
   data: T[];
@@ -13,44 +13,29 @@ export interface PaginationResult<T> {
 
 export type MapperFunction<T> = (item: Record<string, unknown>) => T;
 
-export interface WhereCondition {
-  condition: string;
-  params: unknown[];
-}
-
 /**
  * Paginator class for Drizzle ORM with a fluent API similar to Laravel's paginator
+ * Works exclusively with Drizzle query builder objects
  */
 export class DrizzlePaginatorService<T = Record<string, unknown>> {
-  private tableName: string;
-  private searchValue: string | null = null;
-  private searchColumns: string[] = [];
+  private baseQuery: SQLWrapper;
   private currentPage: number = 1;
   private itemsPerPage: number = 10;
   private sortBy: string = "id";
   private sortDirection: "ASC" | "DESC" = "ASC";
   private mapper: MapperFunction<T> | null = null;
   private allowedColumns: string[] = [];
-  private whereConditions: WhereCondition[] = [];
+  private countColumn: string = "*";
 
   /**
-   * Create a new paginator instance
-   *
-   * @param table - The Drizzle table schema or table name string
+   * Create a new paginator instance with a Drizzle query builder
+   * 
+   * @param query - The Drizzle query builder object
+   * @param countColumn - Column to use for count (defaults to "*")
    */
-  constructor(table: string | { _: { name: string } }) {
-    this.tableName = typeof table === "string" ? table : table._.name;
-  }
-
-  /**
-   * Set the search query and columns
-   */
-  search(value: string, columns: string[] = []): this {
-    this.searchValue = value;
-    if (columns.length > 0) {
-      this.searchColumns = columns;
-    }
-    return this;
+  constructor(query: SQLWrapper, countColumn: string = "*") {
+    this.baseQuery = query;
+    this.countColumn = countColumn;
   }
 
   /**
@@ -80,24 +65,10 @@ export class DrizzlePaginatorService<T = Record<string, unknown>> {
   }
 
   /**
-   * Set allowed columns for search and sort
+   * Set allowed columns for sort
    */
   allowColumns(columns: string[]): this {
     this.allowedColumns = columns;
-    return this;
-  }
-
-  /**
-   * Add a custom where condition to the query using parameterized query for safety
-   * @example
-   * // To filter by user ID safely:
-   * paginator.where('user_id = $1', [userId]);
-   * 
-   * // To filter by name with LIKE:
-   * paginator.where('name LIKE $1', [`%${name}%`]);
-   */
-  where(condition: string, params: unknown[] = []): this {
-    this.whereConditions.push({ condition, params });
     return this;
   }
 
@@ -121,89 +92,20 @@ export class DrizzlePaginatorService<T = Record<string, unknown>> {
     // Calculate offset
     const offset = (this.currentPage - 1) * this.itemsPerPage;
 
-    // Build search filter conditions and parameters
-    let whereClause = "";
-    const queryParams: unknown[] = [];
-    let paramIndex = 1; // For $1, $2, etc.
+    // Use the provided query builder as a subquery
+    const countQuery = sql`SELECT COUNT(${sql.raw(this.countColumn)}) as count FROM (${this.baseQuery}) as subquery`;
     
-    // Add search filter
-    if (this.searchValue && this.searchColumns.length > 0) {
-      const searchValue = `%${this.searchValue.toLowerCase()}%`;
-
-      // Filter to only allowed columns if specified
-      const usableColumns = this.allowedColumns.length > 0 
-        ? this.searchColumns.filter((col) => this.allowedColumns.includes(col)) 
-        : this.searchColumns;
-
-      if (usableColumns.length > 0) {
-        const searchConditions = usableColumns.map(col => {
-          queryParams.push(searchValue);
-          return `${col} ILIKE $${paramIndex++}`;
-        });
-        
-        whereClause = `WHERE (${searchConditions.join(" OR ")})`;
-      }
-    }
-    
-    // Add custom where conditions
-    if (this.whereConditions.length > 0) {
-      this.whereConditions.forEach(({ condition, params }) => {
-        // Replace $1, $2, etc. with higher indexes to avoid conflicts
-        const adjustedCondition = condition.replace(/\$(\d+)/g, (_, num) => {
-          const adjustedNum = Number(num) + paramIndex - 1;
-          return `$${adjustedNum}`;
-        });
-        
-        const wherePrefix = whereClause ? " AND " : "WHERE ";
-        whereClause += `${wherePrefix}(${adjustedCondition})`;
-        
-        // Add params to the query params array
-        queryParams.push(...params);
-        paramIndex += params.length;
-      });
-    }
-
-    // Build parameterized count query
-    let countQuery = sql`
-      SELECT COUNT(*) as count
-      FROM ${sql.raw(this.tableName)}
-    `;
-    
-    // Add where clause if it exists
-    if (whereClause) {
-      countQuery = sql`${countQuery} ${sql.raw(whereClause)}`;
-    }
-    
-    // Add params to the query
-    for (const param of queryParams) {
-      countQuery = sql`${countQuery} ${param}`;
-    }
-
-    // Build parameterized data query
-    let dataQuery = sql`
-      SELECT *
-      FROM ${sql.raw(this.tableName)}
-    `;
-    
-    // Add where clause if it exists
-    if (whereClause) {
-      dataQuery = sql`${dataQuery} ${sql.raw(whereClause)}`;
-    }
-    
-    // Add params to the query
-    for (const param of queryParams) {
-      dataQuery = sql`${dataQuery} ${param}`;
-    }
-    
-    // Add order by and limit
-    dataQuery = sql`
-      ${dataQuery}
+    const dataQuery = sql`
+      SELECT * FROM (${this.baseQuery}) as subquery
       ORDER BY ${sql.raw(this.sortBy)} ${sql.raw(this.sortDirection)}
       LIMIT ${this.itemsPerPage} OFFSET ${offset}
     `;
 
     // Execute queries
-    const [countResult, dataResult] = await Promise.all([db.execute(countQuery), db.execute(dataQuery)]);
+    const [countResult, dataResult] = await Promise.all([
+      db.execute(countQuery),
+      db.execute(dataQuery)
+    ]);
 
     // Get total count
     const totalItems = Number(countResult.rows[0]?.count || 0);
