@@ -21,7 +21,7 @@
     "shell": "docker exec -it ext-web-next sh",
     "permission": "sudo chmod 777 -R .",
     "ngrock": "sh ngRock.sh",
-    "start:cron": "tsx http/cron/cron.ts"
+    "start:cron": "tsx server/cron/cron.ts"
   },
   "dependencies": {
     "@auth/core": "^0.38.0",
