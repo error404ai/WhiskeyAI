@@ -16,4 +16,4 @@ cron.schedule("* * * * *", () => {
   runTask();
 });
 
-console.log("✅ Cron job is running...");
+console.log("✅ Scheduler is running...");
