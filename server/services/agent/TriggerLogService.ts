@@ -1,8 +1,9 @@
 import { db } from "@/db/db";
 import { NewTriggerLog, TriggerLog, triggerLogsTable } from "@/db/schema/triggerLogsTable";
+import { DrizzlePaginator, PaginationResult } from "@/package/@skmirajbn/drizzle-paginator";
 import { desc, eq } from "drizzle-orm";
 import AuthService from "../auth/authService";
-import { DrizzlePaginatorService, PaginationResult } from "../pagination/DrizzlePaginatorService";
+// import { DrizzlePaginatorService, PaginationResult } from "../pagination/DrizzlePaginatorService";
 
 /**
  * Interface for filtered log parameters
@@ -41,7 +42,7 @@ export class TriggerLogService {
     });
 
     // Create paginator with the query
-    const paginator = new DrizzlePaginatorService<TriggerLog>(query).page(page).allowColumns(["id", "user_id", "agent_id", "function_name", "status", "error_details"]);
+    const paginator = new DrizzlePaginator<TriggerLog>(db, query).page(page).allowColumns(["id", "user_id", "agent_id", "function_name", "status", "error_details"]);
 
     // Set ordering
     paginator.orderBy("id", "desc");
