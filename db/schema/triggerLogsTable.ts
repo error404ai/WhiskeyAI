@@ -15,7 +15,7 @@ export const triggerLogsTable = pgTable("triggerLogs", {
   errorDetails: text(), // Details if there was an error
   conversationData: json(), // Store AI chat conversation
   functionData: json(), // Store function call and response
-  createdAt: timestamp().defaultNow().notNull(),
+  createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
   metadata: json(), // For any additional data we might want to store
 });
 
