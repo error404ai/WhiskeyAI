@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { DataTable, DataTableRef } from "@/components/Datatable/Datatable";
 import { DataTableColumnHeader } from "@/components/Datatable/DatatableColumnHeader";
@@ -11,7 +12,7 @@ import { useRef } from "react";
 const LogList = () => {
   const tableRef = useRef<DataTableRef>(null);
 
-  const columns: ColumnDef<TriggerLog>[] = [
+  const columns: ColumnDef<TriggerLog & { agentName: string }>[] = [
     {
       accessorKey: "id",
       header: ({ column }) => {
@@ -20,9 +21,9 @@ const LogList = () => {
       enableSorting: false,
     },
     {
-      accessorKey: "agentId",
+      accessorKey: "agentName",
       header: ({ column }) => {
-        return <DataTableColumnHeader column={column} title="Agent ID" />;
+        return <DataTableColumnHeader column={column} title="Agent Name" />;
       },
       enableSorting: false,
     },
@@ -49,10 +50,6 @@ const LogList = () => {
       header: ({ column }) => {
         return <DataTableColumnHeader column={column} title="Error Details" />;
       },
-      cell: ({ row }) => {
-        const errorDetails = row.getValue("errorDetails") as string;
-        return <div className="max-w-44">{errorDetails}</div>;
-      },
       enableSorting: false,
     },
     {
@@ -62,8 +59,8 @@ const LogList = () => {
       },
       cell: ({ row }) => {
         const date = row.getValue("createdAt") as string;
-        // Format date if it exists
-        return date ? formatDistanceToNow(new Date(date), { addSuffix: true }) : "N/A";
+        const dateObj = date ? new Date(date) : null;
+        return dateObj ? formatDistanceToNow(dateObj, { addSuffix: true }) : "N/A";
       },
       enableSorting: false,
     },
@@ -71,13 +68,7 @@ const LogList = () => {
 
   return (
     <div>
-      <DataTable<TriggerLog, unknown> 
-        ref={tableRef} 
-        columns={columns} 
-        serverAction={TriggerLogController.getUserTriggerLogs} 
-        queryKey="triggerLogsList"
-        searchAble={false} 
-      />
+      <DataTable<TriggerLog & { agentName: string }, unknown> ref={tableRef} columns={columns} serverAction={TriggerLogController.getUserTriggerLogs as any} queryKey="triggerLogsList" searchAble={false} />
     </div>
   );
 };
