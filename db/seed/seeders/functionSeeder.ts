@@ -402,103 +402,103 @@ export class FunctionsSeeder implements Seeder {
       type: "agent",
       group: "coinmarket",
     },
-    {
-      name: functionEnum.COINMARKET_getQuotesHistorical,
-      description: "Returns an interval of historic market quotes for any cryptocurrency based on time and interval parameters",
-      parameters: {
-        type: "object",
-        properties: {
-          id: {
-            type: "string",
-            description: "One or more comma-separated cryptocurrency IDs",
-            minLength: 1,
-          },
-          interval: {
-            type: "string",
-            description: "Interval of time to update data",
-            enum: ["yearly", "monthly", "weekly", "daily", "hourly", "5m", "10m", "15m", "30m", "45m", "1h", "2h", "3h", "4h", "6h", "12h", "24h", "1d", "2d", "3d", "7d", "14d", "15d", "30d", "60d", "90d", "365d"],
-          },
-          count: {
-            type: "number",
-            description: "Number of intervals to return",
-            minimum: 1,
-            maximum: 10000,
-          },
-          time_start: {
-            type: "string",
-            description: "Timestamp to start returning data for (ISO 8601 format)",
-          },
-          time_end: {
-            type: "string",
-            description: "Timestamp to stop returning data for (ISO 8601 format)",
-          },
-          symbol: {
-            type: "string",
-            description: "Comma-separated list of cryptocurrency symbols",
-          },
-          convert: {
-            type: "string",
-            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into",
-          },
-          convert_id: {
-            type: "string",
-            description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into",
-          },
-          aux: {
-            type: "string",
-            description: "Comma-separated list of auxiliary data fields to return",
-          },
-          skip_invalid: {
-            type: "boolean",
-            description: "Skip any invalid cryptocurrencies",
-          },
-        },
-        required: ["id", "interval"],
-      },
-      type: "agent",
-      group: "coinmarket",
-    },
-    {
-      name: functionEnum.COINMARKET_getQuotesLatest,
-      description: "Returns the latest market quote for 1 or more cryptocurrencies",
-      parameters: {
-        type: "object",
-        properties: {
-          id: {
-            type: "string",
-            description: "One or more comma-separated cryptocurrency IDs",
-            minLength: 1,
-          },
-          slug: {
-            type: "string",
-            description: "Comma-separated list of cryptocurrency slugs",
-          },
-          symbol: {
-            type: "string",
-            description: "Comma-separated list of cryptocurrency symbols",
-          },
-          convert: {
-            type: "string",
-            description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into",
-          },
-          convert_id: {
-            type: "string",
-            description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into",
-          },
-          aux: {
-            type: "string",
-            description: "Comma-separated list of auxiliary data fields to return",
-          },
-          skip_invalid: {
-            type: "boolean",
-            description: "Skip any invalid cryptocurrencies",
-          },
-        },
-        required: ["id"],
-      },
-      type: "agent",
-      group: "coinmarket",
-    },
+    // {
+    //   name: functionEnum.COINMARKET_getQuotesHistorical,
+    //   description: "Returns an interval of historic market quotes for any cryptocurrency based on time and interval parameters",
+    //   parameters: {
+    //     type: "object",
+    //     properties: {
+    //       id: {
+    //         type: "string",
+    //         description: "One or more comma-separated cryptocurrency IDs",
+    //         minLength: 1,
+    //       },
+    //       interval: {
+    //         type: "string",
+    //         description: "Interval of time to update data",
+    //         enum: ["yearly", "monthly", "weekly", "daily", "hourly", "5m", "10m", "15m", "30m", "45m", "1h", "2h", "3h", "4h", "6h", "12h", "24h", "1d", "2d", "3d", "7d", "14d", "15d", "30d", "60d", "90d", "365d"],
+    //       },
+    //       count: {
+    //         type: "number",
+    //         description: "Number of intervals to return",
+    //         minimum: 1,
+    //         maximum: 10000,
+    //       },
+    //       time_start: {
+    //         type: "string",
+    //         description: "Timestamp to start returning data for (ISO 8601 format)",
+    //       },
+    //       time_end: {
+    //         type: "string",
+    //         description: "Timestamp to stop returning data for (ISO 8601 format)",
+    //       },
+    //       symbol: {
+    //         type: "string",
+    //         description: "Comma-separated list of cryptocurrency symbols",
+    //       },
+    //       convert: {
+    //         type: "string",
+    //         description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into",
+    //       },
+    //       convert_id: {
+    //         type: "string",
+    //         description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into",
+    //       },
+    //       aux: {
+    //         type: "string",
+    //         description: "Comma-separated list of auxiliary data fields to return",
+    //       },
+    //       skip_invalid: {
+    //         type: "boolean",
+    //         description: "Skip any invalid cryptocurrencies",
+    //       },
+    //     },
+    //     required: ["id", "interval"],
+    //   },
+    //   type: "agent",
+    //   group: "coinmarket",
+    // },
+    // {
+    //   name: functionEnum.COINMARKET_getQuotesLatest,
+    //   description: "Returns the latest market quote for 1 or more cryptocurrencies",
+    //   parameters: {
+    //     type: "object",
+    //     properties: {
+    //       id: {
+    //         type: "string",
+    //         description: "One or more comma-separated cryptocurrency IDs",
+    //         minLength: 1,
+    //       },
+    //       slug: {
+    //         type: "string",
+    //         description: "Comma-separated list of cryptocurrency slugs",
+    //       },
+    //       symbol: {
+    //         type: "string",
+    //         description: "Comma-separated list of cryptocurrency symbols",
+    //       },
+    //       convert: {
+    //         type: "string",
+    //         description: "Comma-separated list of cryptocurrency or fiat currency symbols to convert quotes into",
+    //       },
+    //       convert_id: {
+    //         type: "string",
+    //         description: "Comma-separated list of cryptocurrency or fiat currency IDs to convert quotes into",
+    //       },
+    //       aux: {
+    //         type: "string",
+    //         description: "Comma-separated list of auxiliary data fields to return",
+    //       },
+    //       skip_invalid: {
+    //         type: "boolean",
+    //         description: "Skip any invalid cryptocurrencies",
+    //       },
+    //     },
+    //     required: ["id"],
+    //   },
+    //   type: "agent",
+    //   group: "coinmarket",
+    // },
     {
       name: functionEnum.COINMARKET_getMetadata,
       description: "Returns all static metadata available for one or more cryptocurrencies",
