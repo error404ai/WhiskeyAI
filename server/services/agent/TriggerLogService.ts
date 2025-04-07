@@ -1,6 +1,6 @@
 import { db } from "@/db/db";
 import { NewTriggerLog, TriggerLog, triggerLogsTable } from "@/db/schema/triggerLogsTable";
-import { DrizzlePaginator, PaginationResult } from "@/package/@skmirajbn/drizzle-paginator";
+import { DrizzlePaginator, PaginationResult } from "@skmirajbn/drizzle-paginator";
 import { desc, eq } from "drizzle-orm";
 import AuthService from "../auth/authService";
 // import { DrizzlePaginatorService, PaginationResult } from "../pagination/DrizzlePaginatorService";
