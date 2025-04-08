@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { getHomeTimeLine, likeTweet, postTweet, quoteTweet, replyTweet, reTweet } from "@/server/controllers/agent/TwitterAgentController";
 import { likeSchema, quoteSchema, replySchema, retweetSchema, tweetSchema } from "@/server/zodSchema/twitterSchema";
 import { TwitterApiError, TwitterResponse } from "@/types/twitter.d";
@@ -139,8 +140,8 @@ export default function TwitterAgentTest() {
       return (
         <div className="mt-3 w-full">
           <div className="text-sm font-semibold">Error Details:</div>
-          <div className="mt-1 max-h-32 w-full overflow-auto rounded bg-gray-100 p-2">
-            <pre className="text-xs break-words whitespace-pre-wrap">{JSON.stringify(details, null, 2)}</pre>
+          <div className="mt-1 max-h-60 w-full overflow-auto rounded bg-gray-100 p-2">
+            <pre className="w-full text-xs break-words whitespace-pre-wrap">{JSON.stringify(details, null, 2)}</pre>
           </div>
         </div>
       );
@@ -292,8 +293,8 @@ export default function TwitterAgentTest() {
         <h2 className="mb-4 text-xl font-semibold">Results</h2>
 
         {error && (
-          <Alert variant={error.isRateLimit ? "default" : "destructive"} className={`mb-4 ${error.isRateLimit ? "border-yellow-200 bg-yellow-50 text-yellow-800" : ""}`}>
-            <div className="flex w-full flex-col">
+          <Alert variant={error.isRateLimit ? "default" : "destructive"} className={cn("mb-4 text-black", error.isRateLimit ? "border-yellow-200 bg-yellow-50 text-yellow-800" : "")}>
+            <div className="flex flex-col">
               <div className="flex items-start">
                 <div className="mt-0.5 mr-2">{error.isRateLimit ? <Clock className="h-4 w-4 text-yellow-600" /> : <AlertCircle className="h-4 w-4" />}</div>
                 <div className="flex-1">
