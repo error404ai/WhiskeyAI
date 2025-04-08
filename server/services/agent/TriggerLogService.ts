@@ -48,10 +48,11 @@ export class TriggerLogService {
     paginator.orderBy("id", "desc");
 
     paginator.map((item) => {
+      console.log("agent is", item.agent);
       return {
         ...item,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        agentName: (item.agent as any)[4],
+        agentName: (item.agent as any)[3],
       };
     });
 
