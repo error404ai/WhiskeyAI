@@ -4,14 +4,18 @@ import { AgentPlatformList } from "@/db/schema";
 import { AgentService, ValidationResult } from "@/server/services/agent/AgentService";
 import { agentCreateSchema } from "@/server/zodSchema/agentCreateSchema";
 import { agentInformationSchema } from "@/server/zodSchema/agentInformationSchema";
-import { z, ZodError } from "zod";
+import { z } from "zod";
 
-export const createAgent = async (data: unknown): Promise<boolean | string> => {
+export const createAgent = async (data: unknown): Promise<{ success: boolean; message?: string }> => {
   try {
     const validatedData = agentCreateSchema.parse(data);
-    return await AgentService.createAgent(validatedData);
+    const result = await AgentService.createAgent(validatedData);
+    return { success: result };
   } catch (error) {
-    throw new ZodError([{ code: "custom", message: String(error), path: ["message"] }]);
+    if (error instanceof Error) {
+      return { success: false, message: error.message };
+    }
+    return { success: false, message: "An unknown error occurred" };
   }
 };
 
