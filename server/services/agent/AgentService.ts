@@ -31,6 +31,15 @@ export class AgentService {
   static async createAgent(data: z.infer<typeof agentCreateSchema>): Promise<boolean> {
     const userId = (await AuthService.getAuthUser())?.id;
     if (!userId) throw new Error("User not authenticated");
+
+    // Check agent limit
+    const maxAgents = Number(process.env.MAX_AGENTS_PER_USER) || 3;
+    const currentAgentCount = await this.countUserAgents();
+    
+    if (currentAgentCount >= maxAgents) {
+      throw new Error(`You have reached the maximum limit of ${maxAgents} agents. Please upgrade your plan to create more agents.`);
+    }
+
     const res = await db.insert(agentsTable).values({
       name: data.name,
       tickerSymbol: data.tickerSymbol,

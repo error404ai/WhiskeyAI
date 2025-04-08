@@ -37,19 +37,28 @@ const AgentCreate: React.FC<AgentCreateProps> = ({ refetch }) => {
   }, [modalOpen, methods]);
 
   const handleFormSubmit = async (data: z.infer<typeof agentCreateSchema>) => {
-    await createAgent(data);
+    try {
+      const result = await createAgent(data);
+      if (!result.success) {
+        methods.setError('root', { message: result.message || 'Failed to create agent' });
+        return;
+      }
+      refetch();
+      refetchAgentCount();
+      setModalOpen(false);
+      methods.reset();
+    } catch {
+      methods.setError('root', { message: 'Failed to create agent. Please try again.' });
+    }
   };
 
   const createAgent = async (data: z.infer<typeof agentCreateSchema>) => {
-    await AgentController.createAgent(data);
-    refetch();
-    refetchAgentCount();
-    setModalOpen(false);
-    methods.reset();
+    return await AgentController.createAgent(data);
   };
 
   // Check if user has reached the agent limit
-  const hasReachedAgentLimit = agentCount !== undefined && agentCount >= 50;
+  const maxAgents = Number(process.env.NEXT_PUBLIC_MAX_AGENTS_PER_USER) || 3;
+  const hasReachedAgentLimit = agentCount !== undefined && agentCount >= maxAgents;
 
   return (
     <Dialog open={modalOpen} onOpenChange={setModalOpen}>
@@ -64,18 +73,30 @@ const AgentCreate: React.FC<AgentCreateProps> = ({ refetch }) => {
           <form className="space-y-6" onSubmit={methods.handleSubmit(handleFormSubmit)}>
             <DialogHeader>
               <DialogTitle>Create New Agent</DialogTitle>
-              <DialogDescription>Create a new AI agent to manage your social media presence.</DialogDescription>
+              <DialogDescription>
+                Create a new AI agent to manage your social media presence.
+                {hasReachedAgentLimit && (
+                  <div className="mt-2 rounded-md bg-yellow-50 p-2 text-sm text-yellow-700">
+                    You have reached the maximum limit of {maxAgents} agents. Please upgrade your plan to create more agents.
+                  </div>
+                )}
+              </DialogDescription>
             </DialogHeader>
+            {methods.formState.errors.root && (
+              <div className="rounded-md bg-red-50 p-2 text-sm text-red-700">
+                {methods.formState.errors.root.message}
+              </div>
+            )}
             <div className="flex flex-col gap-3">
               <div className="space-y-2">
                 <Label htmlFor="name">Agent Name</Label>
                 <Input id="name" {...methods.register("name")} />
-                {methods.formState.errors.name && <p className="text-sm text-red-500">{methods.formState.errors.name.message}</p>}
+            
               </div>
               <div className="space-y-2">
                 <Label htmlFor="tickerSymbol">Ticker Symbol</Label>
                 <Input id="tickerSymbol" {...methods.register("tickerSymbol")} />
-                {methods.formState.errors.tickerSymbol && <p className="text-sm text-red-500">{methods.formState.errors.tickerSymbol.message}</p>}
+          
               </div>
             </div>
             <div className="rounded-xl bg-blue-50 p-4">
