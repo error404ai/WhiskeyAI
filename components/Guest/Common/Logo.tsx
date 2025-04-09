@@ -2,7 +2,7 @@
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { Bot } from "lucide-react";
-import { Link } from "next-view-transitions";
+import Link from "next/link";
 
 type LogoProps = {
   iconOnly?: boolean;
