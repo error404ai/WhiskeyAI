@@ -7,7 +7,7 @@ import * as AgentController from "@/server/controllers/agent/AgentController";
 import { useQuery } from "@tanstack/react-query";
 import { Info, Rocket, Share2, Wrench, Zap } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import FunctionsStep from "./_partials/FunctionsStep";
 import InformationStep from "./_partials/InformationStep";
 import LaunchStep from "./_partials/LaunchStep/LaunchStep";
@@ -65,19 +65,15 @@ export default function AgentConfigPage() {
   const defaultTabKey = "information";
   const [currentTabKey, setCurrentTabKey] = useState(searchParams.get("tab") || defaultTabKey);
 
-  const handleTabChange = useCallback(
-    (key: string) => {
-      if (key !== currentTabKey) {
-        // Use replaceState to avoid adding history entries
-        const params = new URLSearchParams(searchParams);
-        params.set("tab", key);
-        window.history.replaceState(null, "", `?${params.toString()}`);
-
-        setCurrentTabKey(key);
-      }
-    },
-    [currentTabKey, searchParams],
-  );
+  const handleTabChange = async (key: string) => {
+    if (key !== currentTabKey) {
+      setCurrentTabKey(key);
+      // Use replaceState to avoid adding history entries
+      const params = new URLSearchParams(searchParams);
+      params.set("tab", key);
+      window.history.replaceState(null, "", `?${params.toString()}`);
+    }
+  };
 
   useEffect(() => {
     const isValidTabKey = (key: string) => {
@@ -88,7 +84,7 @@ export default function AgentConfigPage() {
       setCurrentTabKey(tabFromUrl);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, []);
 
   const renderStepContent = () => {
     switch (currentTabKey) {
