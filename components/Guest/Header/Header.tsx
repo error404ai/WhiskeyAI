@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import LoggedIn from "@/components/wrappers/LoggedIn";
 import LoggedOut from "@/components/wrappers/LoggedOut";
 import { Home } from "lucide-react";
-import { Link } from "next-view-transitions";
+import Link from "next/link";
 import Logo from "../Common/Logo";
 import LoginButton from "./_partials/ConnectButton";
 import DisconnectButton from "./_partials/DisconnectButton";
