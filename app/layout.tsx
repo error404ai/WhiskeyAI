@@ -9,6 +9,7 @@ import { SessionProvider } from "next-auth/react";
 import localFont from "next/font/local";
 import NextTopLoader from "nextjs-toploader";
 import "react-loading-skeleton/dist/skeleton.css";
+import "./injectAtRoot.ts";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
