@@ -1,6 +1,6 @@
 import AgentPage from "@/components/commonPages/agentPage/AgentPage";
 
-const page = () => {
+const page = async () => {
   return (
     <>
       <AgentPage />
