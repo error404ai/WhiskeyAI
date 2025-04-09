@@ -17,6 +17,11 @@ const items = [
     url: "/agent-logs",
     icon: Logs,
   },
+  {
+    title: "Schedule Direct Tweeet",
+    url: "/schedule-direct-tweet",
+    icon: Logs,
+  },
 ];
 
 export default function AppSidebar() {
