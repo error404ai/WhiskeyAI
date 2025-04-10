@@ -1,32 +1,24 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-
 "use client";
 import * as React from "react";
 
 export function useRouteLoading() {
+  const delayTime = 50;
   const [isLoading, setIsLoading] = React.useState(false);
   const loadingRef = React.useRef(false);
+  const timeoutRef = React.useRef<number | null>(null);
 
-  /**
-   * Convert URL to absolute URL based on current window location
-   */
   const toAbsoluteURL = (url: string): string => {
     return new URL(url, window.location.href).href;
   };
 
-  /**
-   * Check if it's a hash anchor link
-   */
   const isHashAnchor = (currentUrl: string, newUrl: string): boolean => {
     const current = new URL(toAbsoluteURL(currentUrl));
     const next = new URL(toAbsoluteURL(newUrl));
     return current.href.split("#")[0] === next.href.split("#")[0];
   };
 
-  /**
-   * Check if it's the same hostname
-   */
   const isSameHostName = (currentUrl: string, newUrl: string): boolean => {
     const current = new URL(toAbsoluteURL(currentUrl));
     const next = new URL(toAbsoluteURL(newUrl));
@@ -36,9 +28,6 @@ export function useRouteLoading() {
   React.useEffect(() => {
     let isMounted = true;
 
-    /**
-     * Handle click events to detect navigation
-     */
     const handleClick = (event: MouseEvent) => {
       try {
         const target = event.target as HTMLElement;
@@ -54,20 +43,31 @@ export function useRouteLoading() {
 
           if (!isExternalLink && !isSpecialScheme && !isHashLink && !notSameHost && newUrl !== currentUrl && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && toAbsoluteURL(newUrl).startsWith("http")) {
             loadingRef.current = true;
-            setIsLoading(true);
+
+            // Clear any existing timeout
+            if (timeoutRef.current) {
+              clearTimeout(timeoutRef.current);
+            }
+
+            // Set timeout to update isLoading after 300ms
+            timeoutRef.current = window.setTimeout(() => {
+              if (isMounted && loadingRef.current) {
+                setIsLoading(true);
+              }
+            }, delayTime);
           }
         }
       } catch (err) {
         if (isMounted) {
           loadingRef.current = false;
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+          }
           setIsLoading(false);
         }
       }
     };
 
-    /**
-     * Find the closest anchor element
-     */
     const findClosestAnchor = (element: HTMLElement | null): HTMLAnchorElement | null => {
       while (element && element.tagName.toLowerCase() !== "a") {
         element = element.parentElement;
@@ -75,32 +75,34 @@ export function useRouteLoading() {
       return element as HTMLAnchorElement;
     };
 
-    /**
-     * Handle history changes
-     */
     const handlePopState = () => {
       if (isMounted) {
         loadingRef.current = false;
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
         setIsLoading(false);
       }
     };
 
-    /**
-     * Handle page hide (e.g., tab switch)
-     */
     const handlePageHide = () => {
       if (isMounted) {
         loadingRef.current = false;
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
         setIsLoading(false);
       }
     };
 
-    // Modify history methods without scheduling updates
     const originalPushState = window.history.pushState;
     window.history.pushState = function (...args) {
       if (isMounted) {
         loadingRef.current = false;
-        // Avoid setIsLoading here to prevent scheduling updates
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+        setIsLoading(false);
       }
       return originalPushState.apply(window.history, args);
     };
@@ -109,37 +111,30 @@ export function useRouteLoading() {
     window.history.replaceState = function (...args) {
       if (isMounted) {
         loadingRef.current = false;
-        // Avoid setIsLoading here to prevent scheduling updates
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+        setIsLoading(false);
       }
       return originalReplaceState.apply(window.history, args);
     };
 
-    // Add event listeners
     document.addEventListener("click", handleClick);
     window.addEventListener("popstate", handlePopState);
     window.addEventListener("pagehide", handlePageHide);
 
-    // Sync ref with state periodically or on specific events
-    const syncLoadingState = () => {
-      if (isMounted && loadingRef.current !== isLoading) {
-        setIsLoading(loadingRef.current);
-      }
-    };
-
-    // Use a minimal effect to sync state
-    const intervalId = setInterval(syncLoadingState, 100); // Adjust timing as needed
-
-    // Cleanup
     return () => {
       isMounted = false;
-      clearInterval(intervalId);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
       document.removeEventListener("click", handleClick);
       window.removeEventListener("popstate", handlePopState);
       window.removeEventListener("pagehide", handlePageHide);
       window.history.pushState = originalPushState;
       window.history.replaceState = originalReplaceState;
     };
-  }, [isLoading]); // Include isLoading in deps to ensure sync
+  }, []); // Removed isLoading from dependencies since we're handling it manually
 
   return { isLoading };
 }
