@@ -1,13 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-import * as React from "react";
+
+import { useEffect, useRef, useState } from "react";
 
 export function useRouteLoading() {
   const delayTime = 50;
-  const [isLoading, setIsLoading] = React.useState(false);
-  const loadingRef = React.useRef(false);
-  const timeoutRef = React.useRef<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const loadingRef = useRef(false);
+  const timeoutRef = useRef<number | null>(null);
 
   const toAbsoluteURL = (url: string): string => {
     return new URL(url, window.location.href).href;
@@ -25,8 +26,31 @@ export function useRouteLoading() {
     return current.hostname.replace(/^www\./, "") === next.hostname.replace(/^www\./, "");
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     let isMounted = true;
+
+    const findClosestAnchor = (element: HTMLElement | null): HTMLAnchorElement | null => {
+      while (element && element.tagName.toLowerCase() !== "a") {
+        element = element.parentElement;
+      }
+      return element as HTMLAnchorElement;
+    };
+
+    const resetLoading = () => {
+      if (isMounted) {
+        loadingRef.current = false;
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+        }
+        // Use requestAnimationFrame to ensure this happens outside of React's rendering cycle
+        requestAnimationFrame(() => {
+          if (isMounted) {
+            setIsLoading(false);
+          }
+        });
+      }
+    };
 
     const handleClick = (event: MouseEvent) => {
       try {
@@ -49,74 +73,48 @@ export function useRouteLoading() {
               clearTimeout(timeoutRef.current);
             }
 
-            // Set timeout to update isLoading after 300ms
+            // Set timeout to update isLoading after delayTime ms
             timeoutRef.current = window.setTimeout(() => {
               if (isMounted && loadingRef.current) {
-                setIsLoading(true);
+                requestAnimationFrame(() => {
+                  if (isMounted && loadingRef.current) {
+                    setIsLoading(true);
+                  }
+                });
               }
             }, delayTime);
           }
         }
       } catch (err) {
-        if (isMounted) {
-          loadingRef.current = false;
-          if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-          }
-          setIsLoading(false);
-        }
+        resetLoading();
       }
-    };
-
-    const findClosestAnchor = (element: HTMLElement | null): HTMLAnchorElement | null => {
-      while (element && element.tagName.toLowerCase() !== "a") {
-        element = element.parentElement;
-      }
-      return element as HTMLAnchorElement;
     };
 
     const handlePopState = () => {
-      if (isMounted) {
-        loadingRef.current = false;
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
-        setIsLoading(false);
-      }
+      resetLoading();
     };
 
     const handlePageHide = () => {
-      if (isMounted) {
-        loadingRef.current = false;
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
-        setIsLoading(false);
-      }
+      resetLoading();
     };
 
+    // Store original history methods
     const originalPushState = window.history.pushState;
+    const originalReplaceState = window.history.replaceState;
+
+    // Override history methods safely
     window.history.pushState = function (...args) {
-      if (isMounted) {
-        loadingRef.current = false;
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
-        setIsLoading(false);
-      }
-      return originalPushState.apply(window.history, args);
+      const result = originalPushState.apply(window.history, args);
+      // Use setTimeout to ensure this runs after current execution context
+      setTimeout(() => resetLoading(), 0);
+      return result;
     };
 
-    const originalReplaceState = window.history.replaceState;
     window.history.replaceState = function (...args) {
-      if (isMounted) {
-        loadingRef.current = false;
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
-        setIsLoading(false);
-      }
-      return originalReplaceState.apply(window.history, args);
+      const result = originalReplaceState.apply(window.history, args);
+      // Use setTimeout to ensure this runs after current execution context
+      setTimeout(() => resetLoading(), 0);
+      return result;
     };
 
     document.addEventListener("click", handleClick);
@@ -134,7 +132,7 @@ export function useRouteLoading() {
       window.history.pushState = originalPushState;
       window.history.replaceState = originalReplaceState;
     };
-  }, []); // Removed isLoading from dependencies since we're handling it manually
+  }, []);
 
   return { isLoading };
 }
