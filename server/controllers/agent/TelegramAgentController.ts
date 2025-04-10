@@ -25,6 +25,48 @@ const handleTelegramError = (error: unknown): TelegramResponse => {
   };
 };
 
+// Step 1: Send verification code
+export const sendCode = async (
+  phoneNumber: string
+): Promise<TelegramResponse> => {
+  try {
+    // Send code to the phone number
+    const result = await telegramService.sendCode(phoneNumber);
+    
+    return {
+      status: "success",
+      data: result,
+    };
+  } catch (error) {
+    return handleTelegramError(error);
+  }
+};
+
+// Step 2: Verify code and login
+export const verifyCode = async (
+  sessionId: string,
+  phoneNumber: string,
+  phoneCode: string,
+  password?: string
+): Promise<TelegramResponse> => {
+  try {
+    // Login with the verification code
+    const authResult = await telegramService.login(
+      sessionId,
+      phoneNumber,
+      phoneCode,
+      password
+    );
+    
+    return {
+      status: "success",
+      data: authResult,
+    };
+  } catch (error) {
+    return handleTelegramError(error);
+  }
+};
+
 export const getEntityInfo = async (username: string): Promise<TelegramResponse> => {
   try {
     await telegramService.connect();
