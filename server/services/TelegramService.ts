@@ -19,6 +19,8 @@ class TelegramService {
   }
 
   async connect(): Promise<boolean> {
+    console.log("apiId", this.apiId);
+    console.log("apiHash", this.apiHash);
     try {
       if (!this.isConnected) {
         await this.client.connect();
