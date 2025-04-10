@@ -19,6 +19,7 @@ import DexscreenerTest from "./_partials/DexscreenerTest";
 import LaunchToken from "./_partials/LaunchToken";
 import RpcTest from "./_partials/RpcTest";
 import SolanaTrackerTest from "./_partials/SolanaTrackerTest";
+import TelegramTest from "./_partials/TelegramTest";
 import TokenAddressTest from "./_partials/TokenAddressTest";
 import TwitterAgentTest from "./_partials/TwitterAgentTest";
 
@@ -126,6 +127,7 @@ function LaunchStep() {
           <Tabs value={activeApiTab} onValueChange={setActiveApiTab} className="w-full">
             <TabsList className="mx-auto mb-4 flex h-fit w-fit flex-wrap gap-2">
               <TabsTrigger value="twitter">Twitter API</TabsTrigger>
+              <TabsTrigger value="telegram">Telegram API</TabsTrigger>
               <TabsTrigger value="dexscreener">Dexscreener API</TabsTrigger>
               <TabsTrigger value="coinmarket">Coinmarket API</TabsTrigger>
               <TabsTrigger value="rpc">RPC API</TabsTrigger>
@@ -133,6 +135,9 @@ function LaunchStep() {
             </TabsList>
             <TabsContent value="twitter">
               <TwitterAgentTest />
+            </TabsContent>
+            <TabsContent value="telegram">
+              <TelegramTest />
             </TabsContent>
             <TabsContent value="dexscreener">
               <DexscreenerTest />
