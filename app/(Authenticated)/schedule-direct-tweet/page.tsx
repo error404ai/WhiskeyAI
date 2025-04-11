@@ -2,9 +2,9 @@
 
 import type React from "react"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useForm, useFieldArray, Controller } from "react-hook-form"
-import { format, addMinutes } from "date-fns"
+import { format, addMinutes, setHours, setMinutes, getHours, getMinutes } from "date-fns"
 import { Plus, Clock, Trash2, FileSpreadsheet, X, UserPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -17,14 +17,18 @@ import { useQuery } from "@tanstack/react-query"
 import * as AgentController from "@/server/controllers/agent/AgentController"
 import * as XLSX from "xlsx"
 
-// Define types
+// Define types to match what's returned by the real AgentService
 interface Agent {
     id: number
     uuid: string
     name: string
-    status: string
-    tickerSymbol?: string
-    tokenAddress?: string
+    userId: number
+    status: "running" | "paused"
+    tickerSymbol?: string | null
+    tokenAddress?: string | null
+    information?: Record<string, unknown> | null
+    triggers?: Array<Record<string, unknown>> | null
+    paymentTimestamp?: string | null
 }
 
 interface SchedulePost {
@@ -56,6 +60,10 @@ export default function SchedulePosts() {
     const [agentRangeStart, setAgentRangeStart] = useState(1)
     const [agentRangeEnd, setAgentRangeEnd] = useState(1)
     const [activeAgents, setActiveAgents] = useState<Agent[]>([])
+
+    // Add a new state for the start date and time
+    const [scheduleStartDate, setScheduleStartDate] = useState<Date>(new Date())
+    const [initialTimeSet, setInitialTimeSet] = useState(false)
 
     // Fetch agents from API
     const { isPending: isAgentsLoading, data: agents = [] } = useQuery({
@@ -93,6 +101,20 @@ export default function SchedulePosts() {
         }
     }, [agents])
 
+    // Force select the first agent for all posts when there's only one agent
+    useEffect(() => {
+        if (agents && agents.length === 1) {
+            // Get the single agent's UUID
+            const singleAgentUuid = agents[0].uuid
+
+            // Apply to all posts immediately
+            const currentPosts = getValues("schedulePosts")
+            currentPosts.forEach((_, index) => {
+                setValue(`schedulePosts.${index}.agentId`, singleAgentUuid)
+            })
+        }
+    }, [agents, setValue, getValues])
+
     // Update active agents when range changes or when agents are loaded
     useEffect(() => {
         if (agents && agents.length > 0) {
@@ -106,8 +128,17 @@ export default function SchedulePosts() {
 
             // Update the first post's agent if it's not set
             const currentPosts = getValues("schedulePosts")
-            if (currentPosts[0] && (!currentPosts[0].agentId || currentPosts[0].agentId === "") && rangeAgents.length > 0) {
-                setValue("schedulePosts.0.agentId", rangeAgents[0].uuid)
+
+            // Update the first post's agent if it's not set
+            if (currentPosts[0]) {
+                // If there's only one agent available in the entire list, always use it
+                if (agents.length === 1) {
+                    setValue("schedulePosts.0.agentId", agents[0].uuid)
+                }
+                // Otherwise, if the agent isn't set or is empty, use the first agent in range
+                else if ((!currentPosts[0].agentId || currentPosts[0].agentId === "") && rangeAgents.length > 0) {
+                    setValue("schedulePosts.0.agentId", rangeAgents[0].uuid)
+                }
             }
         } else {
             setActiveAgents([])
@@ -128,12 +159,11 @@ export default function SchedulePosts() {
         currentDelayRef.current = Number(delayMinutes)
     }, [delayMinutes])
 
-    // Update all scheduled times when delay changes
-    const updateScheduledTimes = () => {
+    // Modify the updateScheduledTimes function to preserve time when date changes
+    const updateScheduledTimes = useCallback(() => {
         if (fields.length > 0) {
-            // Set the first post to current time + delay
-            const now = new Date()
-            const firstPostTime = addMinutes(now, Number(delayMinutes))
+            // Set the first post to start date + delay
+            const firstPostTime = addMinutes(scheduleStartDate, Number(delayMinutes))
             setValue("schedulePosts.0.scheduledTime", format(firstPostTime, "yyyy-MM-dd'T'HH:mm"))
 
             // Update all subsequent posts based on the delay
@@ -144,7 +174,7 @@ export default function SchedulePosts() {
                 previousTime = nextTime
             }
         }
-    }
+    }, [scheduleStartDate, delayMinutes, fields.length, setValue])
 
     // Apply agent range to existing posts
     const applyAgentRange = () => {
@@ -207,7 +237,38 @@ export default function SchedulePosts() {
         }
     }
 
-    // Handle file upload
+    // Add the handleStartDateChange function that preserves time
+    const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.value) return
+
+        // Get the current time from scheduleStartDate
+        const currentHours = getHours(scheduleStartDate)
+        const currentMinutes = getMinutes(scheduleStartDate)
+
+        // Parse the new date from the input
+        const newDateOnly = new Date(e.target.value)
+
+        // Set the time from the current scheduleStartDate to the new date
+        const newDateWithTime = setMinutes(setHours(newDateOnly, currentHours), currentMinutes)
+
+        // Update the state
+        setScheduleStartDate(newDateWithTime)
+
+        // Update all scheduled times based on the new start date while preserving time
+        if (fields.length > 0) {
+            const firstPostTime = addMinutes(newDateWithTime, Number(delayMinutes))
+            setValue("schedulePosts.0.scheduledTime", format(firstPostTime, "yyyy-MM-dd'T'HH:mm"))
+
+            let previousTime = firstPostTime
+            for (let i = 1; i < fields.length; i++) {
+                const nextTime = addMinutes(previousTime, Number(delayMinutes))
+                setValue(`schedulePosts.${i}.scheduledTime`, format(nextTime, "yyyy-MM-dd'T'HH:mm"))
+                previousTime = nextTime
+            }
+        }
+    }
+
+    // Modify the handleFileUpload function to use scheduleStartDate
     const handleFileUpload = () => {
         const file = fileInputRef.current?.files?.[0]
         if (!file) {
@@ -263,7 +324,6 @@ export default function SchedulePosts() {
                 }
 
                 // Create schedule posts from tweets
-                const now = new Date()
                 const currentDelay = currentDelayRef.current
 
                 // Use active agents for assignment
@@ -276,7 +336,8 @@ export default function SchedulePosts() {
                 }
 
                 const newPosts: SchedulePost[] = tweets.map((content, index) => {
-                    const postTime = addMinutes(now, currentDelay * (index + 1))
+                    // Use scheduleStartDate instead of now
+                    const postTime = addMinutes(scheduleStartDate, currentDelay * (index + 1))
                     const agentIndex = index % agentsToUse.length
 
                     return {
@@ -313,13 +374,13 @@ export default function SchedulePosts() {
         reader.readAsArrayBuffer(file)
     }
 
-    // Clear imported posts and reset form
+    // Modify the clearImportedPosts function to use scheduleStartDate
     const clearImportedPosts = () => {
         // Reset to a single empty post
         replace([
             {
                 content: "",
-                scheduledTime: format(addMinutes(new Date(), Number(delayMinutes)), "yyyy-MM-dd'T'HH:mm"),
+                scheduledTime: format(addMinutes(scheduleStartDate, Number(delayMinutes)), "yyyy-MM-dd'T'HH:mm"),
                 agentId: activeAgents.length > 0 ? activeAgents[0].uuid : "",
             },
         ])
@@ -344,10 +405,13 @@ export default function SchedulePosts() {
         alert("Schedule created successfully!")
     }
 
-    // Initial setup
+    // Set initial time on component mount
     useEffect(() => {
-        // Update times when component mounts
-        updateScheduledTimes()
+        if (!initialTimeSet) {
+            setScheduleStartDate(new Date())
+            setInitialTimeSet(true)
+            updateScheduledTimes()
+        }
 
         // Set up an interval to keep the times current
         const intervalId = setInterval(() => {
@@ -355,14 +419,13 @@ export default function SchedulePosts() {
         }, 60000) // Update every minute
 
         return () => clearInterval(intervalId)
-    }, [])
+    }, [initialTimeSet, updateScheduledTimes])
 
-    // This effect will run whenever delayMinutes changes
+    // Modify the useEffect that runs when delayMinutes changes to use scheduleStartDate
     useEffect(() => {
         if (fields.length > 0) {
             // Update first post time
-            const now = new Date()
-            const firstPostTime = addMinutes(now, Number(delayMinutes))
+            const firstPostTime = addMinutes(scheduleStartDate, Number(delayMinutes))
             setValue("schedulePosts.0.scheduledTime", format(firstPostTime, "yyyy-MM-dd'T'HH:mm"))
 
             // Update all subsequent posts
@@ -373,7 +436,23 @@ export default function SchedulePosts() {
                 previousTime = nextTime
             }
         }
-    }, [delayMinutes, fields.length, setValue])
+    }, [delayMinutes, fields.length, setValue, scheduleStartDate])
+
+    // Add a new useEffect that runs when the component mounts to ensure the agent is selected
+    useEffect(() => {
+        // This will run once when the component mounts and whenever agents change
+        if (agents && agents.length === 1) {
+            // Force select the single agent for all posts with a slight delay to ensure form is ready
+            const timer = setTimeout(() => {
+                const posts = getValues("schedulePosts")
+                posts.forEach((_, index) => {
+                    setValue(`schedulePosts.${index}.agentId`, agents[0].uuid)
+                })
+            }, 100)
+
+            return () => clearTimeout(timer)
+        }
+    }, [agents, getValues, setValue])
 
     return (
         <div className="py-2">
@@ -388,8 +467,9 @@ export default function SchedulePosts() {
                     <div className="lg:col-span-12 mb-2">
                         <Card className="shadow-sm">
                             <CardContent className="p-2">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 relative">
-                                    {/* Delay Time Setting - Left 50% */}
+                                {/* Replace the existing grid div in the Card with this updated version: */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 relative">
+                                    {/* Delay Time Setting - Left column */}
                                     <div className="flex items-center gap-2">
                                         <div className="flex items-center gap-1">
                                             <Clock className="h-4 w-4 text-muted-foreground" />
@@ -415,8 +495,7 @@ export default function SchedulePosts() {
                                                     currentDelayRef.current = newDelay
 
                                                     if (fields.length > 0) {
-                                                        const now = new Date()
-                                                        const firstPostTime = addMinutes(now, newDelay)
+                                                        const firstPostTime = addMinutes(scheduleStartDate, newDelay)
                                                         setValue("schedulePosts.0.scheduledTime", format(firstPostTime, "yyyy-MM-dd'T'HH:mm"))
 
                                                         let previousTime = firstPostTime
@@ -433,20 +512,31 @@ export default function SchedulePosts() {
                                         {errors.delayMinutes && <p className="text-xs text-destructive">{errors.delayMinutes.message}</p>}
                                     </div>
 
-                                    {/* Vertical divider for desktop */}
-                                    <div className="hidden md:block absolute h-full w-px bg-border left-1/2 top-0"></div>
-
-                                    {/* Horizontal divider for mobile */}
-                                    <div className="md:hidden w-full h-px bg-border my-1"></div>
-
-                                    {/* File Upload - Right 50% */}
-                                    <div className="flex items-start md:items-center gap-1">
-                                        <FileSpreadsheet className="h-4 w-4 text-muted-foreground mt-1 md:mt-0" />
+                                    {/* Schedule Start Date - Middle column - Make this more compact */}
+                                    <div className="flex items-center">
+                                        <Clock className="h-4 w-4 text-muted-foreground mr-1" />
+                                        <Label htmlFor="scheduleStartDate" className="font-medium whitespace-nowrap mr-2">
+                                            Start From:
+                                        </Label>
                                         <div className="flex-1">
-                                            <div className="flex flex-col md:flex-row md:items-center gap-1">
-                                                <span className="font-medium whitespace-nowrap text-sm">Import from Excel/CSV:</span>
-                                                <div className="flex-1 flex items-center gap-1">
-                                                    <div className="flex-1">
+                                            <Input
+                                                id="scheduleStartDate"
+                                                type="date"
+                                                className="h-8"
+                                                defaultValue={format(scheduleStartDate, "yyyy-MM-dd")}
+                                                onChange={handleStartDateChange}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* File Upload - Right column - Fix responsive issues */}
+                                    <div className="flex items-center gap-1">
+                                        <FileSpreadsheet className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-1">
+                                                <span className="font-medium whitespace-nowrap text-sm">Import:</span>
+                                                <div className="flex-1 flex items-center gap-1 min-w-0">
+                                                    <div className="flex-1 min-w-0">
                                                         <Input
                                                             ref={fileInputRef}
                                                             type="file"
@@ -456,11 +546,11 @@ export default function SchedulePosts() {
                                                             disabled={isUploading}
                                                         />
                                                         <div
-                                                            className="flex items-center border rounded-md px-2 py-1 cursor-pointer hover:bg-muted text-sm h-8"
+                                                            className="flex items-center border rounded-md px-2 py-1 cursor-pointer hover:bg-muted text-sm h-8 min-w-0"
                                                             onClick={() => fileInputRef.current?.click()}
                                                         >
                                                             <span className="text-xs font-medium">Choose File</span>
-                                                            <span className="ml-1 text-xs text-muted-foreground truncate max-w-[150px]">
+                                                            <span className="ml-1 text-xs text-muted-foreground truncate max-w-[100px]">
                                                                 {selectedFileName || "No file chosen"}
                                                             </span>
                                                         </div>
@@ -469,23 +559,33 @@ export default function SchedulePosts() {
                                                         type="button"
                                                         onClick={handleFileUpload}
                                                         disabled={isUploading || !selectedFileName}
-                                                        className="h-8 text-xs px-2"
+                                                        className="h-8 text-xs px-2 flex-shrink-0"
                                                     >
                                                         {isUploading ? "Uploading..." : "Upload"}
                                                     </Button>
                                                 </div>
                                             </div>
-                                            <div className="text-xs text-muted-foreground">
-                                                Upload an Excel or CSV file with a column named &quot;Tweets&quot; or &quot;Content&quot;
+                                            <div className="text-xs text-muted-foreground truncate">
+                                                Excel/CSV with &quot;Tweets&quot; or &quot;Content&quot; column
                                             </div>
                                         </div>
                                     </div>
+
+                                    {/* Vertical dividers for desktop */}
+                                    <div className="hidden md:block absolute h-full w-px bg-border left-1/3 top-0"></div>
+                                    <div className="hidden md:block absolute h-full w-px bg-border left-2/3 top-0"></div>
+
+                                    {/* Horizontal dividers for mobile */}
+                                    <div className="md:hidden w-full h-px bg-border my-1"></div>
+                                    <div className="md:hidden w-full h-px bg-border my-1"></div>
                                 </div>
 
                                 {uploadSuccess && (
                                     <div className="mt-2 flex items-center justify-between">
                                         <Alert className="flex-1 bg-green-50 border-green-200 text-green-800 py-1 px-2">
-                                            <AlertTitle className="text-green-800 text-sm">Success</AlertTitle>
+                                            {/* <AlertTitle className="text-green-800 text-sm">Success</AlertTitle> */}
+                                            {/* <AlertTitle className="text-green-800 text-sm">✔️ ✓ </AlertTitle> */}
+                                            <AlertTitle className="text-green-800 text-sm"> ✓ &nbsp;</AlertTitle>
                                             <AlertDescription className="text-green-700 text-xs">
                                                 Successfully imported {uploadSuccess.count} posts from the file
                                             </AlertDescription>
@@ -584,9 +684,9 @@ export default function SchedulePosts() {
                                 ) : (
                                     <div className="p-4 text-center space-y-3">
                                         <p className="text-muted-foreground text-sm">No agents created.</p>
-                                        <Button link="/my-agent">
+                                        <Button className="w-full bg-black hover:bg-gray-800 text-white hover:text-white" link="/my-agent">
                                             <UserPlus className="mr-2 h-4 w-4" />
-                                            Create Agent
+                                            Create agent
                                         </Button>
                                     </div>
                                 )}
@@ -646,7 +746,7 @@ export default function SchedulePosts() {
                                                 )}
                                             </div>
 
-                                            {/* Right column for date/time and agent - Takes 4 columns */}
+                                            {/* Right column for date/time and agent -  Takes 4 columns */}
                                             <div className="col-span-4 flex flex-col gap-2">
                                                 {/* Schedule Date & Time */}
                                                 <div>
