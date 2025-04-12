@@ -142,7 +142,7 @@ export default function PostList({
     }
 
     return (
-        <div className="space-y-2">
+        <div className="space-y-4">
             {fields.map((field, index) => (
                 <PostItem
                     key={field.id}
@@ -158,12 +158,12 @@ export default function PostList({
             <Button
                 type="button"
                 variant="outline"
-                className="w-full h-8 text-sm"
+                className="w-full h-10 text-sm border-blue-200 hover:border-blue-400 hover:bg-blue-50 text-blue-600 hover:text-blue-700 font-medium"
                 onClick={handleAddPost}
                 disabled={agents?.length === 0}
             >
-                <Plus className="mr-1 h-3 w-3" />
-                Add More
+                <Plus className="mr-2 h-4 w-4" />
+                Add More Posts
             </Button>
         </div>
     )

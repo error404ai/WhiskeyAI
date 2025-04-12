@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useForm, useFieldArray, FormProvider } from "react-hook-form"
-import { format, addMinutes, setHours, setMinutes, getHours, getMinutes } from "date-fns"
+import { format, addMinutes } from "date-fns"
 import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -161,23 +161,16 @@ export default function SchedulePosts() {
     const handleStartDateChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.value) return
 
-        // Get the current time from scheduleStartDate
-        const currentHours = getHours(scheduleStartDate)
-        const currentMinutes = getMinutes(scheduleStartDate)
-
-        // Parse the new date from the input
-        const newDateOnly = new Date(e.target.value)
-
-        // Set the time from the current scheduleStartDate to the new date
-        const newDateWithTime = setMinutes(setHours(newDateOnly, currentHours), currentMinutes)
-
+        // Parse the new date and time directly from the input
+        const newDateTime = new Date(e.target.value)
+        
         // Update the state
-        setScheduleStartDate(newDateWithTime)
+        setScheduleStartDate(newDateTime)
 
-        // Update all scheduled times based on the new start date while preserving time
+        // Update all scheduled times based on the new start date and time
         if (fields.length > 0) {
             const delayMinutes = methods.getValues("delayMinutes")
-            const firstPostTime = addMinutes(newDateWithTime, Number(delayMinutes))
+            const firstPostTime = addMinutes(newDateTime, Number(delayMinutes))
             methods.setValue("schedulePosts.0.scheduledTime", format(firstPostTime, "yyyy-MM-dd'T'HH:mm"))
 
             let previousTime = firstPostTime
@@ -187,7 +180,7 @@ export default function SchedulePosts() {
                 previousTime = nextTime
             }
         }
-    }, [scheduleStartDate, fields.length, methods])
+    }, [fields.length, methods])
 
     // Modify the updateScheduledTimes function to preserve time when date changes
     const updateScheduledTimes = useCallback(() => {
@@ -339,20 +332,20 @@ export default function SchedulePosts() {
     }
 
     return (
-        <div className="py-2">
+        <div className="py-6 space-y-6 w-full">
             {/* Scheduled Tweets List */}
             <ScheduledTweetsList />
             
-            <div className="mb-4">
-                <h1 className="text-2xl font-bold mb-1">Schedule Posts</h1>
-                <p className="text-muted-foreground">Create and schedule posts for your AI agents with customizable timing.</p>
+            <div className="mb-6">
+                <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Schedule Posts</h1>
+                <p className="text-muted-foreground text-lg">Create and schedule posts for your AI agents with customizable timing.</p>
             </div>
 
             <FormProvider {...methods}>
-                <form onSubmit={methods.handleSubmit(onSubmit)}>
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-2">
+                <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
                         {/* Scheduling Controls (Delay, Start Date, File Upload) */}
-                        <div className="lg:col-span-12 mb-2">
+                        <div className="lg:col-span-12">
                             <SchedulingControls 
                                 methods={methods}
                                 scheduleStartDate={scheduleStartDate}
@@ -395,29 +388,29 @@ export default function SchedulePosts() {
                     </div>
 
                     {formStatus === 'error' && formError && (
-                        <Alert variant="destructive" className="mt-4">
+                        <Alert variant="destructive" className="mt-6">
                             <AlertTitle>Error</AlertTitle>
                             <AlertDescription>{formError}</AlertDescription>
                         </Alert>
                     )}
 
                     {formStatus === 'success' && (
-                        <Alert className="mt-4 bg-green-50 border-green-200 text-green-700">
+                        <Alert className="mt-6 bg-green-50 border-green-200 text-green-700">
                             <AlertTitle>Success!</AlertTitle>
                             <AlertDescription>Your tweets have been scheduled successfully.</AlertDescription>
                         </Alert>
                     )}
 
-                    <div className="mt-4 flex justify-end">
+                    <div className="mt-6 flex justify-end">
                         <Button 
                             type="submit" 
-                            size="sm" 
-                            className="px-4" 
+                            size="lg" 
+                            className="px-6 font-medium bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" 
                             disabled={agents.length === 0 || formStatus === 'submitting'}
                         >
                             {formStatus === 'submitting' ? (
                                 <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                                     Scheduling...
                                 </>
                             ) : (
