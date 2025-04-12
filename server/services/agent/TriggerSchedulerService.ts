@@ -73,8 +73,6 @@ export class TriggerSchedulerService {
 
   public async processTrigger(trigger: AgentTrigger & { agent: Agent & { user: { id: number } } }): Promise<void> {
     this.userId = trigger.agent.user.id;
-    this.openAIService.setUserId(this.userId);
-
     const startTime = Date.now();
     const triggerData = {
       id: trigger.id,
