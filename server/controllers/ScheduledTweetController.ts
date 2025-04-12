@@ -6,6 +6,18 @@ import { scheduledTweetSchema } from "@/server/zodSchema/scheduledTweetSchema";
 import { z } from "zod";
 
 /**
+ * Interface for pagination parameters
+ */
+export interface PaginatedProps {
+  page?: number;
+  perPage?: number;
+  search?: string;
+  searchColumns?: string[];
+  sortColumn?: string;
+  sortOrder?: "asc" | "desc";
+}
+
+/**
  * Create a scheduled tweet
  * @param data The scheduled tweet data
  * @returns Success status and message
@@ -24,12 +36,13 @@ export const createScheduledTweet = async (data: unknown): Promise<{ success: bo
 };
 
 /**
- * Get all scheduled tweets for the current user
- * @returns Array of scheduled tweets
+ * Get all scheduled tweets for the current user with pagination support
+ * @param pagination options for paginating and sorting results
+ * @returns Paginated array of scheduled tweets
  */
-export const getScheduledTweets = async () => {
+export const getScheduledTweets = async (params: PaginatedProps = { page: 1, perPage: 10 }) => {
   try {
-    return await ScheduledTweetService.getScheduledTweets();
+    return await ScheduledTweetService.getScheduledTweets(params);
   } catch (error) {
     console.error("Error getting scheduled tweets:", error);
     throw error;

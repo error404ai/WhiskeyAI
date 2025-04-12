@@ -1,10 +1,9 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { UserPlus } from "lucide-react"
+import { UserX, Loader2 } from "lucide-react"
 import { Agent } from "./types"
 
 interface AgentSelectorProps {
@@ -26,88 +25,95 @@ export default function AgentSelector({
     setAgentRangeEnd,
     applyAgentRange
 }: AgentSelectorProps) {
+    'use no memo'
     return (
-        <Card className="h-full shadow-sm">
-            <CardContent className="p-2">
-                <h2 className="text-base font-semibold mb-3">Agents</h2>
-
+        <Card className="shadow-md border-[1px] border-blue-100 hover:border-blue-200 transition-all h-full">
+            <CardHeader className="bg-gradient-to-r from-blue-600/10 to-indigo-600/10 pb-2">
+                <CardTitle className="text-lg font-semibold">Agent Selection</CardTitle>
+                <CardDescription>Choose which agents will post</CardDescription>
+            </CardHeader>
+            <CardContent className="p-4">
                 {isAgentsLoading ? (
-                    Array(5)
-                        .fill(0)
-                        .map((_, i) => <div key={i} className="p-2 rounded-md bg-gray-100 animate-pulse h-6 mb-2"></div>)
-                ) : agents && agents.length > 0 ? (
+                    <div className="flex justify-center items-center h-32">
+                        <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+                    </div>
+                ) : agents.length === 0 ? (
+                    <div className="p-4 text-center border border-dashed border-blue-200 rounded-md bg-blue-50/50">
+                        <UserX className="h-8 w-8 mx-auto text-blue-300 mb-2" />
+                        <h3 className="text-sm font-medium text-gray-700">No Agents Available</h3>
+                        <p className="text-xs text-gray-500 mt-1">Please create agents first to schedule posts.</p>
+                    </div>
+                ) : (
                     <>
-                        {/* Agent Range Selector - Only show if agents exist */}
-                        <div className="mb-4 space-y-3">
-                            <div className="grid grid-cols-2 gap-2">
-                                <div>
-                                    <Label htmlFor="agentRangeStart" className="text-sm mb-1 block">
-                                        Start:
-                                    </Label>
-                                    <Input
-                                        id="agentRangeStart"
-                                        type="number"
-                                        className="h-9"
-                                        min="1"
-                                        max={agents.length}
-                                        value={agentRangeStart}
-                                        onChange={(e) => {
-                                            const value = Number.parseInt(e.target.value) || 1
-                                            setAgentRangeStart(Math.min(value, agentRangeEnd))
-                                        }}
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="agentRangeEnd" className="text-sm mb-1 block">
-                                        End:
-                                    </Label>
-                                    <Input
-                                        id="agentRangeEnd"
-                                        type="number"
-                                        className="h-9"
-                                        min={agentRangeStart}
-                                        max={agents.length}
-                                        value={agentRangeEnd}
-                                        onChange={(e) => {
-                                            const value = Number.parseInt(e.target.value) || agentRangeStart
-                                            setAgentRangeEnd(Math.max(value, agentRangeStart))
-                                        }}
-                                    />
-                                </div>
+                        <div className="mb-4">
+                            <p className="text-sm font-medium text-gray-500 mb-2">Agent Range</p>
+                            <div className="flex items-center gap-2">
+                                <Input
+                                    type="number"
+                                    min={1}
+                                    max={agents.length}
+                                    value={agentRangeStart}
+                                    onChange={(e) => setAgentRangeStart(Number(e.target.value) || 1)}
+                                    className="w-16 h-8 text-center border-blue-200 focus:border-blue-400"
+                                />
+                                <span className="text-muted-foreground">to</span>
+                                <Input
+                                    type="number"
+                                    min={agentRangeStart}
+                                    max={agents.length}
+                                    value={agentRangeEnd}
+                                    onChange={(e) => setAgentRangeEnd(Number(e.target.value) || agentRangeStart)}
+                                    className="w-16 h-8 text-center border-blue-200 focus:border-blue-400"
+                                />
+                                <Button 
+                                    type="button" 
+                                    size="sm" 
+                                    className="ml-1 bg-blue-600 hover:bg-blue-700"
+                                    onClick={applyAgentRange}
+                                >
+                                    Apply
+                                </Button>
                             </div>
-
-                            <Button
-                                type="button"
-                                className="w-full bg-black hover:bg-gray-800 text-white"
-                                onClick={applyAgentRange}
-                            >
-                                Apply Range
-                            </Button>
+                            <p className="text-xs text-blue-500 mt-1">
+                                Using {agentRangeEnd - agentRangeStart + 1} of {agents.length} available agents
+                            </p>
                         </div>
 
-                        {/* Agents List */}
-                        <div className="space-y-2">
-                            {agents.map((agent, index) => (
-                                <div
-                                    key={agent.uuid}
-                                    className={`p-2 rounded-md hover:bg-muted flex items-center gap-2 ${
-                                        index + 1 < agentRangeStart || index + 1 > agentRangeEnd ? "opacity-50" : ""
-                                    }`}
-                                >
-                                    <span className="text-xs text-muted-foreground">#{index + 1}</span>
-                                    <p className="font-medium text-sm">{agent.name}</p>
-                                </div>
-                            ))}
+                        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1 pb-1">
+                            {agents.map((agent, index) => {
+                                const isActive = index + 1 >= agentRangeStart && index + 1 <= agentRangeEnd;
+                                return (
+                                    <div
+                                        key={agent.uuid}
+                                        className={`p-2 rounded-md flex items-center border ${
+                                            isActive 
+                                                ? "bg-blue-50 border-blue-200"
+                                                : "bg-gray-50 border-gray-200 opacity-50"
+                                        }`}
+                                    >
+                                        <div className="flex-1">
+                                            <p className={`text-sm font-medium ${isActive ? "text-blue-700" : "text-gray-500"}`}>
+                                                #{index + 1} - {agent.name}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground truncate">
+                                                {agent.status === "running" ? (
+                                                    <span className="text-green-600 flex items-center">
+                                                        <span className="h-1.5 w-1.5 rounded-full bg-green-500 inline-block mr-1"></span>
+                                                        Active
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-amber-600 flex items-center">
+                                                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500 inline-block mr-1"></span>
+                                                        Paused
+                                                    </span>
+                                                )}
+                                            </p>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </>
-                ) : (
-                    <div className="p-4 text-center space-y-3">
-                        <p className="text-muted-foreground text-sm">No agents created.</p>
-                        <Button className="w-full bg-black hover:bg-gray-800 text-white hover:text-white" link="/my-agent">
-                            <UserPlus className="mr-2 h-4 w-4" />
-                            Create agent
-                        </Button>
-                    </div>
                 )}
             </CardContent>
         </Card>
