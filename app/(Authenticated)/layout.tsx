@@ -1,10 +1,10 @@
 "use client";
 import AuthHeader from "@/components/Authenticated/header/AuthHeader";
+import { AnimatePresence, motion } from "@/components/ClientWrappers/motion";
 import AppSidebar from "@/components/Guest/AppSidebar/AppSidebar";
 import PageLoading from "@/components/Loading/PageLoading";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useRouteLoading } from "@/hooks/useRouteLoading";
-import { AnimatePresence, motion } from "framer-motion";
 
 type Props = {
   children: React.ReactNode;
