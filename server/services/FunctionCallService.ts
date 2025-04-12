@@ -173,5 +173,4 @@ export class FunctionCallService {
   }
 }
 
-const functionCallService = new FunctionCallService();
-export default functionCallService;
+export default FunctionCallService;
