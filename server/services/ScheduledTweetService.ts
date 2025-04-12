@@ -1,61 +1,64 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from "@/db/db";
-import { NewScheduledTweet, ScheduledTweet, agentPlatformsTable, scheduledTweetsTable } from "@/db/schema";
+import { NewScheduledTweet, ScheduledTweet, agentPlatformsTable, agentsTable, scheduledTweetsTable } from "@/db/schema";
+import { DrizzlePaginator, PaginationResult } from "@skmirajbn/drizzle-paginator";
 import { and, eq, lte } from "drizzle-orm";
+import { PaginatedProps } from "../controllers/ScheduledTweetController";
 import TwitterService from "./TwitterService";
 import AuthService from "./auth/authService";
 
 export class ScheduledTweetService {
-  /**
-   * Create a scheduled tweet
-   * @param data The scheduled tweet data
-   * @returns The created tweet ID
-   */
   public static async createScheduledTweet(data: NewScheduledTweet): Promise<number> {
     const [result] = await db.insert(scheduledTweetsTable).values(data).returning({ id: scheduledTweetsTable.id });
     return result.id;
   }
 
-  /**
-   * Get all scheduled tweets for the current user
-   * @returns Array of scheduled tweets
-   */
-  public static async getScheduledTweets(): Promise<ScheduledTweet[]> {
+  public static async getScheduledTweets(params: PaginatedProps = { page: 1, perPage: 10 }): Promise<PaginationResult<ScheduledTweet>> {
     const authUser = await AuthService.getAuthUser();
     if (!authUser) {
       throw new Error("User not authenticated");
     }
 
-    // Join with agents to get only the tweets for the current user's agents
-    const tweets = await db.query.scheduledTweetsTable.findMany({
-      with: {
-        agent: true,
+    const query = db.query.scheduledTweetsTable.findMany({
+      where: (scheduledTweetsTable, { inArray, eq }) => {
+        const subquery = db
+          .select({ id: agentsTable.id })
+          .from(agentsTable)
+          .where(eq(agentsTable.userId, Number(authUser.id)));
+        return inArray(scheduledTweetsTable.agentId, subquery);
       },
+      with: {
+        agent: {
+          with: {
+            user: true,
+          },
+        },
+      },
+      orderBy: (scheduledTweetsTable, { desc }) => [desc(scheduledTweetsTable.scheduledAt)],
     });
 
-    // Filter the tweets to only include ones where the agent belongs to the current user
-    return tweets.filter(tweet => tweet.agent && tweet.agent.userId === Number(authUser.id));
+    const paginator = new DrizzlePaginator<ScheduledTweet>(db, query).page(params.page || 1).allowColumns(["id", "agentId", "content", "scheduledAt", "status", "createdAt", "processedAt", "errorMessage"]);
+    paginator.map((item) => {
+      return {
+        ...item,
+        agentName: (item.agent as any)?.[3],
+      };
+    });
+    // console.log("paginator is", (await paginator.paginate(10)).data[0].agent);
+    return paginator.paginate(params.perPage || 10);
   }
 
-  /**
-   * Get pending scheduled tweets that need to be processed
-   * @returns Array of pending scheduled tweets
-   */
   public static async getPendingScheduledTweets(): Promise<(ScheduledTweet & { agent: { uuid: string } })[]> {
     const now = new Date();
 
-    // Get all pending tweets that are scheduled to be posted now or in the past
     const pendingTweets = await db.query.scheduledTweetsTable.findMany({
-      where: and(
-        eq(scheduledTweetsTable.status, "pending"),
-        lte(scheduledTweetsTable.scheduledAt, now)
-      ),
+      where: and(eq(scheduledTweetsTable.status, "pending"), lte(scheduledTweetsTable.scheduledAt, now)),
       with: {
         agent: true,
       },
     });
 
-    // Return only the tweets with the required agent properties
-    return pendingTweets.map(tweet => ({
+    return pendingTweets.map((tweet) => ({
       ...tweet,
       agent: {
         uuid: tweet.agent.uuid,
@@ -63,33 +66,21 @@ export class ScheduledTweetService {
     }));
   }
 
-  /**
-   * Process a scheduled tweet
-   * @param tweet The tweet to process
-   * @returns Success status
-   */
   public static async processTweet(tweet: ScheduledTweet & { agent: { uuid: string } }): Promise<boolean> {
     try {
       // Get the agent platform for Twitter
       const agentPlatform = await db.query.agentPlatformsTable.findFirst({
-        where: and(
-          eq(agentPlatformsTable.agentId, tweet.agentId),
-          eq(agentPlatformsTable.type, "twitter"),
-          eq(agentPlatformsTable.enabled, true)
-        ),
+        where: and(eq(agentPlatformsTable.agentId, tweet.agentId), eq(agentPlatformsTable.type, "twitter"), eq(agentPlatformsTable.enabled, true)),
       });
 
       if (!agentPlatform) {
         throw new Error(`No enabled Twitter platform found for agent ${tweet.agentId}`);
       }
 
-      // Initialize Twitter service
       const twitterService = new TwitterService(agentPlatform);
-      
-      // Post the tweet
+
       await twitterService.postTweet(tweet.content);
 
-      // Update the tweet status to completed
       await db
         .update(scheduledTweetsTable)
         .set({
@@ -100,7 +91,6 @@ export class ScheduledTweetService {
 
       return true;
     } catch (error) {
-      // Update the tweet status to failed
       await db
         .update(scheduledTweetsTable)
         .set({
@@ -114,11 +104,6 @@ export class ScheduledTweetService {
     }
   }
 
-  /**
-   * Delete a scheduled tweet
-   * @param tweetId The tweet ID to delete
-   * @returns Success status
-   */
   public static async deleteScheduledTweet(tweetId: number): Promise<boolean> {
     const authUser = await AuthService.getAuthUser();
     if (!authUser) {
@@ -143,4 +128,4 @@ export class ScheduledTweetService {
   }
 }
 
-export default ScheduledTweetService; 
+export default ScheduledTweetService;
