@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export default function ScheduledTweetsList() {
+    'use no memo'
     const [showScheduledTweets, setShowScheduledTweets] = useState(false)
     
     // Add query for scheduled tweets

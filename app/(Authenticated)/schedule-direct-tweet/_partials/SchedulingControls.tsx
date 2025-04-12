@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import * as XLSX from "xlsx"
 import { FormValues, ExcelData, Agent, SchedulePost } from "./types"
+import { toast } from "sonner"
 
 interface SchedulingControlsProps {
     methods: UseFormReturn<FormValues>
@@ -24,6 +25,7 @@ interface SchedulingControlsProps {
     uploadSuccess: { count: number } | null
     hasImportedPosts: boolean
     currentDelayRef: React.RefObject<number>
+    onImportSuccess?: (count: number) => void
 }
 
 export default function SchedulingControls({
@@ -37,8 +39,10 @@ export default function SchedulingControls({
     setUploadSuccess,
     uploadSuccess,
     hasImportedPosts,
-    currentDelayRef
+    currentDelayRef,
+    onImportSuccess
 }: SchedulingControlsProps) {
+    'use no memo'
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [isUploading, setIsUploading] = useState(false)
     const [selectedFileName, setSelectedFileName] = useState<string | null>(null)
@@ -57,7 +61,7 @@ export default function SchedulingControls({
     const handleFileUpload = () => {
         const file = fileInputRef.current?.files?.[0]
         if (!file) {
-            alert("No file selected. Please select a file to upload.")
+            toast.error("No file selected. Please select a file to upload.")
             return
         }
 
@@ -77,17 +81,26 @@ export default function SchedulingControls({
                 // Convert to JSON with proper typing
                 const jsonData: ExcelData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
 
+                if (!jsonData || jsonData.length === 0) {
+                    toast.error("No data found in the file. The file appears to be empty.")
+                    setIsUploading(false)
+                    return
+                }
+
                 // Extract tweet content (skip header row if it exists)
-                const startRow =
-                    jsonData.length > 0 &&
-                        jsonData[0] &&
-                        jsonData[0].length > 0 &&
-                        typeof jsonData[0][0] === "string" &&
-                        (jsonData[0][0].toLowerCase() === "tweets" ||
-                            jsonData[0][0].toLowerCase() === "tweet" ||
-                            (typeof jsonData[0][0] === "string" && jsonData[0][0].toLowerCase().includes("content")))
-                        ? 1
-                        : 0
+                let startRow = 0
+                
+                // Check if the first row contains headers
+                if (jsonData[0] && jsonData[0].length > 0) {
+                    const firstCell = jsonData[0][0]
+                    if (typeof firstCell === "string" && (
+                        firstCell.toLowerCase() === "tweets" ||
+                        firstCell.toLowerCase() === "tweet" ||
+                        firstCell.toLowerCase().includes("content")
+                    )) {
+                        startRow = 1
+                    }
+                }
 
                 // Process the tweets with proper typing
                 const tweets: string[] = []
@@ -103,7 +116,7 @@ export default function SchedulingControls({
                 }
 
                 if (tweets.length === 0) {
-                    alert("No content found. The uploaded file doesn't contain any valid tweet content.")
+                    toast.error("No content found. The uploaded file doesn't contain any valid tweet content.")
                     setIsUploading(false)
                     return
                 }
@@ -115,11 +128,16 @@ export default function SchedulingControls({
                 const agentsToUse = activeAgents
 
                 if (agentsToUse.length === 0) {
-                    alert("No agents available. Please create agents first or adjust the agent range.")
+                    toast.error("No agents available. Please create agents first or adjust the agent range.")
                     setIsUploading(false)
                     return
                 }
 
+                // First, clear any existing state to avoid UI sync issues
+                setHasImportedPosts(false)
+                setUploadSuccess(null)
+                
+                // Create the new posts with proper scheduling and agent assignment
                 const newPosts: SchedulePost[] = tweets.map((content, index) => {
                     // Use scheduleStartDate instead of now
                     const postTime = addMinutes(scheduleStartDate, currentDelay * (index + 1))
@@ -132,13 +150,41 @@ export default function SchedulingControls({
                     }
                 })
 
-                // Replace existing posts with new ones from file
-                replace(newPosts)
-                setHasImportedPosts(true)
-                setUploadSuccess({ count: tweets.length })
+                console.log(`Importing ${tweets.length} posts from Excel`)
+                
+                try {
+                    // Replace first to ensure clean state
+                    replace(newPosts)
+                    
+                    // Important: Force-update the UI right away
+                    Promise.resolve().then(() => {
+                        // Update state immediately after replacement
+                        setHasImportedPosts(true)
+                        setUploadSuccess({ count: tweets.length })
+                        
+                        // Notify parent component about successful import
+                        if (onImportSuccess) {
+                            onImportSuccess(tweets.length);
+                        }
+                        
+                        // Force re-render and validation of all form fields
+                        methods.trigger("schedulePosts").then(() => {
+                            console.log(`Validation complete after import: ${tweets.length} posts should be visible`)
+                        })
+                        
+                        toast.success(`Successfully imported ${tweets.length} posts from the file`)
+                        
+                        // Log completion for debugging
+                        console.log(`Excel import complete: ${newPosts.length} posts added to form`)
+                    })
+                } catch (error) {
+                    console.error("Error updating form with imported posts:", error)
+                    toast.error("Error updating form with imported posts. Please try again.")
+                }
+                
             } catch (error) {
                 console.error("Error processing file:", error)
-                alert(
+                toast.error(
                     "Error processing file. There was an error reading the uploaded file. Please make sure it's a valid Excel file."
                 )
             } finally {
@@ -152,7 +198,7 @@ export default function SchedulingControls({
         }
 
         reader.onerror = () => {
-            alert("Error reading file. There was an error reading the uploaded file.")
+            toast.error("Error reading file. There was an error reading the uploaded file.")
             setIsUploading(false)
         }
 
@@ -180,17 +226,17 @@ export default function SchedulingControls({
             setSelectedFileName(null)
         }
 
-        alert("Imported posts cleared. All imported posts have been removed.")
+        toast.success("Imported posts cleared. All imported posts have been removed.")
     }
 
     return (
-        <Card className="shadow-sm">
-            <CardContent className="p-2">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 relative">
+        <Card className="shadow-md border-[1px] border-blue-100 hover:border-blue-200 transition-all">
+            <CardContent className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative">
                     {/* Delay Time Setting - Left column */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 bg-blue-50/50 p-2 rounded-md">
                         <div className="flex items-center gap-1">
-                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <Clock className="h-4 w-4 text-blue-600" />
                             <Label htmlFor="delayMinutes" className="font-medium">
                                 Delay Between Posts:
                             </Label>
@@ -199,7 +245,7 @@ export default function SchedulingControls({
                             <Input
                                 id="delayMinutes"
                                 type="number"
-                                className="w-20 h-8"
+                                className="w-20 h-8 border-blue-200 focus:border-blue-400"
                                 min="0"
                                 max="1440"
                                 {...methods.register("delayMinutes", {
@@ -233,25 +279,25 @@ export default function SchedulingControls({
                     </div>
 
                     {/* Schedule Start Date - Middle column */}
-                    <div className="flex items-center">
-                        <Clock className="h-4 w-4 text-muted-foreground mr-1" />
+                    <div className="flex items-center bg-blue-50/50 p-2 rounded-md">
+                        <Clock className="h-4 w-4 text-blue-600 mr-1" />
                         <Label htmlFor="scheduleStartDate" className="font-medium whitespace-nowrap mr-2">
                             Start From:
                         </Label>
                         <div className="flex-1">
                             <Input
                                 id="scheduleStartDate"
-                                type="date"
-                                className="h-8"
-                                defaultValue={format(scheduleStartDate, "yyyy-MM-dd")}
+                                type="datetime-local"
+                                className="h-8 border-blue-200 focus:border-blue-400"
+                                defaultValue={format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm")}
                                 onChange={handleStartDateChange}
                             />
                         </div>
                     </div>
 
                     {/* File Upload - Right column */}
-                    <div className="flex items-center gap-1">
-                        <FileSpreadsheet className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <div className="flex items-center bg-blue-50/50 p-2 rounded-md">
+                        <FileSpreadsheet className="h-4 w-4 text-blue-600 mr-1" />
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1">
                                 <span className="font-medium whitespace-nowrap text-sm">Import:</span>
@@ -266,7 +312,7 @@ export default function SchedulingControls({
                                             disabled={isUploading}
                                         />
                                         <div
-                                            className="flex items-center border rounded-md px-2 py-1 cursor-pointer hover:bg-muted text-sm h-8 min-w-0"
+                                            className="flex items-center border border-blue-200 rounded-md px-2 py-1 cursor-pointer hover:bg-blue-50 text-sm h-8 min-w-0"
                                             onClick={() => fileInputRef.current?.click()}
                                         >
                                             <span className="text-xs font-medium">Choose File</span>
@@ -279,32 +325,29 @@ export default function SchedulingControls({
                                         type="button"
                                         onClick={handleFileUpload}
                                         disabled={isUploading || !selectedFileName}
-                                        className="h-8 text-xs px-2 flex-shrink-0"
+                                        className="h-8 text-xs px-2 flex-shrink-0 bg-blue-600 hover:bg-blue-700"
                                     >
                                         {isUploading ? "Uploading..." : "Upload"}
                                     </Button>
                                 </div>
                             </div>
-                            <div className="text-xs text-muted-foreground truncate">
+                            <div className="text-xs text-blue-500 truncate mt-1">
                                 Excel/CSV with &quot;Tweets&quot; or &quot;Content&quot; column
                             </div>
                         </div>
                     </div>
-
-                    {/* Vertical dividers for desktop */}
-                    <div className="hidden md:block absolute h-full w-px bg-border left-1/3 top-0"></div>
-                    <div className="hidden md:block absolute h-full w-px bg-border left-2/3 top-0"></div>
-
-                    {/* Horizontal dividers for mobile */}
-                    <div className="md:hidden w-full h-px bg-border my-1"></div>
-                    <div className="md:hidden w-full h-px bg-border my-1"></div>
                 </div>
 
                 {uploadSuccess && (
-                    <div className="mt-2 flex items-center justify-between">
-                        <Alert className="flex-1 bg-green-50 border-green-200 text-green-800 py-1 px-2">
-                            <AlertTitle className="text-green-800 text-sm"> ✓ &nbsp;</AlertTitle>
-                            <AlertDescription className="text-green-700 text-xs">
+                    <div className="mt-4 flex items-center justify-between">
+                        <Alert className="flex-1 bg-green-50 border-green-200 text-green-800 py-2 px-3 rounded-md">
+                            <AlertTitle className="text-green-800 text-sm font-medium flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                Import Successful
+                            </AlertTitle>
+                            <AlertDescription className="text-green-700 text-sm">
                                 Successfully imported {uploadSuccess.count} posts from the file
                             </AlertDescription>
                         </Alert>
@@ -312,10 +355,10 @@ export default function SchedulingControls({
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="ml-2 text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 h-8 text-xs"
+                                className="ml-4 text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 h-9 text-sm"
                                 onClick={clearImportedPosts}
                             >
-                                <X className="mr-1 h-3 w-3" />
+                                <X className="mr-1 h-4 w-4" />
                                 Clear Imported Posts
                             </Button>
                         )}

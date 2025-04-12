@@ -31,6 +31,7 @@ export default function YourAgentsSection() {
   const totalAgents = agents?.length || 0;
   const runningAgents = agents?.filter(agent => agent.status === "running").length || 0;
   const pausedAgents = agents?.filter(agent => agent.status === "paused").length || 0;
+  const maxAgents = process.env.NEXT_PUBLIC_MAX_AGENTS_PER_USER ? parseInt(process.env.NEXT_PUBLIC_MAX_AGENTS_PER_USER) : 50;
 
   // Group agents by status
   const groupedAgents = {
@@ -179,63 +180,104 @@ export default function YourAgentsSection() {
 
         {!isPending && !isFetching && agents && agents.length > 0 && (
           <>
-            <div className="bg-muted/20 flex items-center justify-between rounded-lg border p-3">
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={selectAllAgents} className="h-8 text-xs">
-                  {selectedAgents.length === agents.length ? "Deselect All" : "Select All"}
-                </Button>
-                <span className="text-muted-foreground text-xs">
-                  {selectedAgents.length} of {agents.length} agents selected
-                </span>
-              </div>
-              {selectedAgents.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <Button variant="default" size="sm" className="h-8 bg-green-600 text-xs hover:bg-green-700" onClick={() => handleBatchStatusChange("run")} disabled={isBatchProcessing}>
-                    Run Selected
-                  </Button>
-                  <Button variant="default" size="sm" className="h-8 bg-amber-600 text-xs hover:bg-amber-700" onClick={() => handleBatchStatusChange("pause")} disabled={isBatchProcessing}>
-                    Pause Selected
-                  </Button>
+            <div className="flex items-center justify-between space-x-4">
+              <div className="flex-1 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border shadow-sm p-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={selectAllAgents} 
+                      className="h-8 text-xs"
+                    >
+                      {selectedAgents.length === agents.length ? "Deselect All" : "Select All"}
+                    </Button>
+                    <span className="text-muted-foreground text-xs">
+                      {selectedAgents.length} of {agents.length} agents selected
+                    </span>
+                  </div>
+                  {selectedAgents.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        className="h-8 bg-green-600 text-xs hover:bg-green-700" 
+                        onClick={() => handleBatchStatusChange("run")} 
+                        disabled={isBatchProcessing}
+                      >
+                        Run Selected
+                      </Button>
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        className="h-8 bg-amber-600 text-xs hover:bg-amber-700" 
+                        onClick={() => handleBatchStatusChange("pause")} 
+                        disabled={isBatchProcessing}
+                      >
+                        Pause Selected
+                      </Button>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            {/* Agent Counts Summary */}
-            <div className="flex items-center justify-between bg-black/5 rounded-lg border p-6">
-              <div className="flex w-full justify-around gap-6">
-                <div className="group flex w-full flex-col items-center rounded-xl bg-gradient-to-br from-blue-500/10 to-indigo-500/20 px-6 py-4 text-center shadow-md transition-all duration-300 hover:shadow-lg">
-                  <div className="mb-2 rounded-full bg-blue-100 p-2 text-blue-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="9" cy="7" r="4"></circle>
-                      <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
+                {/* Agent Stats Indicators */}
+                <div className="grid grid-cols-4 gap-2 mt-3">
+                  <div className="flex items-center gap-2 rounded-md bg-white px-3 py-1.5 shadow-sm">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Total</p>
+                      <p className="text-sm font-bold">{totalAgents}</p>
+                    </div>
                   </div>
-                  <span className="text-sm font-medium text-blue-700">Total Agents</span>
-                  <p className="mt-1 text-3xl font-bold text-blue-700">{totalAgents}</p>
-                </div>
-                
-                <div className="group flex w-full flex-col items-center rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/20 px-6 py-4 text-center shadow-md transition-all duration-300 hover:shadow-lg">
-                  <div className="mb-2 rounded-full bg-green-100 p-2 text-green-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <polyline points="12 6 12 12 16 14"></polyline>
-                    </svg>
+                  
+                  <div className="flex items-center gap-2 rounded-md bg-white px-3 py-1.5 shadow-sm">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-green-100 text-green-700">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Running</p>
+                      <p className="text-sm font-bold text-green-700">{runningAgents}</p>
+                    </div>
                   </div>
-                  <span className="text-sm font-medium text-green-700">Running</span>
-                  <p className="mt-1 text-3xl font-bold text-green-700">{runningAgents}</p>
-                </div>
-                
-                <div className="group flex w-full flex-col items-center rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/20 px-6 py-4 text-center shadow-md transition-all duration-300 hover:shadow-lg">
-                  <div className="mb-2 rounded-full bg-amber-100 p-2 text-amber-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M10 9v6l5 -3z"></path>
-                      <circle cx="12" cy="12" r="10"></circle>
-                    </svg>
+                  
+                  <div className="flex items-center gap-2 rounded-md bg-white px-3 py-1.5 shadow-sm">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M10 9v6l5 -3z"></path>
+                        <circle cx="12" cy="12" r="10"></circle>
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Paused</p>
+                      <p className="text-sm font-bold text-amber-700">{pausedAgents}</p>
+                    </div>
                   </div>
-                  <span className="text-sm font-medium text-amber-700">Paused</span>
-                  <p className="mt-1 text-3xl font-bold text-amber-700">{pausedAgents}</p>
+                  
+                  <div className="flex items-center gap-2 rounded-md bg-white px-3 py-1.5 shadow-sm">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-purple-100 text-purple-700">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Limit</p>
+                      <p className="text-sm font-bold">
+                        <span className="text-purple-700">{totalAgents}</span>
+                        <span className="text-muted-foreground text-xs"> / {maxAgents}</span>
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -393,7 +435,7 @@ export default function YourAgentsSection() {
       </div>
 
       {/* Payment Dialog */}
-      <PaymentDialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog} onPaymentSuccess={handlePaymentSuccess} title="Activate Your Agent" description="A one-time payment is required to activate your agent. After payment, you can activate up to 50 agents." />
+      <PaymentDialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog} onPaymentSuccess={handlePaymentSuccess} title="Activate Your Agent" description={`A one-time payment is required to activate your agent. After payment, you can activate up to ${maxAgents} agents.`} />
 
       {/* Validation Error Modal */}
       <Dialog open={showValidationErrorModal} onOpenChange={setShowValidationErrorModal}>
