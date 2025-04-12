@@ -60,7 +60,8 @@ export class AgentService {
     return await db
       .select()
       .from(agentsTable)
-      .where(eq(agentsTable.userId, Number(userId)));
+      .where(eq(agentsTable.userId, Number(userId)))
+      .orderBy(agentsTable.id);
   }
 
   static async deleteAgent(agentId: number) {
