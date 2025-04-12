@@ -5,7 +5,7 @@ import { Plus } from "lucide-react"
 import { UseFormReturn, useFieldArray } from "react-hook-form"
 import { Agent, FormValues } from "./types"
 import PostItem from "./PostItem"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useLayoutEffect } from "react"
 
 interface PostListProps {
     methods: UseFormReturn<FormValues>
@@ -23,20 +23,42 @@ export default function PostList({
     'use no memo'
     // Use this to force re-renders when fields change
     const [lastFieldCount, setLastFieldCount] = useState(0);
+    const [forceRender, setForceRender] = useState(0);
     
     const { fields, append, remove } = useFieldArray({
         control: methods.control,
         name: "schedulePosts"
     })
-    
-    // Force a re-render when fields length changes (like after an Excel import)
+
+    // Log when fields change to help with debugging
     useEffect(() => {
+        console.log(`Fields length changed: ${fields.length}`)
+        // Force update when fields length changes
         if (fields.length !== lastFieldCount) {
             setLastFieldCount(fields.length);
-            // Force form validation
-            methods.trigger();
+            // Increment to force a re-render
+            setForceRender(prev => prev + 1);
         }
-    }, [fields.length, lastFieldCount, methods]);
+    }, [fields.length, lastFieldCount]);
+    
+    // Force a re-render when fields are updated from Excel import
+    useEffect(() => {
+        // Using forceRender as a dependency ensures this runs after field updates
+        if (fields.length > 0) {
+            console.log(`Forcing validation with ${fields.length} posts`)
+            // Force form validation which triggers re-render of field components
+            methods.trigger("schedulePosts").then(() => {
+                console.log("Form validation complete, UI should be updated");
+            });
+        }
+    }, [forceRender, fields.length, methods]);
+
+    // Use layout effect for immediate UI updates after field changes
+    useLayoutEffect(() => {
+        if (fields.length > 0) {
+            console.log(`Layout effect: Immediate rendering of ${fields.length} posts`)
+        }
+    }, [fields.length]);
 
     // Ensure every post has an agent assigned when agents change or fields change
     useEffect(() => {
@@ -50,6 +72,11 @@ export default function PostList({
                 const currentPosts = methods.getValues("schedulePosts")
                 let hasUpdates = false
                 
+                // If posts exist but fields.length doesn't match, there might be a sync issue
+                if (currentPosts.length !== fields.length) {
+                    console.log(`Post count mismatch: form has ${currentPosts.length} but fields has ${fields.length}`)
+                }
+                
                 currentPosts.forEach((post, index) => {
                     if (!post.agentId || post.agentId === "") {
                         const agentIndex = index % rangeAgents.length
@@ -61,10 +88,12 @@ export default function PostList({
                 // Force re-render if we had updates
                 if (hasUpdates) {
                     methods.trigger("schedulePosts")
+                    // Force re-render
+                    setForceRender(prev => prev + 1);
                 }
             }
         }
-    }, [agents, fields.length, agentRangeStart, agentRangeEnd, methods])
+    }, [agents, fields.length, agentRangeStart, agentRangeEnd, methods]);
 
     // Handle adding a new post
     const handleAddPost = () => {

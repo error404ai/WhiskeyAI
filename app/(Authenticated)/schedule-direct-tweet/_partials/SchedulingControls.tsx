@@ -25,6 +25,7 @@ interface SchedulingControlsProps {
     uploadSuccess: { count: number } | null
     hasImportedPosts: boolean
     currentDelayRef: React.RefObject<number>
+    onImportSuccess?: (count: number) => void
 }
 
 export default function SchedulingControls({
@@ -38,7 +39,8 @@ export default function SchedulingControls({
     setUploadSuccess,
     uploadSuccess,
     hasImportedPosts,
-    currentDelayRef
+    currentDelayRef,
+    onImportSuccess
 }: SchedulingControlsProps) {
     'use no memo'
     const fileInputRef = useRef<HTMLInputElement>(null)
@@ -131,6 +133,11 @@ export default function SchedulingControls({
                     return
                 }
 
+                // First, clear any existing state to avoid UI sync issues
+                setHasImportedPosts(false)
+                setUploadSuccess(null)
+                
+                // Create the new posts with proper scheduling and agent assignment
                 const newPosts: SchedulePost[] = tweets.map((content, index) => {
                     // Use scheduleStartDate instead of now
                     const postTime = addMinutes(scheduleStartDate, currentDelay * (index + 1))
@@ -143,20 +150,37 @@ export default function SchedulingControls({
                     }
                 })
 
-                // Clear previous state before updating
-                setHasImportedPosts(false)
-                setUploadSuccess(null)
+                console.log(`Importing ${tweets.length} posts from Excel`)
                 
-                // Replace existing posts with new ones from file
-                replace(newPosts)
-                
-                // Update state after replacing
-                setHasImportedPosts(true)
-                setUploadSuccess({ count: tweets.length })
-                toast.success(`Successfully imported ${tweets.length} posts from the file`)
-                
-                // Force form validation to trigger UI updates
-                methods.trigger()
+                try {
+                    // Replace first to ensure clean state
+                    replace(newPosts)
+                    
+                    // Important: Force-update the UI right away
+                    Promise.resolve().then(() => {
+                        // Update state immediately after replacement
+                        setHasImportedPosts(true)
+                        setUploadSuccess({ count: tweets.length })
+                        
+                        // Notify parent component about successful import
+                        if (onImportSuccess) {
+                            onImportSuccess(tweets.length);
+                        }
+                        
+                        // Force re-render and validation of all form fields
+                        methods.trigger("schedulePosts").then(() => {
+                            console.log(`Validation complete after import: ${tweets.length} posts should be visible`)
+                        })
+                        
+                        toast.success(`Successfully imported ${tweets.length} posts from the file`)
+                        
+                        // Log completion for debugging
+                        console.log(`Excel import complete: ${newPosts.length} posts added to form`)
+                    })
+                } catch (error) {
+                    console.error("Error updating form with imported posts:", error)
+                    toast.error("Error updating form with imported posts. Please try again.")
+                }
                 
             } catch (error) {
                 console.error("Error processing file:", error)

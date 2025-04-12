@@ -29,6 +29,10 @@ export default function PostItem({
     agentRangeEnd
 }: PostItemProps) {
     'use no memo'
+    
+    // Debug rendering - log when this component renders with its index
+    console.log(`Rendering PostItem index ${index}`);
+    
     const { setValue, formState: { errors }, watch } = methods
     const [currentAgentId, setCurrentAgentId] = useState<string>("")
     const [content, setContent] = useState<string>("")
@@ -57,6 +61,7 @@ export default function PostItem({
             )
             
             if (agentsInRange.length > 0) {
+                // Handle agent selection logic
                 const agentIndex = index % agentsInRange.length
                 const newAgentId = agentsInRange[agentIndex].uuid
                 setValue(`schedulePosts.${index}.agentId`, newAgentId)
