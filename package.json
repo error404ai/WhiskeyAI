@@ -21,7 +21,9 @@
     "shell": "docker exec -it ext-web-next sh",
     "permission": "sudo chmod 777 -R .",
     "ngrock": "sh ngRock.sh",
-    "start:cron": "tsx server/cron/cron.ts"
+    "start:cron": "tsx server/cron/cron.ts",
+    "remoteOpen": "sudo chmod +x ./scripts/openRemoteVscode.sh && ./scripts/local/openRemoteVscode.sh",
+    "remoteDeploy": "sudo chmod +x ./scripts/local/remoteDeploy.sh && ./scripts/local/remoteDeploy.sh"
   },
   "dependencies": {
     "@auth/core": "^0.38.0",
