@@ -6,7 +6,6 @@ type Props = {
   children: React.ReactNode;
 };
 const AuthenticatedRoute: React.FC<Props> = async ({ children }) => {
-  await new Promise((resolve) => setTimeout(resolve, 5000));
   const session = await auth();
   const intended = (await headers()).get("request_url");
   if (!session) {

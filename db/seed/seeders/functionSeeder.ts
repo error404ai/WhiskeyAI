@@ -833,6 +833,29 @@ export class FunctionsSeeder implements Seeder {
       type: "agent",
       group: "solanatracker",
     },
+    // Telegram functions
+    {
+      name: functionEnum.TELEGRAM_getChannelMessages,
+      description: "Get messages from a Telegram channel",
+      parameters: {
+        type: "object",
+        properties: {
+          channelUsername: {
+            type: "string",
+            description: "The username of the channel to get messages from",
+          },
+          limit: {
+            type: "number",
+            description: "The maximum number of messages to retrieve (default: 100)",
+            minimum: 1,
+            maximum: 100,
+          },
+        },
+        required: ["channelUsername"],
+      },
+      type: "agent",
+      group: "telegram",
+    },
   ];
 
   async seed(): Promise<void> {
