@@ -52,7 +52,7 @@ export class TriggerLogService {
       return {
         ...item,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        agentName: (item.agent as any)[3],
+        agentName: item.agent ? (item.agent as any)[3] : "Unknown",
       };
     });
 

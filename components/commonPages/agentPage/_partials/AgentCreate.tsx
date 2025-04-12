@@ -40,7 +40,7 @@ const AgentCreate: React.FC<AgentCreateProps> = ({ refetch }) => {
     try {
       const result = await createAgent(data);
       if (!result.success) {
-        methods.setError('root', { message: result.message || 'Failed to create agent' });
+        methods.setError("root", { message: result.message || "Failed to create agent" });
         return;
       }
       refetch();
@@ -48,7 +48,7 @@ const AgentCreate: React.FC<AgentCreateProps> = ({ refetch }) => {
       setModalOpen(false);
       methods.reset();
     } catch {
-      methods.setError('root', { message: 'Failed to create agent. Please try again.' });
+      methods.setError("root", { message: "Failed to create agent. Please try again." });
     }
   };
 
@@ -57,7 +57,7 @@ const AgentCreate: React.FC<AgentCreateProps> = ({ refetch }) => {
   };
 
   // Check if user has reached the agent limit
-  const maxAgents = Number(process.env.NEXT_PUBLIC_MAX_AGENTS_PER_USER) || 3;
+  const maxAgents = Number(process.env.NEXT_PUBLIC_MAX_AGENTS_PER_USER);
   const hasReachedAgentLimit = agentCount !== undefined && agentCount >= maxAgents;
 
   return (
@@ -75,28 +75,18 @@ const AgentCreate: React.FC<AgentCreateProps> = ({ refetch }) => {
               <DialogTitle>Create New Agent</DialogTitle>
               <DialogDescription>
                 Create a new AI agent to manage your social media presence.
-                {hasReachedAgentLimit && (
-                  <div className="mt-2 rounded-md bg-yellow-50 p-2 text-sm text-yellow-700">
-                    You have reached the maximum limit of {maxAgents} agents. Please upgrade your plan to create more agents.
-                  </div>
-                )}
+                {hasReachedAgentLimit && <span className="mt-2 rounded-md bg-yellow-50 p-2 text-sm text-yellow-700">You have reached the maximum limit of {maxAgents} agents. Please upgrade your plan to create more agents.</span>}
               </DialogDescription>
             </DialogHeader>
-            {methods.formState.errors.root && (
-              <div className="rounded-md bg-red-50 p-2 text-sm text-red-700">
-                {methods.formState.errors.root.message}
-              </div>
-            )}
+            {methods.formState.errors.root && <div className="rounded-md bg-red-50 p-2 text-sm text-red-700">{methods.formState.errors.root.message}</div>}
             <div className="flex flex-col gap-3">
               <div className="space-y-2">
                 <Label htmlFor="name">Agent Name</Label>
                 <Input id="name" {...methods.register("name")} />
-            
               </div>
               <div className="space-y-2">
                 <Label htmlFor="tickerSymbol">Ticker Symbol</Label>
                 <Input id="tickerSymbol" {...methods.register("tickerSymbol")} />
-          
               </div>
             </div>
             <div className="rounded-xl bg-blue-50 p-4">

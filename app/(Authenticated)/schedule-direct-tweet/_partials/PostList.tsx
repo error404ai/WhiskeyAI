@@ -5,6 +5,7 @@ import { Plus } from "lucide-react"
 import { UseFormReturn, useFieldArray } from "react-hook-form"
 import { Agent, FormValues } from "./types"
 import PostItem from "./PostItem"
+import { useEffect, useState, useLayoutEffect } from "react"
 
 interface PostListProps {
     methods: UseFormReturn<FormValues>
@@ -19,10 +20,80 @@ export default function PostList({
     agentRangeStart,
     agentRangeEnd
 }: PostListProps) {
+    'use no memo'
+    // Use this to force re-renders when fields change
+    const [lastFieldCount, setLastFieldCount] = useState(0);
+    const [forceRender, setForceRender] = useState(0);
+    
     const { fields, append, remove } = useFieldArray({
         control: methods.control,
         name: "schedulePosts"
     })
+
+    // Log when fields change to help with debugging
+    useEffect(() => {
+        console.log(`Fields length changed: ${fields.length}`)
+        // Force update when fields length changes
+        if (fields.length !== lastFieldCount) {
+            setLastFieldCount(fields.length);
+            // Increment to force a re-render
+            setForceRender(prev => prev + 1);
+        }
+    }, [fields.length, lastFieldCount]);
+    
+    // Force a re-render when fields are updated from Excel import
+    useEffect(() => {
+        // Using forceRender as a dependency ensures this runs after field updates
+        if (fields.length > 0) {
+            console.log(`Forcing validation with ${fields.length} posts`)
+            // Force form validation which triggers re-render of field components
+            methods.trigger("schedulePosts").then(() => {
+                console.log("Form validation complete, UI should be updated");
+            });
+        }
+    }, [forceRender, fields.length, methods]);
+
+    // Use layout effect for immediate UI updates after field changes
+    useLayoutEffect(() => {
+        if (fields.length > 0) {
+            console.log(`Layout effect: Immediate rendering of ${fields.length} posts`)
+        }
+    }, [fields.length]);
+
+    // Ensure every post has an agent assigned when agents change or fields change
+    useEffect(() => {
+        if (agents.length > 0 && fields.length > 0) {
+            // Get agents in range
+            const start = Math.max(0, agentRangeStart - 1)
+            const end = Math.min(agents.length, agentRangeEnd)
+            const rangeAgents = agents.slice(start, end)
+            
+            if (rangeAgents.length > 0) {
+                const currentPosts = methods.getValues("schedulePosts")
+                let hasUpdates = false
+                
+                // If posts exist but fields.length doesn't match, there might be a sync issue
+                if (currentPosts.length !== fields.length) {
+                    console.log(`Post count mismatch: form has ${currentPosts.length} but fields has ${fields.length}`)
+                }
+                
+                currentPosts.forEach((post, index) => {
+                    if (!post.agentId || post.agentId === "") {
+                        const agentIndex = index % rangeAgents.length
+                        methods.setValue(`schedulePosts.${index}.agentId`, rangeAgents[agentIndex].uuid)
+                        hasUpdates = true
+                    }
+                })
+                
+                // Force re-render if we had updates
+                if (hasUpdates) {
+                    methods.trigger("schedulePosts")
+                    // Force re-render
+                    setForceRender(prev => prev + 1);
+                }
+            }
+        }
+    }, [agents, fields.length, agentRangeStart, agentRangeEnd, methods]);
 
     // Handle adding a new post
     const handleAddPost = () => {
@@ -71,7 +142,7 @@ export default function PostList({
     }
 
     return (
-        <div className="space-y-2">
+        <div className="space-y-4">
             {fields.map((field, index) => (
                 <PostItem
                     key={field.id}
@@ -87,12 +158,12 @@ export default function PostList({
             <Button
                 type="button"
                 variant="outline"
-                className="w-full h-8 text-sm"
+                className="w-full h-10 text-sm border-blue-200 hover:border-blue-400 hover:bg-blue-50 text-blue-600 hover:text-blue-700 font-medium"
                 onClick={handleAddPost}
                 disabled={agents?.length === 0}
             >
-                <Plus className="mr-1 h-3 w-3" />
-                Add More
+                <Plus className="mr-2 h-4 w-4" />
+                Add More Posts
             </Button>
         </div>
     )
