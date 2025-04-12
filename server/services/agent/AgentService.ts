@@ -33,9 +33,9 @@ export class AgentService {
     if (!userId) throw new Error("User not authenticated");
 
     // Check agent limit
-    const maxAgents = Number(process.env.MAX_AGENTS_PER_USER) || 3;
+    const maxAgents = Number(process.env.NEXT_PUBLIC_MAX_AGENTS_PER_USER);
     const currentAgentCount = await this.countUserAgents();
-    
+
     if (currentAgentCount >= maxAgents) {
       throw new Error(`You have reached the maximum limit of ${maxAgents} agents. Please upgrade your plan to create more agents.`);
     }
@@ -227,10 +227,6 @@ export class AgentService {
     };
   }
 
-  /**
-   * Check if the current user has already paid for agent creation
-   * @returns Boolean indicating if the user has already paid
-   */
   static async hasUserPaidForAgents(): Promise<boolean> {
     const user = await AuthService.getAuthUser();
     if (!user) throw new Error("User not authenticated");
@@ -244,12 +240,6 @@ export class AgentService {
     return result.length > 0 && result[0].hasPaidForAgents;
   }
 
-  /**
-   * Mark user as having paid for agent creation, but only after verifying the transaction
-   * @param txSignature Transaction signature from the payment
-   * @param amount Amount paid
-   * @returns Success boolean or error message
-   */
   static async markUserAsPaid(txSignature: string, amount: string): Promise<boolean | { error: string }> {
     const user = await AuthService.getAuthUser();
     if (!user) throw new Error("User not authenticated");
@@ -287,10 +277,6 @@ export class AgentService {
     return !!result;
   }
 
-  /**
-   * Count how many agents the current user has
-   * @returns Number of agents the user has
-   */
   static async countUserAgents(): Promise<number> {
     const user = await AuthService.getAuthUser();
     if (!user) throw new Error("User not authenticated");
@@ -303,13 +289,6 @@ export class AgentService {
     return result[0]?.count || 0;
   }
 
-  /**
-   * Store payment information for an agent
-   * @param agentId Agent ID
-   * @param txSignature Transaction signature
-   * @param amount Amount paid
-   * @returns Success boolean
-   */
   static async storeAgentPaymentInfo(agentId: number, txSignature: string, amount: string): Promise<boolean> {
     const timestamp = new Date().toISOString();
     const result = await db
@@ -324,12 +303,6 @@ export class AgentService {
     return !!result;
   }
 
-  /**
-   * Update agent's token address after launch
-   * @param agentUuid Agent UUID
-   * @param tokenAddress Token address
-   * @returns Success boolean
-   */
   static async updateAgentTokenAddress(agentUuid: string, tokenAddress: string): Promise<boolean> {
     const result = await db.update(agentsTable).set({ tokenAddress }).where(eq(agentsTable.uuid, agentUuid));
 
