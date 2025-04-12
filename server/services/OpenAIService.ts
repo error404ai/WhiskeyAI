@@ -2,12 +2,8 @@
 import { Agent } from "@/db/schema";
 import { AgentTrigger } from "@/db/schema/agentTriggersTable";
 import { OpenAI } from "openai";
-import { functionEnum } from "../enum/functionEnum";
 import { TriggerLogService } from "./agent/TriggerLogService";
-import coinMarketService from "./externalApi/CoinMarketService";
-import dexscreenerService from "./externalApi/DexscreenerService";
-import QuickNodeRpcService from "./externalApi/QuickNodeRpcService";
-import solanaTrackingService from "./externalApi/SolanaTrackingService";
+import functionCallService, { FunctionCallService } from "./FunctionCallService";
 import TwitterService from "./TwitterService";
 
 // Define OpenAI function calling interfaces
@@ -61,12 +57,11 @@ type ChatMessage = SystemMessage | UserMessage | ToolMessage | AssistantMessage;
 
 export class OpenAIService {
   private openai: OpenAI;
-  private twitterService: TwitterService | null = null;
-  private userId: number = 0;
-  private _isSecondExecution = false;
+  private functionCallService: FunctionCallService;
   private model: string;
 
   constructor() {
+    this.functionCallService = new FunctionCallService();
     this.model = process.env.MODEL!;
     this.openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
@@ -74,20 +69,11 @@ export class OpenAIService {
     });
   }
 
-  public setUserId(userId: number): void {
-    this.userId = userId;
-  }
-
   public setTwitterService(twitterService: TwitterService): void {
-    this.twitterService = twitterService;
+    this.functionCallService.setTwitterService(twitterService);
   }
 
   public async executeWithAI(triggerWithAgent: AgentTrigger & { agent: Agent & { user: { id: number } } }, tools: FunctionTool[]): Promise<any> {
-    if (!this.twitterService) {
-      console.error(`[AI] Twitter service not initialized in executeWithAI`);
-      throw new Error("Twitter service not initialized");
-    }
-
     console.log(`[AI] Starting AI execution for function: ${triggerWithAgent.functionName}`);
 
     const context = {
@@ -134,7 +120,7 @@ export class OpenAIService {
                 name: triggerWithAgent.name,
                 functionName: triggerWithAgent.functionName,
               },
-              this.userId,
+              triggerWithAgent.agent.user.id,
               result.error,
               undefined, // No execution time
               { messages: "Error occurred during function execution" }, // Minimal conversation data
@@ -166,7 +152,7 @@ export class OpenAIService {
             name: triggerWithAgent.name,
             functionName: triggerWithAgent.functionName,
           },
-          this.userId,
+          triggerWithAgent.agent.user.id,
           errorMessage,
           undefined,
           { messages: toolCallsData.map((call) => ({ role: "function", content: call.name })) },
@@ -187,7 +173,7 @@ export class OpenAIService {
           name: triggerWithAgent.name,
           functionName: triggerWithAgent.functionName,
         },
-        this.userId,
+        triggerWithAgent.agent.user.id,
         "Execution Error",
         {
           step: "execution_error",
@@ -290,7 +276,7 @@ export class OpenAIService {
               }
 
               console.log(`[Conv] Executing function: ${toolCall.function.name}`);
-              const result = await this.executeFunctionByName(toolCall.function.name, args);
+              const result = await functionCallService.executeFunctionByName(toolCall.function.name, args);
 
               if (result && typeof result === "object" && result.success === false && result.error) {
                 console.warn(`[Conv] Function ${toolCall.function.name} returned handled error: ${result.error}`);
@@ -302,7 +288,7 @@ export class OpenAIService {
                     name: triggerWithAgent.name,
                     functionName: triggerWithAgent.functionName,
                   },
-                  this.userId,
+                  triggerWithAgent.agent.user.id,
                   "Tool Call Warning",
                   {
                     step: `tool_call_warning_${toolCall.function.name}`,
@@ -336,7 +322,7 @@ export class OpenAIService {
                     name: triggerWithAgent.name,
                     functionName: triggerWithAgent.functionName,
                   },
-                  this.userId,
+                  triggerWithAgent.agent.user.id,
                   "Trigger Function Called",
                   {
                     step: "trigger_function_called",
@@ -376,7 +362,7 @@ export class OpenAIService {
                   name: triggerWithAgent.name,
                   functionName: triggerWithAgent.functionName,
                 },
-                this.userId,
+                triggerWithAgent.agent.user.id,
                 "Tool Call Error",
                 {
                   step: `tool_call_error_${toolCall.function.name}`,
@@ -423,7 +409,7 @@ export class OpenAIService {
             name: triggerWithAgent.name,
             functionName: triggerWithAgent.functionName,
           },
-          this.userId,
+          triggerWithAgent.agent.user.id,
           "Conversation Error",
           {
             step: "conversation_error",
@@ -449,567 +435,10 @@ export class OpenAIService {
     return { toolCallsData, successfulTriggerExecution };
   }
 
-  public async executeFunctionByName(functionName: string, args: any): Promise<any> {
-    if (!this.twitterService) {
-      console.error(`[Twitter] Twitter service not initialized before calling ${functionName}`);
-      throw new Error("Twitter service not initialized");
-    }
-
-    console.log(`[Twitter] Executing function: ${functionName}`, { arguments: args });
-
-    if (functionName === "post_tweet" && this._isSecondExecution) {
-      console.log(`[Twitter] Skipping second execution of post_tweet to avoid duplicate content error`);
-      return {
-        success: true,
-        message: "Tweet already sent in first execution. Skipping duplicate execution.",
-      };
-    }
-
-    try {
-      let result;
-      switch (functionName) {
-        case functionEnum.get_home_timeline:
-          console.log(`[Twitter] Fetching home timeline`);
-          try {
-            result = await this.twitterService.getHomeTimeLine();
-            console.log(`[Twitter] Successfully fetched home timeline`);
-            return result;
-          } catch (error: any) {
-            if (error.code === 429) {
-              console.warn(`[Twitter] Rate limit exceeded when fetching timeline. Returning empty timeline.`);
-              return { data: [] };
-            }
-            throw error;
-          }
-
-        case functionEnum.post_tweet:
-          console.log(`[Twitter] Posting tweet: "${args.text.substring(0, 30)}${args.text.length > 30 ? "..." : ""}"`);
-          try {
-            result = await this.twitterService.postTweet(args.text);
-            console.log(`[Twitter] Successfully posted tweet`);
-            return result;
-          } catch (error: any) {
-            if (error.code === 403 && error.data?.detail?.includes("duplicate content")) {
-              const errorMessage = "Cannot post duplicate tweet content. Please try with different content.";
-              console.error(`[Twitter] ${errorMessage}`);
-              return {
-                success: false,
-                error: errorMessage,
-                code: error.code,
-                originalError: error.data,
-              };
-            }
-            throw error;
-          }
-
-        case functionEnum.reply_tweet:
-          console.log(`[Twitter] Replying to tweet ${args.tweetId}`);
-          try {
-            result = await this.twitterService.replyTweet(args.text, args.tweetId);
-            console.log(`[Twitter] Successfully replied to tweet ${args.tweetId}`);
-            return result;
-          } catch (error: any) {
-            if (error.code === 404) {
-              const errorMessage = `Tweet ${args.tweetId} not found. It may have been deleted.`;
-              console.error(`[Twitter] ${errorMessage}`);
-              return {
-                success: false,
-                error: errorMessage,
-                code: error.code,
-                originalError: error.data,
-              };
-            } else if (error.code === 403) {
-              const errorMessage = "Not authorized to reply to this tweet. The tweet might be protected or from a user who blocked you.";
-              console.error(`[Twitter] ${errorMessage}`);
-              return {
-                success: false,
-                error: errorMessage,
-                code: error.code,
-                originalError: error.data,
-              };
-            }
-            throw error;
-          }
-
-        case functionEnum.like_tweet:
-          console.log(`[Twitter] Liking tweet ${args.tweetId}`);
-          try {
-            result = await this.twitterService.likeTweet(args.tweetId);
-            console.log(`[Twitter] Successfully liked tweet ${args.tweetId}`);
-            return result;
-          } catch (error: any) {
-            if (error.code === 404) {
-              const errorMessage = `Tweet ${args.tweetId} not found. It may have been deleted.`;
-              console.error(`[Twitter] ${errorMessage}`);
-              return {
-                success: false,
-                error: errorMessage,
-                code: error.code,
-                originalError: error.data,
-              };
-            } else if (error.code === 403 && error.data?.detail?.includes("already liked")) {
-              const errorMessage = "Tweet already liked.";
-              console.error(`[Twitter] ${errorMessage}`);
-              return {
-                success: false,
-                error: errorMessage,
-                code: error.code,
-                originalError: error.data,
-              };
-            }
-            throw error;
-          }
-
-        case functionEnum.quote_tweet:
-          console.log(`[Twitter] Quoting tweet ${args.quotedTweetId}`);
-          try {
-            result = await this.twitterService.quoteTweet(args.quotedTweetId, args.comment);
-            console.log(`[Twitter] Successfully quoted tweet ${args.quotedTweetId}`);
-            return result;
-          } catch (error: any) {
-            if (error.code === 404) {
-              const errorMessage = `Tweet ${args.quotedTweetId} not found. It may have been deleted.`;
-              console.error(`[Twitter] ${errorMessage}`);
-              return {
-                success: false,
-                error: errorMessage,
-                code: error.code,
-                originalError: error.data,
-              };
-            } else if (error.code === 403 && error.data?.detail?.includes("duplicate content")) {
-              const errorMessage = "Cannot post duplicate tweet content. Please try with different content.";
-              console.error(`[Twitter] ${errorMessage}`);
-              return {
-                success: false,
-                error: errorMessage,
-                code: error.code,
-                originalError: error.data,
-              };
-            }
-            throw error;
-          }
-
-        case functionEnum.retweet:
-          console.log(`[Twitter] Retweeting tweet ${args.tweetId}`);
-          try {
-            result = await this.twitterService.reTweet(args.tweetId);
-            console.log(`[Twitter] Successfully retweeted tweet ${args.tweetId}`);
-            return result;
-          } catch (error: any) {
-            if (error.code === 404) {
-              const errorMessage = `Tweet ${args.tweetId} not found. It may have been deleted.`;
-              console.error(`[Twitter] ${errorMessage}`);
-              return {
-                success: false,
-                error: errorMessage,
-                code: error.code,
-                originalError: error.data,
-              };
-            } else if (error.code === 403 && error.data?.detail?.includes("already retweeted")) {
-              const errorMessage = "Tweet already retweeted.";
-              console.error(`[Twitter] ${errorMessage}`);
-              return {
-                success: false,
-                error: errorMessage,
-                code: error.code,
-                originalError: error.data,
-              };
-            }
-            throw error;
-          }
-
-        case functionEnum.RPC_getAccountInfo:
-          console.log(`[RPC] Getting account info`);
-          try {
-            result = await QuickNodeRpcService.getAccountInfo(args.publicKey);
-            console.log(`[RPC] Successfully get account info ${args.publicKey}`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-        case functionEnum.RPC_getBalance:
-          console.log(`[RPC] Getting balance`);
-          try {
-            result = await QuickNodeRpcService.getBalance(args.publicKey);
-            console.log(`[RPC] Successfully get balance ${args.publicKey}`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-        case functionEnum.RPC_getBlock:
-          console.log(`[RPC] Getting block`);
-          try {
-            result = await QuickNodeRpcService.getBlock(args.slot);
-            console.log(`[RPC] Successfully get block ${args.slot}`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-        case functionEnum.DEX_getLatestTokenProfiles:
-          console.log(`[DEX] Getting latest token profiles`);
-          try {
-            result = await dexscreenerService.getLatestTokenProfiles();
-            console.log(`[DEX] Successfully get token profiles`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-        case functionEnum.DEX_getLatestBoostedTokens:
-          console.log(`[DEX] Getting latest token profiles`);
-          try {
-            result = await dexscreenerService.getLatestBoostedTokens();
-            console.log(`[DEX] Successfully get boosted tokens`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-        case functionEnum.DEX_getTopBoostedTokens:
-          console.log(`[DEX] Getting top boosted tokens`);
-          try {
-            result = await dexscreenerService.getTopBoostedTokens();
-            console.log(`[DEX] Successfully get top boosted tokens`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-        case functionEnum.DEX_getTokenOrders:
-          console.log(`[DEX] Getting token orders for ${args.chainId}/${args.tokenAddress}`);
-          try {
-            result = await dexscreenerService.getTokenOrders(args.chainId, args.tokenAddress);
-            console.log(`[DEX] Successfully get token orders`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-        case functionEnum.DEX_getPairsByChainAndPairAddress:
-          console.log(`[DEX] Getting pairs for ${args.chainId}/${args.pairId}`);
-          try {
-            result = await dexscreenerService.getPairsByChainAndPairAddress(args.chainId, args.pairId);
-            console.log(`[DEX] Successfully get pairs`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-        case functionEnum.DEX_searchPairs:
-          console.log(`[DEX] Searching pairs with query: ${args.query}`);
-          try {
-            result = await dexscreenerService.searchPairs(args.query);
-            console.log(`[DEX] Successfully searched pairs`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-        case functionEnum.DEX_getTokenPairs:
-          console.log(`[DEX] Getting token pairs for ${args.chainId}/${args.tokenAddress}`);
-          try {
-            result = await dexscreenerService.getTokenPairs(args.chainId, args.tokenAddress);
-            console.log(`[DEX] Successfully get token pairs`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-        case functionEnum.DEX_getTokensByAddress:
-          console.log(`[DEX] Getting tokens by address for ${args.chainId}/${args.tokenAddresses}`);
-          try {
-            result = await dexscreenerService.getTokensByAddress(args.chainId, args.tokenAddresses);
-            console.log(`[DEX] Successfully get tokens by address`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-        case functionEnum.COINMARKET_getFearAndGreedLatest:
-          console.log(`[COINMARKET] Getting Fear and Greed Latest`);
-          try {
-            result = await coinMarketService.getFearAndGreedLatest();
-            console.log(`[COINMARKET] Successfully get Fear and Greed Latest`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-        case functionEnum.COINMARKET_getFearAndGreedHistorical:
-          console.log(`[COINMARKET] Getting Fear and Greed Historical`);
-          try {
-            result = await coinMarketService.getFearAndGreedHistorical();
-            console.log(`[COINMARKET] Successfully get Fear and Greed Historical`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-        case functionEnum.COINMARKET_getTrendingMostVisited:
-          console.log(`[COINMARKET] Getting Trending Most Visited`);
-          try {
-            result = await coinMarketService.getTrendingMostVisited(args);
-            console.log(`[COINMARKET] Successfully get Trending Most Visited`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-        case functionEnum.COINMARKET_getTrendingGainersLosers:
-          console.log(`[COINMARKET] Getting Trending Gainers & Losers`);
-          try {
-            result = await coinMarketService.getTrendingGainersLosers(args);
-            console.log(`[COINMARKET] Successfully get Trending Gainers & Losers`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-        case functionEnum.COINMARKET_getTrendingLatest:
-          console.log(`[COINMARKET] Getting Trending Latest`);
-          try {
-            result = await coinMarketService.getTrendingLatest(args);
-            console.log(`[COINMARKET] Successfully get Trending Latest`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-        case functionEnum.COINMARKET_getQuotesHistorical:
-          console.log(`[COINMARKET] Getting Quotes Historical`);
-          try {
-            result = await coinMarketService.getQuotesHistorical(args);
-            console.log(`[COINMARKET] Successfully get Quotes Historical`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-        case functionEnum.COINMARKET_getQuotesLatest:
-          console.log(`[COINMARKET] Getting Quotes Latest`);
-          try {
-            result = await coinMarketService.getQuotesLatest(args);
-            console.log(`[COINMARKET] Successfully get Quotes Latest`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-        case functionEnum.COINMARKET_getMetadata:
-          console.log(`[COINMARKET] Getting Metadata`);
-          try {
-            result = await coinMarketService.getMetadata(args);
-            console.log(`[COINMARKET] Successfully get Metadata`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-
-        // Solana Tracking APIs
-        case functionEnum.SOLANA_getTokenHolders:
-          console.log(`[SOLANA] Getting token holders for ${args.tokenAddress}`);
-          try {
-            result = await solanaTrackingService.getTokenHolders(args.tokenAddress);
-            console.log(`[SOLANA] Successfully get token holders`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-
-        case functionEnum.SOLANA_getTopTokenHolders:
-          console.log(`[SOLANA] Getting top token holders for ${args.tokenAddress}`);
-          try {
-            result = await solanaTrackingService.getTopTokenHolders(args.tokenAddress);
-            console.log(`[SOLANA] Successfully get top token holders`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-
-        case functionEnum.SOLANA_getLatestTokens:
-          console.log(`[SOLANA] Getting latest tokens`);
-          try {
-            result = await solanaTrackingService.getLatestTokens();
-            console.log(`[SOLANA] Successfully get latest tokens`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-
-        case functionEnum.SOLANA_getTrendingTokens:
-          console.log(`[SOLANA] Getting trending tokens`);
-          try {
-            result = await solanaTrackingService.getTrendingTokens();
-            console.log(`[SOLANA] Successfully get trending tokens`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-
-        case functionEnum.SOLANA_getTrendingTokensByTimeframe:
-          console.log(`[SOLANA] Getting trending tokens for timeframe ${args.timeframe}`);
-          try {
-            result = await solanaTrackingService.getTrendingTokensByTimeframe(args.timeframe);
-            console.log(`[SOLANA] Successfully get trending tokens by timeframe`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-
-        case functionEnum.SOLANA_getTopVolumeTokens:
-          console.log(`[SOLANA] Getting top volume tokens`);
-          try {
-            result = await solanaTrackingService.getTopVolumeTokens();
-            console.log(`[SOLANA] Successfully get top volume tokens`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-
-        case functionEnum.SOLANA_getVolumeTokensByTimeframe:
-          console.log(`[SOLANA] Getting volume tokens for timeframe ${args.timeframe}`);
-          try {
-            result = await solanaTrackingService.getVolumeTokensByTimeframe(args.timeframe);
-            console.log(`[SOLANA] Successfully get volume tokens by timeframe`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-
-        case functionEnum.SOLANA_getMultiAllTokens:
-          console.log(`[SOLANA] Getting multi all tokens`);
-          try {
-            result = await solanaTrackingService.getMultiAllTokens();
-            console.log(`[SOLANA] Successfully get multi all tokens`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-
-        case functionEnum.SOLANA_getMultiGraduatedTokens:
-          console.log(`[SOLANA] Getting multi graduated tokens`);
-          try {
-            result = await solanaTrackingService.getMultiGraduatedTokens();
-            console.log(`[SOLANA] Successfully get multi graduated tokens`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-
-        case functionEnum.SOLANA_getTokenPrice:
-          console.log(`[SOLANA] Getting token price for ${args.token}`);
-          try {
-            result = await solanaTrackingService.getTokenPrice(args.token, args.priceChanges);
-            console.log(`[SOLANA] Successfully get token price`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-
-        case functionEnum.SOLANA_getMultiTokenPrices:
-          console.log(`[SOLANA] Getting multi token prices for ${args.tokens}`);
-          try {
-            result = await solanaTrackingService.getMultiTokenPrices(args.tokens);
-            console.log(`[SOLANA] Successfully get multi token prices`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-
-        case functionEnum.SOLANA_getWalletTokens:
-          console.log(`[SOLANA] Getting wallet tokens for ${args.owner}`);
-          try {
-            result = await solanaTrackingService.getWalletTokens(args.owner);
-            console.log(`[SOLANA] Successfully get wallet tokens`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-
-        case functionEnum.SOLANA_getWalletTrades:
-          console.log(`[SOLANA] Getting wallet trades for ${args.owner}`);
-          try {
-            result = await solanaTrackingService.getWalletTrades(args.owner, args.cursor);
-            console.log(`[SOLANA] Successfully get wallet trades`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-
-        case functionEnum.SOLANA_getTokenChart:
-          console.log(`[SOLANA] Getting token chart for ${args.token}`);
-          try {
-            result = await solanaTrackingService.getTokenChart(args.token, {
-              type: args.type,
-              time_from: args.time_from,
-              time_to: args.time_to,
-              marketCap: args.marketCap,
-              removeOutliers: args.removeOutliers,
-            });
-            console.log(`[SOLANA] Successfully get token chart`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-
-        case functionEnum.SOLANA_getTokenPoolChart:
-          console.log(`[SOLANA] Getting token pool chart for ${args.token}/${args.pool}`);
-          try {
-            result = await solanaTrackingService.getTokenPoolChart(args.token, args.pool, {
-              type: args.type,
-              time_from: args.time_from,
-              time_to: args.time_to,
-              marketCap: args.marketCap,
-              removeOutliers: args.removeOutliers,
-            });
-            console.log(`[SOLANA] Successfully get token pool chart`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-
-        case functionEnum.SOLANA_getTokenHoldersChart:
-          console.log(`[SOLANA] Getting token holders chart for ${args.token}`);
-          try {
-            result = await solanaTrackingService.getTokenHoldersChart(args.token, {
-              type: args.type,
-              time_from: args.time_from,
-              time_to: args.time_to,
-            });
-            console.log(`[SOLANA] Successfully get token holders chart`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-
-        case functionEnum.SOLANA_getFirstBuyers:
-          console.log(`[SOLANA] Getting first buyers for ${args.token}`);
-          try {
-            result = await solanaTrackingService.getFirstBuyers(args.token);
-            console.log(`[SOLANA] Successfully get first buyers`);
-            return result;
-          } catch (error: any) {
-            throw error;
-          }
-
-        default:
-          console.error(`[Twitter] Unknown function: ${functionName}`);
-          throw new Error(`Unknown function: ${functionName}`);
-      }
-    } catch (error: any) {
-      console.error(`[Twitter] Error executing function ${functionName}:`, {
-        errorName: error.name,
-        errorMessage: error.message,
-        errorCode: error.code,
-        errorType: error.type,
-        errorData: error.data,
-        errorStack: error.stack,
-      });
-
-      if (error.data) {
-        console.error(`[Twitter] API Error Details:`, {
-          detail: error.data.detail,
-          title: error.data.title,
-          status: error.data.status,
-          type: error.data.type,
-        });
-      }
-
-      throw error;
-    }
-  }
-
   private async executeTriggerFunction(functionName: string, args: any): Promise<any> {
-    this._isSecondExecution = true;
     try {
-      return await this.executeFunctionByName(functionName, args);
+      return await functionCallService.executeFunctionByName(functionName, args);
     } finally {
-      this._isSecondExecution = false;
     }
   }
 

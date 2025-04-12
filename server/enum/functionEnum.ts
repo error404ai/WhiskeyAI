@@ -43,4 +43,10 @@ export enum functionEnum {
   SOLANA_getTokenPoolChart = "SOLANA_getTokenPoolChart",
   SOLANA_getTokenHoldersChart = "SOLANA_getTokenHoldersChart",
   SOLANA_getFirstBuyers = "SOLANA_getFirstBuyers",
+  // Telegram functions
+  TELEGRAM_getChannelMessages = "TELEGRAM_getChannelMessages",
+  TELEGRAM_sendMessage = "TELEGRAM_sendMessage",
+  TELEGRAM_getEntity = "TELEGRAM_getEntity",
 }
+
+export type functionGroup = "twitter" | "rpc" | "dexscreener" | "coinmarket" | "solanatracker" | "telegram";
