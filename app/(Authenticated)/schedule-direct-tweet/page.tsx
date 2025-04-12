@@ -27,6 +27,7 @@ export default function SchedulePosts() {
     const [uploadSuccess, setUploadSuccess] = useState<{ count: number } | null>(null)
     const [hasImportedPosts, setHasImportedPosts] = useState(false)
     const [agentsLoaded, setAgentsLoaded] = useState(false)
+    const [forceRerender, setForceRerender] = useState(0)
     
     // Agent range state
     const [agentRangeStart, setAgentRangeStart] = useState(1)
@@ -241,6 +242,14 @@ export default function SchedulePosts() {
         }
     }, [scheduleStartDate, initialTimeSet, updateScheduledTimes])
 
+    // Custom function to handle updates after Excel import
+    const handleImportSuccess = useCallback((count: number) => {
+        setUploadSuccess({ count })
+        setHasImportedPosts(true)
+        // Force re-render of the entire form
+        setForceRerender(prev => prev + 1)
+    }, [])
+
     // Form submission handler
     const onSubmit = async (data: FormValues) => {
         try {
@@ -356,6 +365,7 @@ export default function SchedulePosts() {
                                 uploadSuccess={uploadSuccess}
                                 hasImportedPosts={hasImportedPosts}
                                 currentDelayRef={currentDelayRef}
+                                onImportSuccess={handleImportSuccess}
                             />
                         </div>
 
@@ -375,6 +385,7 @@ export default function SchedulePosts() {
                         {/* Schedule Posts */}
                         <div className="lg:col-span-9">
                             <PostList 
+                                key={`posts-list-${forceRerender}-${fields.length}`}
                                 methods={methods}
                                 agents={agents}
                                 agentRangeStart={agentRangeStart}
