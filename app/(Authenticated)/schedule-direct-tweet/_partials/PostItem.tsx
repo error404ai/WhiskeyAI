@@ -9,6 +9,7 @@ import { Trash2 } from "lucide-react"
 import { UseFormReturn } from "react-hook-form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Agent, FormValues } from "./types"
+import { useEffect, useState } from "react"
 
 interface PostItemProps {
     index: number
@@ -27,7 +28,48 @@ export default function PostItem({
     agentRangeStart,
     agentRangeEnd
 }: PostItemProps) {
-    const { setValue, getValues, formState: { errors } } = methods
+    'use no memo'
+    const { setValue, formState: { errors }, watch } = methods
+    const [currentAgentId, setCurrentAgentId] = useState<string>("")
+    const [content, setContent] = useState<string>("")
+    
+    // Watch for changes to this post's content and agent ID
+    const postContent = watch(`schedulePosts.${index}.content`)
+    const postAgentId = watch(`schedulePosts.${index}.agentId`)
+    
+    // Update local state when form values change (e.g., after Excel import)
+    useEffect(() => {
+        if (postContent !== content) {
+            setContent(postContent || "")
+        }
+        
+        if (postAgentId !== currentAgentId) {
+            setCurrentAgentId(postAgentId || "")
+        }
+    }, [postContent, postAgentId, content, currentAgentId])
+
+    // If no agent is selected and agents are available, select one
+    useEffect(() => {
+        if ((!postAgentId || postAgentId === "") && agents.length > 0) {
+            // Filter agents by range
+            const agentsInRange = agents.filter((_, idx) => 
+                idx + 1 >= agentRangeStart && idx + 1 <= agentRangeEnd
+            )
+            
+            if (agentsInRange.length > 0) {
+                const agentIndex = index % agentsInRange.length
+                const newAgentId = agentsInRange[agentIndex].uuid
+                setValue(`schedulePosts.${index}.agentId`, newAgentId)
+                setCurrentAgentId(newAgentId)
+            }
+        }
+    }, [agents, agentRangeStart, agentRangeEnd, index, setValue, postAgentId])
+
+    // Handler for content changes
+    const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setContent(e.target.value)
+        setValue(`schedulePosts.${index}.content`, e.target.value)
+    }
 
     return (
         <Card className="shadow-sm">
@@ -65,7 +107,8 @@ export default function PostItem({
                     <div className="col-span-8">
                         <Textarea 
                             id={`content-${index}`}
-                            {...methods.register(`schedulePosts.${index}.content`, { required: true })}
+                            value={content}
+                            onChange={handleContentChange}
                             placeholder="Enter your post content here..."
                             className="min-h-[100px] resize-none text-sm"
                         />
@@ -90,8 +133,11 @@ export default function PostItem({
                             </Label>
                             {agents && agents.length > 0 ? (
                                 <Select 
-                                    defaultValue={getValues(`schedulePosts.${index}.agentId`)}
-                                    onValueChange={(value) => setValue(`schedulePosts.${index}.agentId`, value)}
+                                    value={currentAgentId}
+                                    onValueChange={(value) => {
+                                        setValue(`schedulePosts.${index}.agentId`, value)
+                                        setCurrentAgentId(value)
+                                    }}
                                 >
                                     <SelectTrigger id={`agentId-${index}`} className="h-9 text-sm">
                                         <SelectValue placeholder="Select an agent" />
