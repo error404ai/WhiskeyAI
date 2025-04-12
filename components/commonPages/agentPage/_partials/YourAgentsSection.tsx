@@ -35,7 +35,7 @@ export default function YourAgentsSection() {
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
   const [showBatchConfirmDialog, setShowBatchConfirmDialog] = useState(false);
-  const [batchAction, setBatchAction] = useState<'run' | 'pause'>('run');
+  const [batchAction, setBatchAction] = useState<"run" | "pause">("run");
 
   const handleDeleteAgent = async (agentId: number) => {
     if (!agentId) return;
@@ -81,11 +81,7 @@ export default function YourAgentsSection() {
   };
 
   const toggleSelectAgent = (agentUuid: string) => {
-    setSelectedAgents(prev => 
-      prev.includes(agentUuid) 
-        ? prev.filter(uuid => uuid !== agentUuid) 
-        : [...prev, agentUuid]
-    );
+    setSelectedAgents((prev) => (prev.includes(agentUuid) ? prev.filter((uuid) => uuid !== agentUuid) : [...prev, agentUuid]));
   };
 
   const selectAllAgents = () => {
@@ -95,22 +91,22 @@ export default function YourAgentsSection() {
         setSelectedAgents([]);
       } else {
         // Select all
-        setSelectedAgents(agents.map(agent => agent.uuid));
+        setSelectedAgents(agents.map((agent) => agent.uuid));
       }
     }
   };
 
-  const handleBatchStatusChange = async (action: 'run' | 'pause') => {
+  const handleBatchStatusChange = async (action: "run" | "pause") => {
     setBatchAction(action);
     setShowBatchConfirmDialog(true);
   };
 
   const executeBatchStatusChange = async () => {
     if (selectedAgents.length === 0) return;
-    
+
     setIsBatchProcessing(true);
-    
-    if (batchAction === 'run') {
+
+    if (batchAction === "run") {
       // For running, we need to verify payment and validation for all agents
       const hasPaid = await AgentController.hasUserPaidForAgents();
       if (!hasPaid) {
@@ -119,12 +115,10 @@ export default function YourAgentsSection() {
         setIsBatchProcessing(false);
         return;
       }
-      
+
       // Validate all selected agents that are currently paused
-      const pausedAgents = selectedAgents.filter(uuid => 
-        agents?.find(a => a.uuid === uuid)?.status === 'paused'
-      );
-      
+      const pausedAgents = selectedAgents.filter((uuid) => agents?.find((a) => a.uuid === uuid)?.status === "paused");
+
       for (const agentUuid of pausedAgents) {
         const validationResult = await AgentController.validateAgentReadiness(agentUuid);
         if (!validationResult.isValid) {
@@ -137,20 +131,19 @@ export default function YourAgentsSection() {
         }
       }
     }
-    
+
     // Process all agents
     await Promise.all(
       selectedAgents.map(async (agentUuid) => {
-        const agent = agents?.find(a => a.uuid === agentUuid);
+        const agent = agents?.find((a) => a.uuid === agentUuid);
         // Only toggle if current status doesn't match desired status
-        if ((batchAction === 'run' && agent?.status === 'paused') || 
-            (batchAction === 'pause' && agent?.status === 'running')) {
+        if ((batchAction === "run" && agent?.status === "paused") || (batchAction === "pause" && agent?.status === "running")) {
           return await AgentController.toggleAgentStatus(agentUuid);
         }
         return true;
-      })
+      }),
     );
-    
+
     setIsBatchProcessing(false);
     setShowBatchConfirmDialog(false);
     setSelectedAgents([]);
@@ -174,38 +167,21 @@ export default function YourAgentsSection() {
         </div>
 
         {!isPending && !isFetching && agents && agents.length > 0 && (
-          <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/20">
+          <div className="bg-muted/20 flex items-center justify-between rounded-lg border p-3">
             <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={selectAllAgents}
-                className="text-xs h-8"
-              >
+              <Button variant="outline" size="sm" onClick={selectAllAgents} className="h-8 text-xs">
                 {selectedAgents.length === agents.length ? "Deselect All" : "Select All"}
               </Button>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-muted-foreground text-xs">
                 {selectedAgents.length} of {agents.length} agents selected
               </span>
             </div>
             {selectedAgents.length > 0 && (
               <div className="flex items-center gap-2">
-                <Button 
-                  variant="default" 
-                  size="sm"
-                  className="text-xs h-8 bg-green-600 hover:bg-green-700"
-                  onClick={() => handleBatchStatusChange('run')}
-                  disabled={isBatchProcessing}
-                >
+                <Button variant="default" size="sm" className="h-8 bg-green-600 text-xs hover:bg-green-700" onClick={() => handleBatchStatusChange("run")} disabled={isBatchProcessing}>
                   Run Selected
                 </Button>
-                <Button 
-                  variant="default" 
-                  size="sm"
-                  className="text-xs h-8 bg-amber-600 hover:bg-amber-700"
-                  onClick={() => handleBatchStatusChange('pause')}
-                  disabled={isBatchProcessing}
-                >
+                <Button variant="default" size="sm" className="h-8 bg-amber-600 text-xs hover:bg-amber-700" onClick={() => handleBatchStatusChange("pause")} disabled={isBatchProcessing}>
                   Pause Selected
                 </Button>
               </div>
@@ -239,14 +215,11 @@ export default function YourAgentsSection() {
           {!isPending && !isFetching && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
               {agents?.map((agent) => (
-                <Card key={agent.id} className={`p-6 ${agent.status === "paused" ? "opacity-75" : ""} ${selectedAgents.includes(agent.uuid) ? "ring-2 ring-primary" : ""}`}>
+                <Card key={agent.id} className={`p-6 ${agent.status === "paused" ? "opacity-75" : ""} ${selectedAgents.includes(agent.uuid) ? "ring-primary ring-2" : ""}`}>
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <div 
-                          onClick={() => toggleSelectAgent(agent.uuid)}
-                          className={`w-5 h-5 rounded border flex items-center justify-center cursor-pointer ${selectedAgents.includes(agent.uuid) ? "bg-primary border-primary" : "border-gray-400"}`}
-                        >
+                        <div onClick={() => toggleSelectAgent(agent.uuid)} className={`flex h-5 w-5 cursor-pointer items-center justify-center rounded border ${selectedAgents.includes(agent.uuid) ? "bg-primary border-primary" : "border-gray-400"}`}>
                           {selectedAgents.includes(agent.uuid) && <Check className="h-3 w-3 text-white" />}
                         </div>
                         <h2 className="text-lg font-semibold">{agent.name}</h2>
@@ -349,9 +322,9 @@ export default function YourAgentsSection() {
       <Dialog open={showBatchConfirmDialog} onOpenChange={setShowBatchConfirmDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{batchAction === 'run' ? 'Run Multiple Agents' : 'Pause Multiple Agents'}</DialogTitle>
+            <DialogTitle>{batchAction === "run" ? "Run Multiple Agents" : "Pause Multiple Agents"}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to {batchAction === 'run' ? 'run' : 'pause'} {selectedAgents.length} selected agents?
+              Are you sure you want to {batchAction === "run" ? "run" : "pause"} {selectedAgents.length} selected agents?
             </DialogDescription>
           </DialogHeader>
 
@@ -359,19 +332,16 @@ export default function YourAgentsSection() {
             <Button variant="outline" onClick={() => setShowBatchConfirmDialog(false)} disabled={isBatchProcessing}>
               Cancel
             </Button>
-            <Button 
-              variant={batchAction === 'run' ? 'default' : 'secondary'} 
-              onClick={executeBatchStatusChange} 
-              disabled={isBatchProcessing}
-              className={batchAction === 'run' ? 'bg-green-600 hover:bg-green-700' : 'bg-amber-600 hover:bg-amber-700'}
-            >
+            <Button variant={batchAction === "run" ? "default" : "secondary"} onClick={executeBatchStatusChange} disabled={isBatchProcessing} className={batchAction === "run" ? "bg-green-600 hover:bg-green-700" : "bg-amber-600 hover:bg-amber-700"}>
               {isBatchProcessing ? (
                 <>
                   <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                   Processing...
                 </>
+              ) : batchAction === "run" ? (
+                "Run Agents"
               ) : (
-                batchAction === 'run' ? 'Run Agents' : 'Pause Agents'
+                "Pause Agents"
               )}
             </Button>
           </DialogFooter>

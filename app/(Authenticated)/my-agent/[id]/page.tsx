@@ -35,30 +35,66 @@ export default function AgentConfigPage() {
       title: "Information",
       description: "Define agent personality, goals, and news",
       key: "information",
+      color: "bg-gradient-to-br from-blue-100 to-blue-200 text-blue-800",
+      activeColor: "bg-gradient-to-br from-blue-500 to-blue-600 text-white",
+      hoverColor: "hover:from-blue-200 hover:to-blue-300",
+      borderColor: "border-blue-300",
+      activeBorderColor: "border-blue-600",
+      iconBgColor: "bg-blue-100",
+      activeIconBgColor: "bg-blue-400/30",
     },
     {
       icon: Share2,
       title: "Platform Configuration",
       description: "Configure your platform settings",
       key: "platform",
+      color: "bg-gradient-to-br from-purple-100 to-purple-200 text-purple-800",
+      activeColor: "bg-gradient-to-br from-purple-500 to-purple-600 text-white",
+      hoverColor: "hover:from-purple-200 hover:to-purple-300",
+      borderColor: "border-purple-300",
+      activeBorderColor: "border-purple-600",
+      iconBgColor: "bg-purple-100",
+      activeIconBgColor: "bg-purple-400/30",
     },
     {
       icon: Zap,
       title: "Configure Triggers",
       description: "Set up custom triggers",
       key: "triggers",
+      color: "bg-gradient-to-br from-amber-100 to-amber-200 text-amber-800",
+      activeColor: "bg-gradient-to-br from-amber-500 to-amber-600 text-white",
+      hoverColor: "hover:from-amber-200 hover:to-amber-300",
+      borderColor: "border-amber-300",
+      activeBorderColor: "border-amber-600",
+      iconBgColor: "bg-amber-100",
+      activeIconBgColor: "bg-amber-400/30",
     },
     {
       icon: Wrench,
       title: "Configure Functions",
       description: "Set up custom functions for your agent",
       key: "functions",
+      color: "bg-gradient-to-br from-emerald-100 to-emerald-200 text-emerald-800",
+      activeColor: "bg-gradient-to-br from-emerald-500 to-emerald-600 text-white",
+      hoverColor: "hover:from-emerald-200 hover:to-emerald-300",
+      borderColor: "border-emerald-300",
+      activeBorderColor: "border-emerald-600",
+      iconBgColor: "bg-emerald-100",
+      activeIconBgColor: "bg-emerald-400/30",
     },
     {
       icon: Rocket,
       title: "Finalize & Launch",
       description: "Deploy your agent",
       key: "launch",
+      color: "bg-gradient-to-br from-rose-100 to-rose-200 text-rose-800",
+      // Changed from rose-500/700 to a softer rose-400/500 for active state
+      activeColor: "bg-gradient-to-br from-rose-400 to-rose-500 text-white",
+      hoverColor: "hover:from-rose-200 hover:to-rose-300",
+      borderColor: "border-rose-300",
+      activeBorderColor: "border-rose-500",
+      iconBgColor: "bg-rose-100",
+      activeIconBgColor: "bg-rose-300/40",
     },
   ];
 
@@ -125,11 +161,15 @@ export default function AgentConfigPage() {
                   const isActive = step.key === currentTabKey;
 
                   return (
-                    <Card key={step.key} onClick={() => handleTabChange(step.key)} className={`cursor-pointer p-4 transition-colors ${isActive ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>
-                      <div className="space-y-2">
-                        <Icon className="h-5 w-5" />
-                        <h3 className="font-medium">{step.title}</h3>
-                        <p className="text-sm opacity-90">{step.description}</p>
+                    <Card key={step.key} onClick={() => handleTabChange(step.key)} className={`cursor-pointer overflow-hidden rounded-lg border-l-4 p-5 transition-all duration-300 ${isActive ? step.activeBorderColor : step.borderColor} ${isActive ? `${step.activeColor} shadow-lg` : `${step.color} ${step.hoverColor} hover:shadow-md`} transform hover:translate-y-[-2px]`}>
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-2">
+                          <div className={`rounded-full p-2 ${isActive ? step.activeIconBgColor : step.iconBgColor}`}>
+                            <Icon className={`h-5 w-5 ${isActive ? "text-white" : ""}`} />
+                          </div>
+                          <h3 className="text-lg font-medium">{step.title}</h3>
+                        </div>
+                        <p className="ml-11 text-sm opacity-90">{step.description}</p>
                       </div>
                     </Card>
                   );

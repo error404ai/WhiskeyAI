@@ -57,11 +57,6 @@ class TelegramService {
     return false;
   }
 
-  /**
-   * Step 1: Request and send verification code to a phone number
-   * @param phoneNumber User's phone number with country code
-   * @returns Information about the sent code
-   */
   async sendCode(phoneNumber: string): Promise<{
     phoneCodeHash: string;
     sessionId: string;
@@ -79,7 +74,7 @@ class TelegramService {
       }
 
       console.log("Connected to Telegram, sending verification code...");
-      
+
       // Use the correct method signature as per your code
       const sendCodeResult = await this.client.sendCode(
         {
@@ -88,20 +83,20 @@ class TelegramService {
         },
         phoneNumber,
       );
-      
+
       console.log("Code sent successfully, phone code hash:", sendCodeResult.phoneCodeHash);
-      
+
       // Store the auth client for later use
       tempAuthClients[sessionId] = {
         client: this.client,
-        phoneCodeHash: sendCodeResult.phoneCodeHash
+        phoneCodeHash: sendCodeResult.phoneCodeHash,
       };
-      
+
       return {
         phoneCodeHash: sendCodeResult.phoneCodeHash,
         sessionId,
         isCodeSent: true,
-        timeout: 120 // Default timeout in seconds
+        timeout: 120, // Default timeout in seconds
       };
     } catch (error) {
       console.error("Error sending verification code:", error);
@@ -109,14 +104,6 @@ class TelegramService {
     }
   }
 
-  /**
-   * Step 2: Login with the verification code
-   * @param sessionId The session ID returned from sendCode
-   * @param phoneNumber User's phone number with country code
-   * @param phoneCode Verification code received via SMS/Telegram
-   * @param password Two-factor authentication password (if enabled)
-   * @returns Authentication result with session string
-   */
   async login(
     sessionId: string,
     phoneNumber: string,
@@ -153,7 +140,7 @@ class TelegramService {
             return Promise.resolve(false); // continue login flow
           },
         });
-        
+
         console.log("Sign in successful");
       } catch (error) {
         console.error("Error during sign in:", error);
@@ -230,7 +217,16 @@ class TelegramService {
         throw new Error(`No messages found for channel "${channelUsername}"`);
       }
 
-      return result;
+      // Filter only necessary conversation data
+      const filteredMessages = result.map((message) => ({
+        id: message.id,
+        text: message.message || "", // Message content
+        senderId: message.senderId?.toString() || "unknown", // Sender identifier
+        date: message.date, // Unix timestamp
+        // Add other fields if needed, e.g., replyToMessageId for context
+      }));
+
+      return filteredMessages;
     } catch (error) {
       console.error(`Error getting messages from channel "${channelUsername}":`, error);
       throw error;
