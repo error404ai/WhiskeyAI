@@ -20,11 +20,14 @@ import AgentSelector from "./_partials/AgentSelector"
 import PostList from "./_partials/PostList"
 
 export default function SchedulePosts() {
+    'use no memo'
+    
     // Keep track of the current delay value in a ref to ensure we always have the latest value
     const currentDelayRef = useRef<number>(10)
     const [uploadSuccess, setUploadSuccess] = useState<{ count: number } | null>(null)
     const [hasImportedPosts, setHasImportedPosts] = useState(false)
-
+    const [agentsLoaded, setAgentsLoaded] = useState(false)
+    
     // Agent range state
     const [agentRangeStart, setAgentRangeStart] = useState(1)
     const [agentRangeEnd, setAgentRangeEnd] = useState(1)
@@ -39,11 +42,21 @@ export default function SchedulePosts() {
     const [formError, setFormError] = useState<string | null>(null)
 
     // Fetch agents from API
-    const { isPending: isAgentsLoading, data: agents = [] } = useQuery({
+    const { isPending: isAgentsLoading, data: agentsData } = useQuery({
         queryKey: ["getAgents"],
         queryFn: AgentController.getAgents,
-        enabled: true,
+        enabled: true
     })
+    
+    // Type-safe agents data
+    const agents: Agent[] = agentsData as Agent[] || []
+    
+    // Set agentsLoaded state when agents are loaded
+    useEffect(() => {
+        if (agents && agents.length > 0 && !agentsLoaded) {
+            setAgentsLoaded(true)
+        }
+    }, [agents, agentsLoaded])
 
     // Initialize form with React Hook Form
     const methods = useForm<FormValues>({
@@ -73,8 +86,9 @@ export default function SchedulePosts() {
     }, [agents])
 
     // Force select the first agent for all posts when there's only one agent
+    // Run this only once agents are loaded
     useEffect(() => {
-        if (agents && agents.length === 1) {
+        if (agentsLoaded && agents && agents.length === 1) {
             // Get the single agent's UUID
             const singleAgentUuid = agents[0].uuid
 
@@ -84,7 +98,7 @@ export default function SchedulePosts() {
                 methods.setValue(`schedulePosts.${index}.agentId`, singleAgentUuid)
             })
         }
-    }, [agents, methods])
+    }, [agentsLoaded, agents, methods])
 
     // Update active agents when range changes or when agents are loaded
     useEffect(() => {
@@ -105,26 +119,28 @@ export default function SchedulePosts() {
         
         // Don't update state if the arrays have the same agents
         // This deep comparison prevents unnecessary re-renders
-        const currentAgentIds = activeAgents.map(agent => agent.id).sort().join(',');
-        const newAgentIds = rangeAgents.map(agent => agent.id).sort().join(',');
+        const currentAgentIds = activeAgents.map(agent => agent.id).sort().join(',')
+        const newAgentIds = rangeAgents.map(agent => agent.id).sort().join(',')
         
         if (currentAgentIds !== newAgentIds) {
             setActiveAgents(rangeAgents)
         }
 
-        // Only update the first post's agent if needed
-        const currentPosts = methods.getValues("schedulePosts")
-        if (currentPosts && currentPosts[0]) {
-            // If there's only one agent available in the entire list, always use it
-            if (agents.length === 1 && (!currentPosts[0].agentId || currentPosts[0].agentId === "")) {
-                methods.setValue("schedulePosts.0.agentId", agents[0].uuid)
-            }
-            // Otherwise, if the agent isn't set or is empty, use the first agent in range
-            else if ((!currentPosts[0].agentId || currentPosts[0].agentId === "") && rangeAgents.length > 0) {
-                methods.setValue("schedulePosts.0.agentId", rangeAgents[0].uuid)
+        // Make sure to assign an agent to the first post if none is assigned yet
+        if (agentsLoaded) {
+            const currentPosts = methods.getValues("schedulePosts")
+            if (currentPosts && currentPosts.length > 0) {
+                currentPosts.forEach((post, index) => {
+                    if (!post.agentId || post.agentId === "") {
+                        const agentIndex = index % rangeAgents.length
+                        if (rangeAgents.length > 0 && rangeAgents[agentIndex]) {
+                            methods.setValue(`schedulePosts.${index}.agentId`, rangeAgents[agentIndex].uuid)
+                        }
+                    }
+                })
             }
         }
-    }, [agentRangeStart, agentRangeEnd, agents, methods])
+    }, [agentRangeStart, agentRangeEnd, agents, methods, agentsLoaded])
 
     // Apply agent range to existing posts
     const applyAgentRange = () => {
@@ -159,7 +175,7 @@ export default function SchedulePosts() {
 
         // Update all scheduled times based on the new start date while preserving time
         if (fields.length > 0) {
-            const delayMinutes = methods.getValues("delayMinutes");
+            const delayMinutes = methods.getValues("delayMinutes")
             const firstPostTime = addMinutes(newDateWithTime, Number(delayMinutes))
             methods.setValue("schedulePosts.0.scheduledTime", format(firstPostTime, "yyyy-MM-dd'T'HH:mm"))
 
@@ -176,7 +192,7 @@ export default function SchedulePosts() {
     const updateScheduledTimes = useCallback(() => {
         if (fields.length > 0) {
             // Set the first post to start date + delay
-            const delayMinutes = methods.getValues("delayMinutes");
+            const delayMinutes = methods.getValues("delayMinutes")
             const firstPostTime = addMinutes(scheduleStartDate, Number(delayMinutes))
             methods.setValue("schedulePosts.0.scheduledTime", format(firstPostTime, "yyyy-MM-dd'T'HH:mm"))
 
@@ -254,11 +270,16 @@ export default function SchedulePosts() {
             toast.loading("Scheduling tweets...")
 
             // Build an array of scheduled tweets
-            const scheduledTweets = data.schedulePosts.map(post => ({
-                agentId: Number(agents.find(agent => agent.uuid === post.agentId)?.id || 0),
-                content: post.content,
-                scheduledAt: new Date(post.scheduledTime)
-            }))
+            const scheduledTweets = data.schedulePosts.map(post => {
+                // Find the agent by uuid
+                const agent = agents.find(a => a.uuid === post.agentId)
+                
+                return {
+                    agentId: agent ? Number(agent.id) : 0,
+                    content: post.content,
+                    scheduledAt: new Date(post.scheduledTime)
+                }
+            })
             
             // Submit all tweets to the API
             const response = await ScheduledTweetController.bulkCreateScheduledTweets(scheduledTweets)
@@ -381,7 +402,7 @@ export default function SchedulePosts() {
                             type="submit" 
                             size="sm" 
                             className="px-4" 
-                            disabled={agents?.length === 0 || formStatus === 'submitting'}
+                            disabled={agents.length === 0 || formStatus === 'submitting'}
                         >
                             {formStatus === 'submitting' ? (
                                 <>

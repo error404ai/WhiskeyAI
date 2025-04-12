@@ -26,6 +26,7 @@ export default function AgentSelector({
     setAgentRangeEnd,
     applyAgentRange
 }: AgentSelectorProps) {
+    'use no memo'
     return (
         <Card className="h-full shadow-sm">
             <CardContent className="p-2">

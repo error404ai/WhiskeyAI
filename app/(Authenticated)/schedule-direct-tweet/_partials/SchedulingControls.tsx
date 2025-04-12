@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import * as XLSX from "xlsx"
 import { FormValues, ExcelData, Agent, SchedulePost } from "./types"
+import { toast } from "sonner"
 
 interface SchedulingControlsProps {
     methods: UseFormReturn<FormValues>
@@ -39,6 +40,7 @@ export default function SchedulingControls({
     hasImportedPosts,
     currentDelayRef
 }: SchedulingControlsProps) {
+    'use no memo'
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [isUploading, setIsUploading] = useState(false)
     const [selectedFileName, setSelectedFileName] = useState<string | null>(null)
@@ -57,7 +59,7 @@ export default function SchedulingControls({
     const handleFileUpload = () => {
         const file = fileInputRef.current?.files?.[0]
         if (!file) {
-            alert("No file selected. Please select a file to upload.")
+            toast.error("No file selected. Please select a file to upload.")
             return
         }
 
@@ -77,17 +79,26 @@ export default function SchedulingControls({
                 // Convert to JSON with proper typing
                 const jsonData: ExcelData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
 
+                if (!jsonData || jsonData.length === 0) {
+                    toast.error("No data found in the file. The file appears to be empty.")
+                    setIsUploading(false)
+                    return
+                }
+
                 // Extract tweet content (skip header row if it exists)
-                const startRow =
-                    jsonData.length > 0 &&
-                        jsonData[0] &&
-                        jsonData[0].length > 0 &&
-                        typeof jsonData[0][0] === "string" &&
-                        (jsonData[0][0].toLowerCase() === "tweets" ||
-                            jsonData[0][0].toLowerCase() === "tweet" ||
-                            (typeof jsonData[0][0] === "string" && jsonData[0][0].toLowerCase().includes("content")))
-                        ? 1
-                        : 0
+                let startRow = 0
+                
+                // Check if the first row contains headers
+                if (jsonData[0] && jsonData[0].length > 0) {
+                    const firstCell = jsonData[0][0]
+                    if (typeof firstCell === "string" && (
+                        firstCell.toLowerCase() === "tweets" ||
+                        firstCell.toLowerCase() === "tweet" ||
+                        firstCell.toLowerCase().includes("content")
+                    )) {
+                        startRow = 1
+                    }
+                }
 
                 // Process the tweets with proper typing
                 const tweets: string[] = []
@@ -103,7 +114,7 @@ export default function SchedulingControls({
                 }
 
                 if (tweets.length === 0) {
-                    alert("No content found. The uploaded file doesn't contain any valid tweet content.")
+                    toast.error("No content found. The uploaded file doesn't contain any valid tweet content.")
                     setIsUploading(false)
                     return
                 }
@@ -115,7 +126,7 @@ export default function SchedulingControls({
                 const agentsToUse = activeAgents
 
                 if (agentsToUse.length === 0) {
-                    alert("No agents available. Please create agents first or adjust the agent range.")
+                    toast.error("No agents available. Please create agents first or adjust the agent range.")
                     setIsUploading(false)
                     return
                 }
@@ -132,13 +143,24 @@ export default function SchedulingControls({
                     }
                 })
 
+                // Clear previous state before updating
+                setHasImportedPosts(false)
+                setUploadSuccess(null)
+                
                 // Replace existing posts with new ones from file
                 replace(newPosts)
+                
+                // Update state after replacing
                 setHasImportedPosts(true)
                 setUploadSuccess({ count: tweets.length })
+                toast.success(`Successfully imported ${tweets.length} posts from the file`)
+                
+                // Force form validation to trigger UI updates
+                methods.trigger()
+                
             } catch (error) {
                 console.error("Error processing file:", error)
-                alert(
+                toast.error(
                     "Error processing file. There was an error reading the uploaded file. Please make sure it's a valid Excel file."
                 )
             } finally {
@@ -152,7 +174,7 @@ export default function SchedulingControls({
         }
 
         reader.onerror = () => {
-            alert("Error reading file. There was an error reading the uploaded file.")
+            toast.error("Error reading file. There was an error reading the uploaded file.")
             setIsUploading(false)
         }
 
@@ -180,7 +202,7 @@ export default function SchedulingControls({
             setSelectedFileName(null)
         }
 
-        alert("Imported posts cleared. All imported posts have been removed.")
+        toast.success("Imported posts cleared. All imported posts have been removed.")
     }
 
     return (

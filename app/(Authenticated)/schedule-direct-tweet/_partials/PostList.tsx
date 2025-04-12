@@ -5,6 +5,7 @@ import { Plus } from "lucide-react"
 import { UseFormReturn, useFieldArray } from "react-hook-form"
 import { Agent, FormValues } from "./types"
 import PostItem from "./PostItem"
+import { useEffect, useState } from "react"
 
 interface PostListProps {
     methods: UseFormReturn<FormValues>
@@ -19,10 +20,51 @@ export default function PostList({
     agentRangeStart,
     agentRangeEnd
 }: PostListProps) {
+    'use no memo'
+    // Use this to force re-renders when fields change
+    const [lastFieldCount, setLastFieldCount] = useState(0);
+    
     const { fields, append, remove } = useFieldArray({
         control: methods.control,
         name: "schedulePosts"
     })
+    
+    // Force a re-render when fields length changes (like after an Excel import)
+    useEffect(() => {
+        if (fields.length !== lastFieldCount) {
+            setLastFieldCount(fields.length);
+            // Force form validation
+            methods.trigger();
+        }
+    }, [fields.length, lastFieldCount, methods]);
+
+    // Ensure every post has an agent assigned when agents change or fields change
+    useEffect(() => {
+        if (agents.length > 0 && fields.length > 0) {
+            // Get agents in range
+            const start = Math.max(0, agentRangeStart - 1)
+            const end = Math.min(agents.length, agentRangeEnd)
+            const rangeAgents = agents.slice(start, end)
+            
+            if (rangeAgents.length > 0) {
+                const currentPosts = methods.getValues("schedulePosts")
+                let hasUpdates = false
+                
+                currentPosts.forEach((post, index) => {
+                    if (!post.agentId || post.agentId === "") {
+                        const agentIndex = index % rangeAgents.length
+                        methods.setValue(`schedulePosts.${index}.agentId`, rangeAgents[agentIndex].uuid)
+                        hasUpdates = true
+                    }
+                })
+                
+                // Force re-render if we had updates
+                if (hasUpdates) {
+                    methods.trigger("schedulePosts")
+                }
+            }
+        }
+    }, [agents, fields.length, agentRangeStart, agentRangeEnd, methods])
 
     // Handle adding a new post
     const handleAddPost = () => {
