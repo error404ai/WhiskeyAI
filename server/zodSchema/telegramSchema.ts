@@ -7,10 +7,15 @@ export const usernameSchema = z.object({
 export const channelMessagesSchema = z.object({
   channelUsername: z.string().nonempty("Channel username is required"),
   limit: z
-    .number()
-    .min(1, "Limit must be at least 1")
-    .max(100, "Limit cannot exceed 100")
-    .default(10)
+    .string()
+    .refine(
+      (val) => {
+        const num = parseInt(val, 10);
+        return !isNaN(num) && num >= 1 && num <= 100;
+      },
+      { message: "Limit must be a number between 1 and 100" },
+    )
+    .default("10")
     .optional(),
 });
 
@@ -25,4 +30,4 @@ export const verifyCodeSchema = z.object({
   phoneNumber: z.string().nonempty("Phone number is required"),
   phoneCode: z.string().nonempty("Verification code is required"),
   password: z.string().optional(),
-}); 
+});

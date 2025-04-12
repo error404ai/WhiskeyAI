@@ -7,13 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
 import { getChannelMessages, getEntityInfo, sendCode, testConnection, verifyCode } from "@/server/controllers/agent/TelegramAgentController";
 import { channelMessagesSchema, sendCodeSchema, usernameSchema, verifyCodeSchema } from "@/server/zodSchema/telegramSchema";
 import { TelegramApiError, TelegramResponse } from "@/types/telegram.d";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, CheckCircle, KeyRound, MessageSquare } from "lucide-react";
-import { useParams } from "next/navigation";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -27,7 +25,7 @@ export default function TelegramTest() {
 
   const channelMessagesForm = useForm({
     resolver: zodResolver(channelMessagesSchema),
-    defaultValues: { channelUsername: "", limit: 10 },
+    defaultValues: { channelUsername: "", limit: "10" },
   });
 
   const sendCodeForm = useForm({
@@ -37,11 +35,11 @@ export default function TelegramTest() {
 
   const verifyCodeForm = useForm({
     resolver: zodResolver(verifyCodeSchema),
-    defaultValues: { 
+    defaultValues: {
       sessionId: "",
       phoneNumber: "",
-      phoneCode: "", 
-      password: "" 
+      phoneCode: "",
+      password: "",
     },
   });
 
@@ -51,7 +49,7 @@ export default function TelegramTest() {
   const [error, setError] = useState<TelegramApiError | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showCodeInput, setShowCodeInput] = useState(false);
-  const [authStep, setAuthStep] = useState<'sendCode' | 'verifyCode'>('sendCode');
+  const [authStep, setAuthStep] = useState<"sendCode" | "verifyCode">("sendCode");
   const [sessionInfo, setSessionInfo] = useState<{
     sessionId: string;
     phoneNumber: string;
@@ -107,13 +105,13 @@ export default function TelegramTest() {
   };
 
   const handleGetChannelMessages = (data: z.infer<typeof channelMessagesSchema>) => {
-    handleApiCall(() => getChannelMessages(data.channelUsername, data.limit), "Get Channel Messages");
+    handleApiCall(() => getChannelMessages(data.channelUsername, Number(data.limit)), "Get Channel Messages");
     channelMessagesForm.reset();
   };
 
   const handleSendCode = async (data: z.infer<typeof sendCodeSchema>) => {
     const response = await handleApiCall(() => sendCode(data.phoneNumber), "Send Code");
-    
+
     if (response?.status === "success" && response.data) {
       // Store session info for the verification step
       setSessionInfo({
@@ -121,26 +119,23 @@ export default function TelegramTest() {
         phoneNumber: data.phoneNumber,
         phoneCodeHash: response.data.phoneCodeHash,
       });
-      
+
       // Pre-fill the verification form
       verifyCodeForm.setValue("sessionId", response.data.sessionId);
       verifyCodeForm.setValue("phoneNumber", data.phoneNumber);
-      
+
       // Show code input form
-      setAuthStep('verifyCode');
+      setAuthStep("verifyCode");
       setSuccess(`Verification code sent to ${data.phoneNumber}. Please enter the code.`);
     }
   };
 
   const handleVerifyCode = async (data: z.infer<typeof verifyCodeSchema>) => {
-    const response = await handleApiCall(
-      () => verifyCode(data.sessionId, data.phoneNumber, data.phoneCode, data.password),
-      "Authentication"
-    );
-    
+    const response = await handleApiCall(() => verifyCode(data.sessionId, data.phoneNumber, data.phoneCode, data.password), "Authentication");
+
     if (response?.status === "success") {
       // Reset forms and state after successful authentication
-      setAuthStep('sendCode');
+      setAuthStep("sendCode");
       sendCodeForm.reset();
       verifyCodeForm.reset();
       setSessionInfo(null);
@@ -149,7 +144,7 @@ export default function TelegramTest() {
 
   // Go back to the phone number step
   const handleBack = () => {
-    setAuthStep('sendCode');
+    setAuthStep("sendCode");
     setError(null);
     setSuccess(null);
   };
@@ -222,20 +217,14 @@ export default function TelegramTest() {
               <CardDescription>Authenticate with Telegram to get a session string</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {authStep === 'sendCode' ? (
+              {authStep === "sendCode" ? (
                 // Step 1: Enter phone number and send code
                 <FormProvider {...sendCodeForm}>
                   <form onSubmit={sendCodeForm.handleSubmit(handleSendCode)} className="space-y-4">
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Phone Number</label>
-                      <Input 
-                        {...sendCodeForm.register("phoneNumber")} 
-                        placeholder="With country code (e.g. +12345678900)" 
-                        disabled={loading}
-                      />
-                      {sendCodeForm.formState.errors.phoneNumber && (
-                        <p className="text-xs text-red-500">{sendCodeForm.formState.errors.phoneNumber.message}</p>
-                      )}
+                      <Input {...sendCodeForm.register("phoneNumber")} placeholder="With country code (e.g. +12345678900)" disabled={loading} />
+                      {sendCodeForm.formState.errors.phoneNumber && <p className="text-xs text-red-500">{sendCodeForm.formState.errors.phoneNumber.message}</p>}
                     </div>
 
                     <Button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
@@ -249,46 +238,30 @@ export default function TelegramTest() {
                   <form onSubmit={verifyCodeForm.handleSubmit(handleVerifyCode)} className="space-y-4">
                     <input type="hidden" {...verifyCodeForm.register("sessionId")} />
                     <input type="hidden" {...verifyCodeForm.register("phoneNumber")} />
-                    
+
                     {sessionInfo && (
                       <div className="mb-2 text-sm">
                         <span className="font-medium">Phone:</span> {sessionInfo.phoneNumber}
                       </div>
                     )}
-                    
+
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Verification Code</label>
-                      <Input 
-                        {...verifyCodeForm.register("phoneCode")} 
-                        placeholder="Code from Telegram/SMS" 
-                        disabled={loading}
-                      />
-                      {verifyCodeForm.formState.errors.phoneCode && (
-                        <p className="text-xs text-red-500">{verifyCodeForm.formState.errors.phoneCode.message}</p>
-                      )}
+                      <Input {...verifyCodeForm.register("phoneCode")} placeholder="Code from Telegram/SMS" disabled={loading} />
+                      {verifyCodeForm.formState.errors.phoneCode && <p className="text-xs text-red-500">{verifyCodeForm.formState.errors.phoneCode.message}</p>}
                     </div>
-                    
+
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Two-Factor Password (optional)</label>
-                      <Input 
-                        {...verifyCodeForm.register("password")} 
-                        type="password"
-                        placeholder="Leave blank if not using 2FA" 
-                        disabled={loading}
-                      />
+                      <Input {...verifyCodeForm.register("password")} type="password" placeholder="Leave blank if not using 2FA" disabled={loading} />
                     </div>
 
                     <div className="flex gap-2">
                       <Button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                         {loading ? "Verifying..." : "Verify Code"}
                       </Button>
-                      
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        onClick={handleBack}
-                        disabled={loading}
-                      >
+
+                      <Button type="button" variant="outline" onClick={handleBack} disabled={loading}>
                         Back
                       </Button>
                     </div>
@@ -299,9 +272,7 @@ export default function TelegramTest() {
               {result?.action === "Authentication" && result.data?.sessionString && (
                 <div className="mt-4 rounded border border-green-200 bg-green-50 p-4">
                   <h3 className="mb-2 font-medium text-green-800">Authentication Successful</h3>
-                  <p className="mb-2 text-sm text-green-700">
-                    Add this session string to your environment variables as TELEGRAM_SESSION:
-                  </p>
+                  <p className="mb-2 text-sm text-green-700">Add this session string to your environment variables as TELEGRAM_SESSION:</p>
                   <div className="max-h-32 overflow-x-auto rounded bg-white p-2">
                     <pre className="text-xs">{result.data.sessionString}</pre>
                   </div>
@@ -343,16 +314,8 @@ export default function TelegramTest() {
                 <CardContent className="space-y-4">
                   <Input name="channelUsername" label="Channel Username" placeholder="Channel username without @" required />
                   <div className="flex items-center gap-2">
-                    <Input 
-                      name="limit" 
-                      label="Limit" 
-                      type="number" 
-                      min={1} 
-                      max={100} 
-                      defaultValue={10} 
-                      className="w-32" 
-                    />
-                    <span className="text-sm text-muted-foreground">Number of messages (1-100)</span>
+                    <Input name="limit" label="Limit" type="number" min={1} max={100} defaultValue={10} className="w-32" />
+                    <span className="text-muted-foreground text-sm">Number of messages (1-100)</span>
                   </div>
                   <Button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? "Getting Messages..." : "Get Messages"}
@@ -399,7 +362,7 @@ export default function TelegramTest() {
           </Alert>
         )}
 
-        {result && result.action !== 'Authentication' && (
+        {result && result.action !== "Authentication" && (
           <Card className="mt-4">
             <CardHeader>
               <CardTitle>{result.action} Results</CardTitle>
@@ -412,4 +375,4 @@ export default function TelegramTest() {
       </div>
     </div>
   );
-} 
+}

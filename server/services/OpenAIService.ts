@@ -3,7 +3,7 @@ import { Agent } from "@/db/schema";
 import { AgentTrigger } from "@/db/schema/agentTriggersTable";
 import { OpenAI } from "openai";
 import { TriggerLogService } from "./agent/TriggerLogService";
-import functionCallService, { FunctionCallService } from "./FunctionCallService";
+import { FunctionCallService } from "./FunctionCallService";
 import TwitterService from "./TwitterService";
 
 // Define OpenAI function calling interfaces
@@ -276,7 +276,7 @@ export class OpenAIService {
               }
 
               console.log(`[Conv] Executing function: ${toolCall.function.name}`);
-              const result = await functionCallService.executeFunctionByName(toolCall.function.name, args);
+              const result = await this.functionCallService.executeFunctionByName(toolCall.function.name, args);
 
               if (result && typeof result === "object" && result.success === false && result.error) {
                 console.warn(`[Conv] Function ${toolCall.function.name} returned handled error: ${result.error}`);
@@ -437,7 +437,7 @@ export class OpenAIService {
 
   private async executeTriggerFunction(functionName: string, args: any): Promise<any> {
     try {
-      return await functionCallService.executeFunctionByName(functionName, args);
+      return await this.functionCallService.executeFunctionByName(functionName, args);
     } finally {
     }
   }
