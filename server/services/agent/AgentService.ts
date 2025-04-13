@@ -57,11 +57,14 @@ export class AgentService {
   static async getAgents() {
     const userId = (await AuthService.getAuthUser())?.id;
     if (!userId) throw new Error("User not authenticated");
-    return await db
-      .select()
-      .from(agentsTable)
-      .where(eq(agentsTable.userId, Number(userId)))
-      .orderBy(agentsTable.id);
+    return db.query.agentsTable.findMany({
+      where: eq(agentsTable.userId, Number(userId)),
+      orderBy: agentsTable.id,
+      with: {
+        user: true,
+        agentPlatforms: true,
+      },
+    });
   }
 
   static async deleteAgent(agentId: number) {

@@ -26,7 +26,6 @@ export default function SchedulePosts() {
   const currentDelayRef = useRef<number>(10);
   const [uploadSuccess, setUploadSuccess] = useState<{ count: number } | null>(null);
   const [hasImportedPosts, setHasImportedPosts] = useState(false);
-  const [agentsLoaded, setAgentsLoaded] = useState(false);
   const [forceRerender, setForceRerender] = useState(0);
 
   const [agentRangeStart, setAgentRangeStart] = useState(1);
@@ -51,25 +50,7 @@ export default function SchedulePosts() {
     enabled: true,
   });
 
-  const agents =
-    (agentsData as Agent[]).map((agent) => ({
-      id: agent.id,
-      uuid: agent.uuid,
-      name: agent.name,
-      userId: agent.userId,
-      status: agent.status,
-      tickerSymbol: agent.tickerSymbol,
-      tokenAddress: agent.tokenAddress,
-      information: agent.information,
-      triggers: agent.triggers,
-      paymentTimestamp: agent.paymentTimestamp,
-    })) || [];
-
-  useEffect(() => {
-    if (agents && agents.length > 0 && !agentsLoaded) {
-      setAgentsLoaded(true);
-    }
-  }, [agents, agentsLoaded]);
+  const agents = agentsData?.filter((agent) => agent.agentPlatforms?.some((platform) => platform.type === "twitter")) || [];
 
   const methods = useForm<FormValues>({
     defaultValues: {
@@ -96,17 +77,6 @@ export default function SchedulePosts() {
   }, [agents]);
 
   useEffect(() => {
-    if (agentsLoaded && agents && agents.length === 1) {
-      const singleAgentUuid = agents[0].uuid;
-
-      const currentPosts = methods.getValues("schedulePosts");
-      currentPosts.forEach((_, index) => {
-        methods.setValue(`schedulePosts.${index}.agentId`, singleAgentUuid);
-      });
-    }
-  }, [agentsLoaded, agents, methods]);
-
-  useEffect(() => {
     if (!agents || agents.length === 0) {
       if (activeAgents.length !== 0) {
         setActiveAgents([]);
@@ -131,21 +101,7 @@ export default function SchedulePosts() {
     if (currentAgentIds !== newAgentIds) {
       setActiveAgents(rangeAgents);
     }
-
-    if (agentsLoaded) {
-      const currentPosts = methods.getValues("schedulePosts");
-      if (currentPosts && currentPosts.length > 0) {
-        currentPosts.forEach((post, index) => {
-          if (!post.agentId || post.agentId === "") {
-            const agentIndex = index % rangeAgents.length;
-            if (rangeAgents.length > 0 && rangeAgents[agentIndex]) {
-              methods.setValue(`schedulePosts.${index}.agentId`, rangeAgents[agentIndex].uuid);
-            }
-          }
-        });
-      }
-    }
-  }, [agentRangeStart, agentRangeEnd, agents, methods, agentsLoaded]);
+  }, [agentRangeStart, agentRangeEnd, agents, methods]);
 
   const applyAgentRange = () => {
     if (fields.length > 0 && activeAgents.length > 0) {
