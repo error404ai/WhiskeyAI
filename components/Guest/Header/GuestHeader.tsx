@@ -44,7 +44,6 @@ export function GuestHeader() {
                       DOCS
                     </NavigationMenuLink>
                   </Link>
-
                 </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
@@ -60,7 +59,7 @@ export function GuestHeader() {
         <LoggedIn>
           <div className="flex items-center gap-4">
             <div className="hidden items-center gap-4 md:flex">
-              <Button link="/my-agent">
+              <Button link="/my-agents">
                 <LayoutPanelTop />
                 My Agents
               </Button>

@@ -51,7 +51,19 @@ export default function SchedulePosts() {
     enabled: true,
   });
 
-  const agents: Agent[] = (agentsData as Agent[]) || [];
+  const agents =
+    (agentsData as Agent[]).map((agent) => ({
+      id: agent.id,
+      uuid: agent.uuid,
+      name: agent.name,
+      userId: agent.userId,
+      status: agent.status,
+      tickerSymbol: agent.tickerSymbol,
+      tokenAddress: agent.tokenAddress,
+      information: agent.information,
+      triggers: agent.triggers,
+      paymentTimestamp: agent.paymentTimestamp,
+    })) || [];
 
   useEffect(() => {
     if (agents && agents.length > 0 && !agentsLoaded) {

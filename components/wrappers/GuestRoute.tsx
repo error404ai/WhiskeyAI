@@ -7,7 +7,7 @@ type Props = {
 const GuestRoute: React.FC<Props> = async ({ children }) => {
   const session = await auth();
   if (session) {
-    return redirect("/my-agent");
+    return redirect("/my-agents");
   }
 
   return children;
