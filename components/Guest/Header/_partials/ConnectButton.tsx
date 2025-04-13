@@ -30,7 +30,7 @@ const ConnectButton = ({ children, ...props }: React.ComponentProps<typeof Butto
     }
 
     console.log("logged in");
-    window.location.href = "/my-agent"; // Previously redirected to "/dashboard"
+    window.location.href = "/my-agents"; // Previously redirected to "/dashboard"
   };
 
   return (
