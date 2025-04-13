@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client"
 
 import { Button } from "@/components/ui/button"
@@ -22,49 +23,66 @@ export default function PostList({
     agentRangeEnd
 }: PostListProps) {
     'use no memo'
-    // Use this to force re-renders when fields change
     const [lastFieldCount, setLastFieldCount] = useState(0);
     const [forceRender, setForceRender] = useState(0);
+    const [lastDelayValue, setLastDelayValue] = useState(methods.getValues("delayMinutes"));
     
     const { fields, append, remove } = useFieldArray({
         control: methods.control,
         name: "schedulePosts"
     })
 
-    // Log when fields change to help with debugging
     useEffect(() => {
         console.log(`Fields length changed: ${fields.length}`)
-        // Force update when fields length changes
         if (fields.length !== lastFieldCount) {
             setLastFieldCount(fields.length);
-            // Increment to force a re-render
             setForceRender(prev => prev + 1);
         }
     }, [fields.length, lastFieldCount]);
     
-    // Force a re-render when fields are updated from Excel import
     useEffect(() => {
-        // Using forceRender as a dependency ensures this runs after field updates
         if (fields.length > 0) {
             console.log(`Forcing validation with ${fields.length} posts`)
-            // Force form validation which triggers re-render of field components
             methods.trigger("schedulePosts").then(() => {
                 console.log("Form validation complete, UI should be updated");
             });
         }
     }, [forceRender, fields.length, methods]);
 
-    // Use layout effect for immediate UI updates after field changes
     useLayoutEffect(() => {
         if (fields.length > 0) {
             console.log(`Layout effect: Immediate rendering of ${fields.length} posts`)
         }
     }, [fields.length]);
 
-    // Ensure every post has an agent assigned when agents change or fields change
+    useEffect(() => {
+        const currentDelay = methods.watch("delayMinutes");
+                if (currentDelay !== lastDelayValue && fields.length > 1) {
+            console.log(`Delay changed from ${lastDelayValue} to ${currentDelay}, recalculating times for ${fields.length} posts`);
+            
+            const currentPosts = methods.getValues("schedulePosts");
+            if (currentPosts.length > 0) {
+                const firstPostTime = currentPosts[0]?.scheduledTime ? 
+                    new Date(currentPosts[0].scheduledTime) : new Date();
+                
+                for (let i = 1; i < currentPosts.length; i++) {
+                    const newTime = addMinutes(firstPostTime, currentDelay * i);
+                    methods.setValue(
+                        `schedulePosts.${i}.scheduledTime`, 
+                        format(newTime, "yyyy-MM-dd'T'HH:mm")
+                    );
+                }
+                
+                methods.trigger("schedulePosts");
+                setForceRender(prev => prev + 1);
+            }
+            
+            setLastDelayValue(currentDelay);
+        }
+    }, [methods.watch("delayMinutes"), fields.length, lastDelayValue, methods]);
+
     useEffect(() => {
         if (agents.length > 0 && fields.length > 0) {
-            // Get agents in range
             const start = Math.max(0, agentRangeStart - 1)
             const end = Math.min(agents.length, agentRangeEnd)
             const rangeAgents = agents.slice(start, end)
@@ -73,7 +91,6 @@ export default function PostList({
                 const currentPosts = methods.getValues("schedulePosts")
                 let hasUpdates = false
                 
-                // If posts exist but fields.length doesn't match, there might be a sync issue
                 if (currentPosts.length !== fields.length) {
                     console.log(`Post count mismatch: form has ${currentPosts.length} but fields has ${fields.length}`)
                 }
