@@ -140,7 +140,7 @@ export default function SchedulingControls({
                 // Create the new posts with proper scheduling and agent assignment
                 const newPosts: SchedulePost[] = tweets.map((content, index) => {
                     // For the first post (index 0), use exactly scheduleStartDate
-                    // For subsequent posts, add delay based on position
+                    // For subsequent posts, add accumulated delay based on position
                     const postTime = index === 0 
                         ? scheduleStartDate 
                         : addMinutes(scheduleStartDate, currentDelay * index);
@@ -266,12 +266,12 @@ export default function SchedulingControls({
                                         // First post should be at exact scheduleStartDate (not adding delay)
                                         methods.setValue("schedulePosts.0.scheduledTime", format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"))
 
-                                        // Then calculate times for subsequent posts based on delay
-                                        let previousTime = scheduleStartDate
+                                        // Calculate all subsequent posts using accumulating delay
+                                        const baseTime = scheduleStartDate
                                         for (let i = 1; i < fields.length; i++) {
-                                            const nextTime = addMinutes(previousTime, newDelay)
+                                            // Each post is baseTime + (i * delay)
+                                            const nextTime = addMinutes(baseTime, newDelay * i)
                                             methods.setValue(`schedulePosts.${i}.scheduledTime`, format(nextTime, "yyyy-MM-dd'T'HH:mm"))
-                                            previousTime = nextTime
                                         }
                                     }
                                 }}
