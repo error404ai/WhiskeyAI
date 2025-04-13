@@ -29,14 +29,14 @@ export default function YourAgentsSection() {
 
   // Calculate agent counts
   const totalAgents = agents?.length || 0;
-  const runningAgents = agents?.filter(agent => agent.status === "running").length || 0;
-  const pausedAgents = agents?.filter(agent => agent.status === "paused").length || 0;
+  const runningAgents = agents?.filter((agent) => agent.status === "running").length || 0;
+  const pausedAgents = agents?.filter((agent) => agent.status === "paused").length || 0;
   const maxAgents = process.env.NEXT_PUBLIC_MAX_AGENTS_PER_USER ? parseInt(process.env.NEXT_PUBLIC_MAX_AGENTS_PER_USER) : 50;
 
   // Group agents by status
   const groupedAgents = {
-    running: agents?.filter(agent => agent.status === "running") || [],
-    paused: agents?.filter(agent => agent.status === "paused") || []
+    running: agents?.filter((agent) => agent.status === "running") || [],
+    paused: agents?.filter((agent) => agent.status === "paused") || [],
   };
 
   const [showValidationErrorModal, setShowValidationErrorModal] = useState(false);
@@ -181,15 +181,10 @@ export default function YourAgentsSection() {
         {!isPending && !isFetching && agents && agents.length > 0 && (
           <>
             <div className="flex items-center justify-between space-x-4">
-              <div className="flex-1 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border shadow-sm p-3">
+              <div className="flex-1 rounded-lg border bg-gradient-to-r from-gray-50 to-gray-100 p-3 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={selectAllAgents} 
-                      className="h-8 text-xs"
-                    >
+                    <Button variant="outline" size="sm" onClick={selectAllAgents} className="h-8 text-xs">
                       {selectedAgents.length === agents.length ? "Deselect All" : "Select All"}
                     </Button>
                     <span className="text-muted-foreground text-xs">
@@ -198,22 +193,10 @@ export default function YourAgentsSection() {
                   </div>
                   {selectedAgents.length > 0 && (
                     <div className="flex items-center gap-2">
-                      <Button 
-                        variant="default" 
-                        size="sm" 
-                        className="h-8 bg-green-600 text-xs hover:bg-green-700" 
-                        onClick={() => handleBatchStatusChange("run")} 
-                        disabled={isBatchProcessing}
-                      >
+                      <Button variant="default" size="sm" className="h-8 bg-green-600 text-xs hover:bg-green-700" onClick={() => handleBatchStatusChange("run")} disabled={isBatchProcessing}>
                         Run Selected
                       </Button>
-                      <Button 
-                        variant="default" 
-                        size="sm" 
-                        className="h-8 bg-amber-600 text-xs hover:bg-amber-700" 
-                        onClick={() => handleBatchStatusChange("pause")} 
-                        disabled={isBatchProcessing}
-                      >
+                      <Button variant="default" size="sm" className="h-8 bg-amber-600 text-xs hover:bg-amber-700" onClick={() => handleBatchStatusChange("pause")} disabled={isBatchProcessing}>
                         Pause Selected
                       </Button>
                     </div>
@@ -221,7 +204,7 @@ export default function YourAgentsSection() {
                 </div>
 
                 {/* Agent Stats Indicators */}
-                <div className="grid grid-cols-4 gap-2 mt-3">
+                <div className="mt-3 grid grid-cols-4 gap-2">
                   <div className="flex items-center gap-2 rounded-md bg-white px-3 py-1.5 shadow-sm">
                     <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-blue-700">
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -232,11 +215,11 @@ export default function YourAgentsSection() {
                       </svg>
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground">Total</p>
+                      <p className="text-muted-foreground text-xs font-medium">Total</p>
                       <p className="text-sm font-bold">{totalAgents}</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-2 rounded-md bg-white px-3 py-1.5 shadow-sm">
                     <div className="flex h-7 w-7 items-center justify-center rounded-full bg-green-100 text-green-700">
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -245,11 +228,11 @@ export default function YourAgentsSection() {
                       </svg>
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground">Running</p>
+                      <p className="text-muted-foreground text-xs font-medium">Running</p>
                       <p className="text-sm font-bold text-green-700">{runningAgents}</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-2 rounded-md bg-white px-3 py-1.5 shadow-sm">
                     <div className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-amber-700">
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -258,11 +241,11 @@ export default function YourAgentsSection() {
                       </svg>
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground">Paused</p>
+                      <p className="text-muted-foreground text-xs font-medium">Paused</p>
                       <p className="text-sm font-bold text-amber-700">{pausedAgents}</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-2 rounded-md bg-white px-3 py-1.5 shadow-sm">
                     <div className="flex h-7 w-7 items-center justify-center rounded-full bg-purple-100 text-purple-700">
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -271,7 +254,7 @@ export default function YourAgentsSection() {
                       </svg>
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground">Limit</p>
+                      <p className="text-muted-foreground text-xs font-medium">Limit</p>
                       <p className="text-sm font-bold">
                         <span className="text-purple-700">{totalAgents}</span>
                         <span className="text-muted-foreground text-xs"> / {maxAgents}</span>
@@ -312,7 +295,7 @@ export default function YourAgentsSection() {
               {/* Running Agents Section */}
               {groupedAgents.running.length > 0 && (
                 <div className="mb-8">
-                  <h2 className="text-xl font-semibold mb-4 text-green-500">Running Agents ({runningAgents})</h2>
+                  <h2 className="mb-4 text-xl font-semibold text-green-500">Running Agents ({runningAgents})</h2>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
                     {groupedAgents.running.map((agent) => (
                       <Card key={agent.id} className={`p-6 ${selectedAgents.includes(agent.uuid) ? "ring-primary ring-2" : ""}`}>
@@ -356,7 +339,7 @@ export default function YourAgentsSection() {
                         )}
 
                         <div className="mt-4 mb-2">
-                          <Button variant="outline" className="w-full" link={`/my-agent/${agent.uuid}`}>
+                          <Button variant="outline" className="w-full" link={`/my-agents/${agent.uuid}`}>
                             Configure
                           </Button>
                         </div>
@@ -369,7 +352,7 @@ export default function YourAgentsSection() {
               {/* Paused Agents Section */}
               {groupedAgents.paused.length > 0 && (
                 <div>
-                  <h2 className="text-xl font-semibold mb-4 text-amber-500">Paused Agents ({pausedAgents})</h2>
+                  <h2 className="mb-4 text-xl font-semibold text-amber-500">Paused Agents ({pausedAgents})</h2>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
                     {groupedAgents.paused.map((agent) => (
                       <Card key={agent.id} className={`p-6 opacity-75 ${selectedAgents.includes(agent.uuid) ? "ring-primary ring-2" : ""}`}>
@@ -425,7 +408,7 @@ export default function YourAgentsSection() {
 
               {/* No agents message */}
               {agents?.length === 0 && (
-                <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                <div className="rounded-lg border-2 border-dashed p-8 text-center">
                   <p className="text-muted-foreground">No agents found. Create your first agent to get started!</p>
                 </div>
               )}
