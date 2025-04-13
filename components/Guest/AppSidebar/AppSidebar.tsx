@@ -47,7 +47,7 @@ export default function AppSidebar() {
                     <SidebarMenuButton
                       asChild
                       className={cn("hover:bg-blue-200", {
-                        "bg-blue-400 text-white hover:bg-blue-600 hover:text-white": isActive,
+                        "bg-gradient-to-r from-blue-600/10 to-indigo-600/10 text-black hover:bg-blue-600 hover:text-white": isActive,
                       })}
                     >
                       <Link href={item.url} prefetch>
