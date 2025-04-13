@@ -55,7 +55,7 @@ function LaunchStep() {
 
       await PlatformController.connectTwitter({
         agentUuid,
-        url: `/my-agent/${agentUuid}?tab=launch`,
+        url: `/my-agents/${agentUuid}?tab=launch`,
       });
       platformRefetch();
     } catch (error) {

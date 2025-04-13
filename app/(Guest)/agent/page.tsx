@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 export default async function page() {
   const session = await auth();
   if (session) {
-    return redirect("/my-agent");
+    return redirect("/my-agents");
   }
   return <AgentPage />;
 }
