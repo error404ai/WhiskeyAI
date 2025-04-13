@@ -8,9 +8,9 @@ export const scheduledTweetsTable = pgTable("scheduledTweets", {
     .notNull()
     .references(() => agentsTable.id, { onDelete: "cascade" }),
   content: text().notNull(),
-  scheduledAt: timestamp().notNull(),
+  scheduledAt: timestamp("scheduledAt", { withTimezone: true }).notNull(),
   status: varchar({ length: 50 }).$type<"pending" | "completed" | "failed">().default("pending"),
-  createdAt: timestamp().defaultNow(),
+  createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
   processedAt: timestamp(),
   errorMessage: text(),
 });
@@ -23,4 +23,4 @@ export const scheduledTweetsRelations = relations(scheduledTweetsTable, ({ one }
 }));
 
 export type ScheduledTweet = typeof scheduledTweetsTable.$inferSelect;
-export type NewScheduledTweet = typeof scheduledTweetsTable.$inferInsert; 
+export type NewScheduledTweet = typeof scheduledTweetsTable.$inferInsert;
