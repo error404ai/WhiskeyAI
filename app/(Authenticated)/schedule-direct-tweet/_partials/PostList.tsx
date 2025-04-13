@@ -99,16 +99,21 @@ export default function PostList({
     // Handle adding a new post
     const handleAddPost = () => {
         const currentPosts = methods.getValues("schedulePosts")
+        const firstPost = currentPosts[0]
         const lastPost = currentPosts[currentPosts.length - 1]
-
+        
         // Get the delay value
         const currentDelay = Number(methods.getValues("delayMinutes"))
-
-        // Safely get the last post time
-        const lastPostTime = lastPost?.scheduledTime ? new Date(lastPost.scheduledTime) : new Date()
+        
+        // Safely get the first post time (base time)
+        const firstPostTime = firstPost?.scheduledTime ? new Date(firstPost.scheduledTime) : new Date()
+        
+        // Current post count (before adding new one)
+        const currentPostCount = currentPosts.length
         
         console.log('Adding post with:')
-        console.log('- Last post time:', lastPostTime)
+        console.log('- First post time:', firstPostTime)
+        console.log('- Current post count:', currentPostCount)
         console.log('- Current delay:', currentDelay, 'minutes')
 
         // Find the next agent index based on the current pattern
@@ -135,9 +140,10 @@ export default function PostList({
         const nextAgentId = nextAgentIndex >= 0 ? 
             agentsInRange[nextAgentIndex]?.uuid : ""
 
-        // Create the new post with calculated time using the current delay value
+        // Create the new post with calculated time using the current delay value and post count
         // Use addMinutes from date-fns for more reliable calculation
-        const newScheduledTime = addMinutes(lastPostTime, currentDelay)
+        // New post will be at firstPostTime + (currentPostCount * delay)
+        const newScheduledTime = addMinutes(firstPostTime, currentDelay * currentPostCount)
         
         console.log('- New scheduled time:', newScheduledTime)
 

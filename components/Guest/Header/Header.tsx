@@ -29,7 +29,7 @@ const Header = () => {
       </LoggedOut>
       <LoggedIn>
         <div className="flex gap-3">
-          <Button variant="outline" link="/my-agent" className="border-2 border-blue-500 text-blue-500 transition-all hover:bg-blue-500 hover:text-white">
+          <Button variant="outline" link="/my-agents" className="border-2 border-blue-500 text-blue-500 transition-all hover:bg-blue-500 hover:text-white">
             <Home className="mr-2" /> My Agents
           </Button>
           <DisconnectButton />
