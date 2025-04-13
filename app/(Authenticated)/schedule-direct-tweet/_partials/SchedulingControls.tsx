@@ -1,6 +1,6 @@
 "use client";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -215,7 +215,6 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
     <Card className="border-[1px] border-blue-100 shadow-md transition-all hover:border-blue-200">
       <CardContent className="p-4">
         <div className="relative grid grid-cols-1 gap-4 md:grid-cols-3">
-
           <div className="flex items-center gap-2 rounded-md bg-blue-50/50 p-2">
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4 text-blue-600" />
@@ -223,7 +222,7 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
                 Delay Between Posts:
               </Label>
             </div>
-        
+
             <div className="flex items-center gap-1">
               <Input
                 id="delayMinutes"
@@ -293,12 +292,12 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
         {uploadSuccess && (
           <div className="mt-4 flex items-center justify-between">
             <Alert className="flex-1 rounded-md border-green-200 bg-green-50 px-3 py-2 text-green-800">
-              <AlertTitle className="flex items-center text-sm font-medium text-green-800">
+              {/* <AlertTitle className="flex items-center text-sm font-medium text-green-800">
                 <svg xmlns="http://www.w3.org/2000/svg" className="mr-1 h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
                 Import Successful
-              </AlertTitle>
+              </AlertTitle> */}
               <AlertDescription className="text-sm text-green-700">Successfully imported {uploadSuccess.count} posts from the file</AlertDescription>
             </Alert>
             {hasImportedPosts && (
