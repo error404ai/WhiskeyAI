@@ -76,7 +76,7 @@ export default function SchedulePosts() {
       schedulePosts: [
         {
           content: "",
-          scheduledTime: format(addMinutes(new Date(), 10), "yyyy-MM-dd'T'HH:mm"),
+          scheduledTime: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
           agentId: "",
         },
       ],
@@ -173,7 +173,24 @@ export default function SchedulePosts() {
     }
   };
 
-  // Add the handleStartDateChange function that preserves time
+  // Modify the updateScheduledTimes function to set first post time exactly to start date
+  const updateScheduledTimes = useCallback(() => {
+    if (fields.length > 0) {
+      // Set the first post to exactly start date (no delay for first post)
+      methods.setValue("schedulePosts.0.scheduledTime", format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"));
+
+      // Update all subsequent posts based on the delay
+      let previousTime = scheduleStartDate;
+      for (let i = 1; i < fields.length; i++) {
+        const delayMinutes = methods.getValues("delayMinutes");
+        const nextTime = addMinutes(previousTime, Number(delayMinutes));
+        methods.setValue(`schedulePosts.${i}.scheduledTime`, format(nextTime, "yyyy-MM-dd'T'HH:mm"));
+        previousTime = nextTime;
+      }
+    }
+  }, [scheduleStartDate, fields.length, methods]);
+
+  // Also modify the handleStartDateChange function
   const handleStartDateChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       if (!e.target.value) return;
@@ -186,12 +203,11 @@ export default function SchedulePosts() {
 
       // Update all scheduled times based on the new start date and time
       if (fields.length > 0) {
-        const delayMinutes = methods.getValues("delayMinutes");
-        const firstPostTime = addMinutes(newDateTime, Number(delayMinutes));
-        methods.setValue("schedulePosts.0.scheduledTime", format(firstPostTime, "yyyy-MM-dd'T'HH:mm"));
+        methods.setValue("schedulePosts.0.scheduledTime", format(newDateTime, "yyyy-MM-dd'T'HH:mm"));
 
-        let previousTime = firstPostTime;
+        let previousTime = newDateTime;
         for (let i = 1; i < fields.length; i++) {
+          const delayMinutes = methods.getValues("delayMinutes");
           const nextTime = addMinutes(previousTime, Number(delayMinutes));
           methods.setValue(`schedulePosts.${i}.scheduledTime`, format(nextTime, "yyyy-MM-dd'T'HH:mm"));
           previousTime = nextTime;
@@ -200,24 +216,6 @@ export default function SchedulePosts() {
     },
     [fields.length, methods],
   );
-
-  // Modify the updateScheduledTimes function to preserve time when date changes
-  const updateScheduledTimes = useCallback(() => {
-    if (fields.length > 0) {
-      // Set the first post to start date + delay
-      const delayMinutes = methods.getValues("delayMinutes");
-      const firstPostTime = addMinutes(scheduleStartDate, Number(delayMinutes));
-      methods.setValue("schedulePosts.0.scheduledTime", format(firstPostTime, "yyyy-MM-dd'T'HH:mm"));
-
-      // Update all subsequent posts based on the delay
-      let previousTime = firstPostTime;
-      for (let i = 1; i < fields.length; i++) {
-        const nextTime = addMinutes(previousTime, Number(delayMinutes));
-        methods.setValue(`schedulePosts.${i}.scheduledTime`, format(nextTime, "yyyy-MM-dd'T'HH:mm"));
-        previousTime = nextTime;
-      }
-    }
-  }, [scheduleStartDate, fields.length, methods]);
 
   // Set initial time on component mount
   useEffect(() => {
