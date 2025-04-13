@@ -1,6 +1,6 @@
 "use client";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
-import { CalendarClock, Logs, User2 } from "lucide-react";
+import { Bot, CalendarClock, Logs } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Logo from "../Common/Logo";
@@ -8,9 +8,9 @@ import Logo from "../Common/Logo";
 // Menu items.
 const items = [
   {
-    title: "My Agent",
-    url: "/my-agent",
-    icon: User2,
+    title: "My Agents",
+    url: "/my-agents",
+    icon: Bot,
   },
   {
     title: "Agent Logs",
