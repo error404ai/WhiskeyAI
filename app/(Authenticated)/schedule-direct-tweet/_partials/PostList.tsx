@@ -6,6 +6,7 @@ import { UseFormReturn, useFieldArray } from "react-hook-form"
 import { Agent, FormValues } from "./types"
 import PostItem from "./PostItem"
 import { useEffect, useState, useLayoutEffect } from "react"
+import { addMinutes, format } from "date-fns"
 
 interface PostListProps {
     methods: UseFormReturn<FormValues>
@@ -101,14 +102,18 @@ export default function PostList({
         const lastPost = currentPosts[currentPosts.length - 1]
 
         // Get the delay value
-        const currentDelay = methods.getValues("delayMinutes")
+        const currentDelay = Number(methods.getValues("delayMinutes"))
 
         // Safely get the last post time
         const lastPostTime = lastPost?.scheduledTime ? new Date(lastPost.scheduledTime) : new Date()
+        
+        console.log('Adding post with:')
+        console.log('- Last post time:', lastPostTime)
+        console.log('- Current delay:', currentDelay, 'minutes')
 
         // Find the next agent index based on the current pattern
         const lastAgentId = lastPost?.agentId || ""
-
+        
         // Find the current agent index
         let currentAgentIndex = -1
         for (let i = 0; i < agents.length; i++) {
@@ -131,12 +136,14 @@ export default function PostList({
             agentsInRange[nextAgentIndex]?.uuid : ""
 
         // Create the new post with calculated time using the current delay value
-        const newScheduledTime = new Date(lastPostTime)
-        newScheduledTime.setMinutes(newScheduledTime.getMinutes() + currentDelay)
+        // Use addMinutes from date-fns for more reliable calculation
+        const newScheduledTime = addMinutes(lastPostTime, currentDelay)
+        
+        console.log('- New scheduled time:', newScheduledTime)
 
         append({
             content: "",
-            scheduledTime: newScheduledTime.toISOString().slice(0, 16), // Format as yyyy-MM-ddTHH:mm
+            scheduledTime: format(newScheduledTime, "yyyy-MM-dd'T'HH:mm"),
             agentId: nextAgentId,
         })
     }
