@@ -288,7 +288,7 @@ export default function SchedulePosts() {
   };
 
   return (
-    <div className="space-y-8 py-8">
+    <div className="space-y-8">
       <div className="mb-6">
         <h1 className="mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-3xl font-bold text-transparent">Schedule Posts</h1>
         <p className="text-muted-foreground text-lg">Create and schedule posts for your AI agents with customizable timing.</p>
