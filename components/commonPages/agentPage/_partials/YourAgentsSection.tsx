@@ -396,7 +396,7 @@ export default function YourAgentsSection() {
                         )}
 
                         <div className="mt-4 mb-2">
-                          <Button variant="outline" className="w-full" link={`/my-agent/${agent.uuid}`}>
+                          <Button variant="outline" className="w-full" link={`/my-agents/${agent.uuid}`}>
                             Configure
                           </Button>
                         </div>
