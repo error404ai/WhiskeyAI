@@ -34,7 +34,6 @@ export class ScheduledTweetService {
           },
         },
       },
-      orderBy: (scheduledTweetsTable, { desc }) => [desc(scheduledTweetsTable.scheduledAt)],
     });
 
     const paginator = new DrizzlePaginator<ScheduledTweet>(db, query).page(params.page || 1).allowColumns(["id", "agentId", "content", "scheduledAt", "status", "createdAt", "processedAt", "errorMessage"]);
@@ -44,6 +43,8 @@ export class ScheduledTweetService {
         agentName: (item.agent as any)?.[3],
       };
     });
+
+    paginator.orderBy("id", "desc");
     // console.log("paginator is", (await paginator.paginate(10)).data[0].agent);
     return paginator.paginate(params.perPage || 10);
   }
