@@ -215,7 +215,7 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
     <Card className="border-[1px] border-blue-100 shadow-md transition-all hover:border-blue-200">
       <CardContent className="p-4">
         <div className="relative grid grid-cols-1 gap-4 md:grid-cols-3">
-          {/* Delay Time Setting - Left column */}
+
           <div className="flex items-center gap-2 rounded-md bg-blue-50/50 p-2">
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4 text-blue-600" />
@@ -223,7 +223,7 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
                 Delay Between Posts:
               </Label>
             </div>
-            {methods.getValues("delayMinutes") !== 0 && <span className="text-blue-600">{methods.getValues("delayMinutes")} minutes</span>}
+        
             <div className="flex items-center gap-1">
               <Input
                 id="delayMinutes"
@@ -242,13 +242,10 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
                   currentDelayRef.current = newDelay;
 
                   if (fields.length > 0) {
-                    // First post should be at exact scheduleStartDate (not adding delay)
                     methods.setValue("schedulePosts.0.scheduledTime", format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"));
 
-                    // Calculate all subsequent posts using accumulating delay
                     const baseTime = scheduleStartDate;
                     for (let i = 1; i < fields.length; i++) {
-                      // Each post is baseTime + (i * delay)
                       const nextTime = addMinutes(baseTime, newDelay * i);
                       methods.setValue(`schedulePosts.${i}.scheduledTime`, format(nextTime, "yyyy-MM-dd'T'HH:mm"));
                     }
@@ -260,7 +257,6 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
             {methods.formState.errors.delayMinutes && <p className="text-destructive text-xs">{methods.formState.errors.delayMinutes.message}</p>}
           </div>
 
-          {/* Schedule Start Date - Middle column */}
           <div className="flex items-center rounded-md bg-blue-50/50 p-2">
             <Clock className="mr-1 h-4 w-4 text-blue-600" />
             <Label htmlFor="scheduleStartDate" className="mr-2 font-medium whitespace-nowrap">
@@ -271,7 +267,6 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
             </div>
           </div>
 
-          {/* File Upload - Right column */}
           <div className="flex items-center rounded-md bg-blue-50/50 p-2">
             <FileSpreadsheet className="mr-1 h-4 w-4 text-blue-600" />
             <div className="min-w-0 flex-1">
