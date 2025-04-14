@@ -21,69 +21,79 @@ export const getScheduledTweetColumns = (queryKey: string, onCancel?: (id: numbe
 
     const handleCancel = async () => {
       try {
-        // Show loading toast and store the ID
-        const loadingId = toast.loading("Cancelling scheduled tweet...");
+        // Use simple toast pattern
+        toast.loading("Cancelling scheduled tweet...");
         
         // Call the controller method to cancel the tweet
         const result = await ScheduledTweetController.deleteScheduledTweet(id);
         
-        // Dismiss loading toast with a delay to ensure it's properly dismissed
-        setTimeout(() => {
-          toast.dismiss(loadingId);
+        // Dismiss all toasts
+        toast.dismiss();
+        
+        if (result.success) {
+          // Show success toast
+          toast.success(result.message || "Tweet cancelled successfully");
           
-          if (result.success) {
-            // Show success toast
-            toast.success(result.message || "Tweet cancelled successfully");
-            
-            // Invalidate queries to refresh the data
-            queryClient.invalidateQueries({ queryKey: [queryKey] });
-            
-            // Call the custom onCancel if provided
-            if (onCancel) {
-              onCancel(id);
-            }
-          } else {
-            // Show error toast
-            toast.error(result.message || "Failed to cancel tweet");
+          // Invalidate queries to refresh the data
+          queryClient.invalidateQueries({ queryKey: [queryKey] });
+          
+          // Call the custom onCancel if provided
+          if (onCancel) {
+            onCancel(id);
           }
-        }, 300);
+        } else {
+          // Show error toast
+          toast.error(result.message || "Failed to cancel tweet");
+        }
+        
+        // Close the dialog
+        setShowCancelDialog(false);
       } catch (error) {
+        // Dismiss loading toast
+        toast.dismiss();
+        
+        // Show error
+        toast.error(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
         console.error("Error cancelling tweet:", error);
-        toast.error(`An error occurred while cancelling the tweet: ${error instanceof Error ? error.message : String(error)}`);
       }
     };
 
     const handleDelete = async () => {
       try {
-        // Show loading toast and store the ID
-        const loadingId = toast.loading("Deleting tweet...");
+        // Use simple toast pattern
+        toast.loading("Deleting tweet...");
         
         // Call the controller method to delete the tweet
         const result = await ScheduledTweetController.permanentlyDeleteTweet(id);
         
-        // Dismiss loading toast with a delay to ensure it's properly dismissed
-        setTimeout(() => {
-          toast.dismiss(loadingId);
+        // Dismiss all toasts
+        toast.dismiss();
+        
+        if (result.success) {
+          // Show success toast
+          toast.success(result.message || "Tweet deleted successfully");
           
-          if (result.success) {
-            // Show success toast
-            toast.success(result.message || "Tweet deleted successfully");
-            
-            // Invalidate queries to refresh the data
-            queryClient.invalidateQueries({ queryKey: [queryKey] });
-            
-            // Call the custom onDelete if provided
-            if (onDelete) {
-              onDelete(id);
-            }
-          } else {
-            // Show error toast
-            toast.error(result.message || "Failed to delete tweet");
+          // Invalidate queries to refresh the data
+          queryClient.invalidateQueries({ queryKey: [queryKey] });
+          
+          // Call the custom onDelete if provided
+          if (onDelete) {
+            onDelete(id);
           }
-        }, 300);
+        } else {
+          // Show error toast
+          toast.error(result.message || "Failed to delete tweet");
+        }
+        
+        // Close the dialog
+        setShowDeleteDialog(false);
       } catch (error) {
+        // Dismiss loading toast
+        toast.dismiss();
+        
+        // Show error
+        toast.error(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
         console.error("Error deleting tweet:", error);
-        toast.error(`An error occurred while deleting the tweet: ${error instanceof Error ? error.message : String(error)}`);
       }
     };
 
