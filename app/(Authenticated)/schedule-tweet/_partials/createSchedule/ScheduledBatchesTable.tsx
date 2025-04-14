@@ -13,6 +13,16 @@ import { Button } from "@/components/ui/button";
 import { getScheduledTweetColumns } from "./ScheduledTweetColumns";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const ScheduledBatchesTable = () => {
   const tableRef = useRef<DataTableRef>(null);
@@ -22,6 +32,9 @@ const ScheduledBatchesTable = () => {
   const queryClient = useQueryClient();
   const batchesQueryKey = "scheduledBatchesList";
   const batchDetailsQueryKey = selectedBatchId ? `batchDetails-${selectedBatchId}` : "";
+  const [showCancelBatchDialog, setShowCancelBatchDialog] = useState(false);
+  const [showDeleteBatchDialog, setShowDeleteBatchDialog] = useState(false);
+  const [selectedBatchForAction, setSelectedBatchForAction] = useState<string | null>(null);
 
   const handleCancelBatch = async (batchId: string) => {
     try {
@@ -77,6 +90,16 @@ const ScheduledBatchesTable = () => {
     }
   };
 
+  const openCancelBatchDialog = (batchId: string) => {
+    setSelectedBatchForAction(batchId);
+    setShowCancelBatchDialog(true);
+  };
+  
+  const openDeleteBatchDialog = (batchId: string) => {
+    setSelectedBatchForAction(batchId);
+    setShowDeleteBatchDialog(true);
+  };
+
   // Define columns for the batch list table
   const batchColumns: ColumnDef<{
     batchId: string;
@@ -120,7 +143,7 @@ const ScheduledBatchesTable = () => {
                 {
                   label: "Cancel Batch",
                   onClick: () => {
-                    handleCancelBatch(data.batchId);
+                    openCancelBatchDialog(data.batchId);
                   },
                   icon: <Ban className="h-4 w-4" />,
                   variant: "secondary",
@@ -128,7 +151,7 @@ const ScheduledBatchesTable = () => {
                 {
                   label: "Delete Batch",
                   onClick: () => {
-                    handleDeleteBatch(data.batchId);
+                    openDeleteBatchDialog(data.batchId);
                   },
                   icon: <Trash className="h-4 w-4" />,
                   variant: "destructive",
@@ -167,31 +190,104 @@ const ScheduledBatchesTable = () => {
     setSelectedBatchId(null);
   };
 
-  if (selectedBatchId) {
-    return (
-      <div>
-        <div className="mb-4 flex items-center">
-          <Button 
-            variant="outline" 
-            onClick={handleBackToBatches} 
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" /> Back to Batches
-          </Button>
-          <h2 className="ml-4 text-xl font-semibold">Batch ID: {selectedBatchId}</h2>
+  return (
+    <>
+      {selectedBatchId ? (
+        <div>
+          <div className="mb-4 flex items-center">
+            <Button 
+              variant="outline" 
+              onClick={handleBackToBatches} 
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" /> Back to Batches
+            </Button>
+            <h2 className="ml-4 text-xl font-semibold">Batch ID: {selectedBatchId}</h2>
+          </div>
+          <DataTable 
+            ref={tableRef} 
+            columns={batchDetailColumns} 
+            serverAction={(params) => ScheduledTweetController.getSchedulesByBatchId(params, selectedBatchId) as any} 
+            queryKey={batchDetailsQueryKey} 
+            searchAble={false} 
+          />
         </div>
+      ) : (
         <DataTable 
           ref={tableRef} 
-          columns={batchDetailColumns} 
-          serverAction={(params) => ScheduledTweetController.getSchedulesByBatchId(params, selectedBatchId) as any} 
-          queryKey={batchDetailsQueryKey} 
+          columns={batchColumns} 
+          serverAction={ScheduledTweetController.getScheduledBatches as any} 
+          queryKey={batchesQueryKey} 
           searchAble={false} 
         />
-      </div>
-    );
-  }
+      )}
 
-  return <DataTable ref={tableRef} columns={batchColumns} serverAction={ScheduledTweetController.getScheduledBatches as any} queryKey={batchesQueryKey} searchAble={false} />;
+      {/* Cancel Batch Confirmation Dialog */}
+      <AlertDialog open={showCancelBatchDialog} onOpenChange={setShowCancelBatchDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Batch</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel all pending tweets in this batch?
+              <div className="mt-2 rounded-md bg-muted p-3">
+                <p className="text-sm font-medium">Batch ID: {selectedBatchForAction}</p>
+              </div>
+              <p className="mt-2 text-sm">
+                This will cancel all pending tweets in the batch and prevent them from being posted. 
+                Already processed tweets will not be affected. Cancelled tweets will remain in your records.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (selectedBatchForAction) {
+                  handleCancelBatch(selectedBatchForAction);
+                  setShowCancelBatchDialog(false);
+                }
+              }}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              Confirm Cancel
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* Delete Batch Confirmation Dialog */}
+      <AlertDialog open={showDeleteBatchDialog} onOpenChange={setShowDeleteBatchDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Batch</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently delete all tweets in this batch?
+              <div className="mt-2 rounded-md bg-muted p-3">
+                <p className="text-sm font-medium">Batch ID: {selectedBatchForAction}</p>
+              </div>
+              <p className="mt-2 text-sm text-destructive font-semibold">
+                This action will permanently delete all tweets in this batch and cannot be undone.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (selectedBatchForAction) {
+                  handleDeleteBatch(selectedBatchForAction);
+                  setShowDeleteBatchDialog(false);
+                }
+              }}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Permanently Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
 };
 
 export default ScheduledBatchesTable;
