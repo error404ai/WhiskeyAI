@@ -1,7 +1,7 @@
 import { db } from "@/db/db";
 import { NewScheduledTweet, ScheduledTweet, agentPlatformsTable, scheduledTweetsTable } from "@/db/schema";
 import { DrizzlePaginator, PaginationResult } from "@skmirajbn/drizzle-paginator";
-import { and, desc, eq, lte, sql } from "drizzle-orm";
+import { and, eq, lte, sql } from "drizzle-orm";
 import { PaginatedProps } from "../controllers/ScheduledTweetController";
 import TwitterService from "./TwitterService";
 import AuthService from "./auth/authService";
@@ -24,8 +24,7 @@ export class ScheduledTweetService {
         createdAt: sql`MIN(${scheduledTweetsTable.createdAt})`,
       })
       .from(scheduledTweetsTable)
-      .groupBy(scheduledTweetsTable.batchId)
-      .orderBy(desc(scheduledTweetsTable.createdAt));
+      .groupBy(scheduledTweetsTable.batchId);
     const data = await query;
     console.log("datais =====", data);
 
