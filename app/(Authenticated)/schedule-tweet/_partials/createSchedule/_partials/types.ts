@@ -1,5 +1,3 @@
-import { ScheduledTweet } from "@/db/schema";
-
 // Define types to match what's returned by the real AgentService
 export interface Agent {
   id: number;
@@ -29,10 +27,5 @@ export interface FormValues {
 export type ExcelCell = string | number | boolean | null | undefined;
 export type ExcelRow = ExcelCell[];
 export type ExcelData = ExcelRow[];
-
-export interface ScheduledTweetWithAgent {
-  scheduledTweets: ScheduledTweet;
-  agents: Agent;
-}
 
 export type FormStatus = "idle" | "submitting" | "success" | "error";

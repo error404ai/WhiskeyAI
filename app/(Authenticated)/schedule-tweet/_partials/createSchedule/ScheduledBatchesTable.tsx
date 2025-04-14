@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { DataTable, DataTableRef } from "@/components/Datatable/Datatable";
 import { DataTableColumnHeader } from "@/components/Datatable/DatatableColumnHeader";
@@ -5,15 +6,17 @@ import { ActionButtons } from "@/components/ui/action-buttons";
 import { DateTime } from "@/components/ui/datetime";
 import * as ScheduledTweetController from "@/server/controllers/ScheduledTweetController";
 import { ColumnDef } from "@tanstack/react-table";
-import { Edit, Eye, Trash } from "lucide-react";
+import { Eye, Trash } from "lucide-react";
 import { useRef } from "react";
-import { ScheduledTweetWithAgent } from "./_partials/types";
 
 const ScheduledBatchesTable = () => {
   const tableRef = useRef<DataTableRef>(null);
 
   // Define columns for the table - ensuring all have proper cell definitions
-  const columns: ColumnDef<ScheduledTweetWithAgent>[] = [
+  const columns: ColumnDef<{
+    batchId: string;
+    createdAt: Date;
+  }>[] = [
     {
       accessorKey: "batchId",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Batch ID" />,
@@ -31,7 +34,7 @@ const ScheduledBatchesTable = () => {
       id: "actions",
       header: () => <div className="text-right">Actions</div>,
       cell: ({ row }) => {
-        const tweet = row.original;
+        const data = row.original;
 
         return (
           <div className="flex justify-end">
@@ -41,28 +44,18 @@ const ScheduledBatchesTable = () => {
                   label: "View",
                   onClick: () => {
                     // View action logic
-                    console.log("View tweet", tweet.id);
+                    console.log("View tweet", data.batchId);
                   },
                   icon: <Eye className="h-4 w-4" />,
                 },
                 {
-                  label: "Edit",
-                  onClick: () => {
-                    // Edit action logic
-                    console.log("Edit tweet", tweet.id);
-                  },
-                  icon: <Edit className="h-4 w-4" />,
-                  disabled: tweet.status === "completed",
-                },
-                {
-                  label: "Delete",
+                  label: "Cancel Batch",
                   onClick: () => {
                     // Delete action logic
-                    console.log("Delete tweet", tweet.id);
+                    console.log("Delete tweet", data.batchId);
                   },
                   icon: <Trash className="h-4 w-4" />,
                   variant: "destructive",
-                  disabled: tweet.status === "completed",
                 },
               ]}
             />
@@ -72,7 +65,7 @@ const ScheduledBatchesTable = () => {
     },
   ];
 
-  return <DataTable ref={tableRef} columns={columns} serverAction={ScheduledTweetController.getScheduledBatches} queryKey="scheduledTweetsList" searchAble={true} />;
+  return <DataTable ref={tableRef} columns={columns} serverAction={ScheduledTweetController.getScheduledBatches as any} queryKey="scheduledTweetsList" searchAble={false} />;
 };
 
 export default ScheduledBatchesTable;
