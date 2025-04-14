@@ -12,12 +12,22 @@ import { ScheduledTweetWithAgent } from "./_partials/types";
 
 const AllScheduledTweetsTable = () => {
   const tableRef = useRef<DataTableRef>(null);
-
-  // Define columns for the table - ensuring all have proper cell definitions
   const columns: ColumnDef<ScheduledTweetWithAgent>[] = [
     {
       accessorKey: "scheduledTweets.batchId",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Batch ID" />,
+      size: 60,
+      enableSorting: false,
+    },
+    {
+      accessorKey: "scheduledTweets.content",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Content" />,
+      size: 60,
+      enableSorting: false,
+    },
+    {
+      accessorKey: "scheduledTweets.scheduledAt",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Scheduled At" />,
       size: 60,
       enableSorting: false,
     },
