@@ -5,11 +5,18 @@ import { DataTableColumnHeader } from "@/components/Datatable/DatatableColumnHea
 import { ActionButtons } from "@/components/ui/action-buttons";
 import { Badge } from "@/components/ui/badge";
 import { DateTime } from "@/components/ui/datetime";
+import { ScheduledTweet } from "@/db/schema";
 import * as ScheduledTweetController from "@/server/controllers/ScheduledTweetController";
 import { ColumnDef } from "@tanstack/react-table";
-import { CheckCircle2, Clock, Edit, Eye, AlertCircle, Trash } from "lucide-react";
+import { Agent } from "http";
+import { AlertCircle, CheckCircle2, Clock, Trash } from "lucide-react";
 import { useRef } from "react";
-import { ScheduledTweetWithAgent } from "./_partials/types";
+import ErrorMessage from "./ErrorMessage";
+
+export interface ScheduledTweetWithAgent {
+  scheduledTweets: ScheduledTweet;
+  agents: Agent;
+}
 
 const AllScheduledTweetsTable = () => {
   const tableRef = useRef<DataTableRef>(null);
@@ -40,37 +47,54 @@ const AllScheduledTweetsTable = () => {
       cell: ({ row }) => <DateTime date={row.original.scheduledTweets?.scheduledAt} variant="twoLine" showRelative={false} />,
     },
     {
+      accessorKey: "scheduledTweets.processedAt",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Processed At" />,
+      size: 80,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const date = row.original.scheduledTweets?.processedAt;
+        if (!date) return <span className="text-muted-foreground text-xs">Not processed</span>;
+        return <DateTime date={date} variant="twoLine" showRelative={false} />;
+      },
+    },
+    {
+      accessorKey: "scheduledTweets.errorMessage",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Error Message" />,
+      size: 120,
+      enableSorting: false,
+      cell: ({ row }) => <ErrorMessage message={row.original.scheduledTweets?.errorMessage} />,
+    },
+    {
       accessorKey: "scheduledTweets.status",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
       size: 80,
       enableSorting: false,
       cell: ({ row }) => {
-        const status: "pending" | "completed" | "failed" | null = row.original.scheduledTweets?.status;
-        if (status === null) {
+        const status = row.original.scheduledTweets?.status;
+        if (!status) {
           return <div className="text-center">-</div>;
         }
-
         let variant: "default" | "success" | "destructive" | "warning" = "default";
         let icon = null;
-        const label = status.charAt(0).toUpperCase() + status.slice(1);
+        const label = status?.charAt(0).toUpperCase() + status?.slice(1);
 
         switch (status) {
           case "pending":
             variant = "warning";
-            icon = <Clock className="h-3 w-3 mr-1" />;
+            icon = <Clock className="mr-1 h-3 w-3" />;
             break;
           case "completed":
             variant = "success";
-            icon = <CheckCircle2 className="h-3 w-3 mr-1" />;
+            icon = <CheckCircle2 className="mr-1 h-3 w-3" />;
             break;
           case "failed":
             variant = "destructive";
-            icon = <AlertCircle className="h-3 w-3 mr-1" />;
+            icon = <AlertCircle className="mr-1 h-3 w-3" />;
             break;
         }
 
         return (
-          <Badge variant={variant} className="flex items-center justify-center px-2 py-1 w-fit">
+          <Badge variant={variant} className="flex w-fit items-center justify-center px-2 py-1">
             {icon}
             {label}
           </Badge>
@@ -95,31 +119,13 @@ const AllScheduledTweetsTable = () => {
             <ActionButtons
               actions={[
                 {
-                  label: "View",
+                  label: "Cancel",
                   onClick: () => {
-                    // View action logic
-                    console.log("View tweet", data.scheduledTweets.id);
-                  },
-                  icon: <Eye className="h-4 w-4" />,
-                },
-                {
-                  label: "Edit",
-                  onClick: () => {
-                    // Edit action logic
-                    console.log("Edit tweet", data.scheduledTweets.id);
-                  },
-                  icon: <Edit className="h-4 w-4" />,
-                  disabled: data.scheduledTweets.status === "completed",
-                },
-                {
-                  label: "Delete",
-                  onClick: () => {
-                    // Delete action logic
                     console.log("Delete tweet", data.scheduledTweets.id);
                   },
                   icon: <Trash className="h-4 w-4" />,
                   variant: "destructive",
-                  disabled: data.scheduledTweets.status === "completed",
+                  disabled: data?.scheduledTweets?.status !== "pending",
                 },
               ]}
             />
@@ -129,7 +135,7 @@ const AllScheduledTweetsTable = () => {
     },
   ];
 
-  return <DataTable ref={tableRef} columns={columns} serverAction={ScheduledTweetController.getScheduledTweets as any} queryKey="scheduledTweetsList" searchAble={true} />;
+  return <DataTable ref={tableRef} columns={columns} serverAction={ScheduledTweetController.getScheduledTweets as any} queryKey="scheduledTweetsList" searchAble={false} />;
 };
 
 export default AllScheduledTweetsTable;

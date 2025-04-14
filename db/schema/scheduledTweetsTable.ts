@@ -10,7 +10,7 @@ export const scheduledTweetsTable = pgTable("scheduledTweets", {
   batchId: varchar({ length: 50 }).notNull(),
   content: text().notNull(),
   scheduledAt: timestamp("scheduledAt", { withTimezone: true }).notNull(),
-  status: varchar({ length: 50 }).$type<"pending" | "completed" | "failed">().default("pending"),
+  status: varchar({ length: 50 }).$type<"pending" | "completed" | "failed" | "canceled">().default("pending"),
   createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
   processedAt: timestamp(),
   errorMessage: text(),
