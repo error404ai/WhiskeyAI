@@ -6,26 +6,29 @@ import { Button } from "@/components/ui/button";
 import * as AgentController from "@/server/controllers/agent/AgentController";
 import * as ScheduledTweetController from "@/server/controllers/ScheduledTweetController";
 import { useQuery } from "@tanstack/react-query";
-import { addMinutes, format } from "date-fns";
+import { addMinutes, addSeconds, addHours, format } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 
 // Import types and components
 import AgentSelector from "./_partials/AgentSelector";
 import PostList from "./_partials/PostList";
 import SchedulingControls from "./_partials/SchedulingControls";
-import { Agent, FormStatus, FormValues } from "./_partials/types";
+import { Agent, DelayUnit, FormStatus, FormValues } from "./_partials/types";
 
-export default function SchedulePosts() {
+export default function CreateSchedule() {
   "use no memo";
   const router = useRouter();
   const currentDelayRef = useRef<number>(10);
+  const currentDelayUnitRef = useRef<DelayUnit>("minutes");
   const [uploadSuccess, setUploadSuccess] = useState<{ count: number } | null>(null);
   const [hasImportedPosts, setHasImportedPosts] = useState(false);
   const [forceRerender, setForceRerender] = useState(0);
+  // Flag to prevent recursive updates
+  const isUpdatingRef = useRef(false);
 
   const [agentRangeStart, setAgentRangeStart] = useState(1);
   const [agentRangeEnd, setAgentRangeEnd] = useState(1);
@@ -53,7 +56,8 @@ export default function SchedulePosts() {
 
   const methods = useForm<FormValues>({
     defaultValues: {
-      delayMinutes: 10,
+      delayValue: 10,
+      delayUnit: "minutes",
       schedulePosts: [
         {
           content: "",
@@ -115,16 +119,54 @@ export default function SchedulePosts() {
     }
   };
 
-  const updateScheduledTimes = useCallback(() => {
-    if (fields.length > 0) {
-      methods.setValue("schedulePosts.0.scheduledTime", format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"));
+  const calculateNextTime = (baseTime: Date, delayValue: number, delayUnit: DelayUnit, multiplier: number): Date => {
+    const totalDelay = delayValue * multiplier;
+    
+    if (delayUnit === "seconds") {
+      return addSeconds(baseTime, totalDelay);
+    } else if (delayUnit === "hours") {
+      return addHours(baseTime, totalDelay);
+    } else {
+      // Default to minutes
+      return addMinutes(baseTime, totalDelay);
+    }
+  };
 
-      const delayMinutes = Number(methods.getValues("delayMinutes"));
-      const baseTime = scheduleStartDate;
-      for (let i = 1; i < fields.length; i++) {
-        const nextTime = addMinutes(baseTime, delayMinutes * i);
-        methods.setValue(`schedulePosts.${i}.scheduledTime`, format(nextTime, "yyyy-MM-dd'T'HH:mm"));
+  const updateScheduledTimes = useCallback(() => {
+    // Skip if already updating to prevent infinite recursion
+    if (isUpdatingRef.current) return;
+    
+    try {
+      // Set flag to prevent recursive calls
+      isUpdatingRef.current = true;
+      
+      if (fields.length > 0) {
+        methods.setValue("schedulePosts.0.scheduledTime", format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"), {
+          shouldDirty: true,
+          shouldTouch: true,
+          // This will prevent triggering watch callbacks
+          shouldValidate: false
+        });
+
+        const delayValue = Number(methods.getValues("delayValue"));
+        const delayUnit = methods.getValues("delayUnit");
+        const baseTime = scheduleStartDate;
+
+        for (let i = 1; i < fields.length; i++) {
+          const nextTime = calculateNextTime(baseTime, delayValue, delayUnit, i);
+          methods.setValue(`schedulePosts.${i}.scheduledTime`, format(nextTime, "yyyy-MM-dd'T'HH:mm"), {
+            shouldDirty: true,
+            shouldTouch: true,
+            shouldValidate: false
+          });
+        }
+        
+        // Do one single validation after all updates
+        methods.trigger("schedulePosts");
       }
+    } finally {
+      // Always clear the flag
+      isUpdatingRef.current = false;
     }
   }, [scheduleStartDate, fields.length, methods]);
 
@@ -136,18 +178,44 @@ export default function SchedulePosts() {
 
       setScheduleStartDate(newDateTime);
 
-      if (fields.length > 0) {
-        methods.setValue("schedulePosts.0.scheduledTime", format(newDateTime, "yyyy-MM-dd'T'HH:mm"));
+      // Skip if already updating to prevent infinite recursion
+      if (isUpdatingRef.current) return;
+      
+      try {
+        // Set flag to prevent recursive calls
+        isUpdatingRef.current = true;
+        
+        if (fields.length > 0) {
+          methods.setValue("schedulePosts.0.scheduledTime", format(newDateTime, "yyyy-MM-dd'T'HH:mm"), {
+            shouldDirty: true,
+            shouldTouch: true,
+            shouldValidate: false
+          });
 
-        const delayMinutes = Number(methods.getValues("delayMinutes"));
-        const baseTime = newDateTime;
-        for (let i = 1; i < fields.length; i++) {
-          const nextTime = addMinutes(baseTime, delayMinutes * i);
-          methods.setValue(`schedulePosts.${i}.scheduledTime`, format(nextTime, "yyyy-MM-dd'T'HH:mm"));
+          const delayValue = Number(methods.getValues("delayValue"));
+          const delayUnit = methods.getValues("delayUnit");
+          const baseTime = newDateTime;
+          
+          for (let i = 1; i < fields.length; i++) {
+            const nextTime = calculateNextTime(baseTime, delayValue, delayUnit, i);
+            methods.setValue(`schedulePosts.${i}.scheduledTime`, format(nextTime, "yyyy-MM-dd'T'HH:mm"), {
+              shouldDirty: true,
+              shouldTouch: true,
+              shouldValidate: false
+            });
+          }
+          
+          // Trigger form validation and force update UI
+          methods.trigger("schedulePosts");
+          // Force re-render the PostList component to reflect the updated times
+          setForceRerender(prev => prev + 1);
         }
+      } finally {
+        // Always clear the flag
+        isUpdatingRef.current = false;
       }
     },
-    [fields.length, methods],
+    [fields.length, methods, calculateNextTime],
   );
 
   useEffect(() => {
@@ -165,8 +233,9 @@ export default function SchedulePosts() {
 
   useEffect(() => {
     const subscription = methods.watch((value, { name }) => {
-      if (name === "delayMinutes") {
-        currentDelayRef.current = Number(value.delayMinutes);
+      if ((name === "delayValue" || name === "delayUnit") && !isUpdatingRef.current) {
+        currentDelayRef.current = Number(value.delayValue);
+        currentDelayUnitRef.current = value.delayUnit as DelayUnit;
         updateScheduledTimes();
       }
     });
@@ -175,7 +244,7 @@ export default function SchedulePosts() {
   }, [methods, updateScheduledTimes]);
 
   useEffect(() => {
-    if (initialTimeSet) {
+    if (initialTimeSet && !isUpdatingRef.current) {
       updateScheduledTimes();
     }
   }, [scheduleStartDate, initialTimeSet, updateScheduledTimes]);
@@ -227,7 +296,7 @@ export default function SchedulePosts() {
         replace([
           {
             content: "",
-            scheduledTime: format(addMinutes(scheduleStartDate, Number(methods.getValues("delayMinutes"))), "yyyy-MM-dd'T'HH:mm"),
+            scheduledTime: format(calculateNextTime(scheduleStartDate, Number(methods.getValues("delayValue")), methods.getValues("delayUnit"), 1), "yyyy-MM-dd'T'HH:mm"),
             agentId: activeAgents.length > 0 ? activeAgents[0].uuid : "",
           },
         ]);
@@ -256,22 +325,12 @@ export default function SchedulePosts() {
 
   return (
     <div className="space-y-8">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-3xl font-bold text-transparent">Schedule Posts</h1>
-          <p className="text-muted-foreground text-lg">Create and schedule posts for your AI agents with customizable timing.</p>
-        </div>
-        <Button onClick={() => router.push("/scheduled-batches")} variant="outline" className="flex items-center gap-2">
-          View Scheduled Posts
-        </Button>
-      </div>
-
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
             {/* Scheduling Controls (Delay, Start Date, File Upload) */}
             <div className="lg:col-span-12">
-              <SchedulingControls methods={methods} scheduleStartDate={scheduleStartDate} handleStartDateChange={handleStartDateChange} activeAgents={activeAgents} fields={fields} replace={replace} setHasImportedPosts={setHasImportedPosts} setUploadSuccess={setUploadSuccess} uploadSuccess={uploadSuccess} hasImportedPosts={hasImportedPosts} currentDelayRef={currentDelayRef} onImportSuccess={handleImportSuccess} />
+              <SchedulingControls methods={methods} scheduleStartDate={scheduleStartDate} handleStartDateChange={handleStartDateChange} activeAgents={activeAgents} fields={fields} replace={replace} setHasImportedPosts={setHasImportedPosts} setUploadSuccess={setUploadSuccess} uploadSuccess={uploadSuccess} hasImportedPosts={hasImportedPosts} currentDelayRef={currentDelayRef} currentDelayUnitRef={currentDelayUnitRef} onImportSuccess={handleImportSuccess} />
             </div>
 
             {/* Agents List */}
@@ -281,7 +340,13 @@ export default function SchedulePosts() {
 
             {/* Schedule Posts */}
             <div className="lg:col-span-9">
-              <PostList key={`posts-list-${forceRerender}-${fields.length}`} methods={methods} agents={agents} agentRangeStart={agentRangeStart} agentRangeEnd={agentRangeEnd} />
+              <PostList 
+                key={`posts-list-${forceRerender}-${fields.length}-${scheduleStartDate.getTime()}`} 
+                methods={methods} 
+                agents={agents} 
+                agentRangeStart={agentRangeStart} 
+                agentRangeEnd={agentRangeEnd} 
+              />
             </div>
           </div>
 
@@ -313,8 +378,6 @@ export default function SchedulePosts() {
           </div>
         </form>
       </FormProvider>
-
-      <Toaster />
     </div>
   );
 }
