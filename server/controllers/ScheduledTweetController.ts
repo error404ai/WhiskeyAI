@@ -50,6 +50,7 @@ export const deleteScheduledTweet = async (tweetId: number): Promise<{ success: 
 
 export const bulkCreateScheduledTweets = async (data: unknown): Promise<{ success: boolean; message?: string; ids?: number[] }> => {
   try {
+    const batchId = crypto.randomUUID();
     // Validate data is an array
     const arraySchema = z.array(scheduledTweetSchema);
     const validatedData = arraySchema.parse(data);
@@ -57,7 +58,8 @@ export const bulkCreateScheduledTweets = async (data: unknown): Promise<{ succes
     // Process each tweet
     const ids = [];
     for (const tweet of validatedData) {
-      const id = await ScheduledTweetService.createScheduledTweet(tweet as NewScheduledTweet);
+      const tweetWithBatchId = { ...tweet, batchId };
+      const id = await ScheduledTweetService.createScheduledTweet(tweetWithBatchId as NewScheduledTweet);
       ids.push(id);
     }
 
