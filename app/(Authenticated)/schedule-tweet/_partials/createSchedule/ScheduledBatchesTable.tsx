@@ -6,17 +6,76 @@ import { ActionButtons } from "@/components/ui/action-buttons";
 import { DateTime } from "@/components/ui/datetime";
 import * as ScheduledTweetController from "@/server/controllers/ScheduledTweetController";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowLeft, Eye, Trash } from "lucide-react";
+import { ArrowLeft, Ban, Eye, Trash } from "lucide-react";
 import { useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { getScheduledTweetColumns } from "./ScheduledTweetColumns";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 const ScheduledBatchesTable = () => {
   const tableRef = useRef<DataTableRef>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(searchParams.get("batchId"));
+  const queryClient = useQueryClient();
+  const batchesQueryKey = "scheduledBatchesList";
+  const batchDetailsQueryKey = selectedBatchId ? `batchDetails-${selectedBatchId}` : "";
+
+  const handleCancelBatch = async (batchId: string) => {
+    try {
+      // Show loading toast
+      const loadingToast = toast.loading(`Cancelling batch ${batchId}...`);
+      
+      // Call the controller method to cancel the batch
+      const result = await ScheduledTweetController.cancelBatchTweets(batchId);
+      
+      // Dismiss the loading toast
+      toast.dismiss(loadingToast);
+      
+      if (result.success) {
+        // Show success toast
+        toast.success(result.message || "Batch cancelled successfully");
+        
+        // Invalidate queries to refresh the data
+        queryClient.invalidateQueries({ queryKey: [batchesQueryKey] });
+      } else {
+        // Show error toast
+        toast.error(result.message || "Failed to cancel batch");
+      }
+    } catch (error) {
+      console.error("Error cancelling batch:", error);
+      toast.error("An error occurred while cancelling the batch");
+    }
+  };
+
+  const handleDeleteBatch = async (batchId: string) => {
+    try {
+      // Show loading toast
+      const loadingToast = toast.loading(`Deleting batch ${batchId}...`);
+      
+      // Call the controller method to delete the batch
+      const result = await ScheduledTweetController.deleteBatchTweets(batchId);
+      
+      // Dismiss the loading toast
+      toast.dismiss(loadingToast);
+      
+      if (result.success) {
+        // Show success toast
+        toast.success(result.message || "Batch deleted successfully");
+        
+        // Invalidate queries to refresh the data
+        queryClient.invalidateQueries({ queryKey: [batchesQueryKey] });
+      } else {
+        // Show error toast
+        toast.error(result.message || "Failed to delete batch");
+      }
+    } catch (error) {
+      console.error("Error deleting batch:", error);
+      toast.error("An error occurred while deleting the batch");
+    }
+  };
 
   // Define columns for the batch list table
   const batchColumns: ColumnDef<{
@@ -61,8 +120,15 @@ const ScheduledBatchesTable = () => {
                 {
                   label: "Cancel Batch",
                   onClick: () => {
-                    // Delete action logic
-                    console.log("Delete tweet", data.batchId);
+                    handleCancelBatch(data.batchId);
+                  },
+                  icon: <Ban className="h-4 w-4" />,
+                  variant: "secondary",
+                },
+                {
+                  label: "Delete Batch",
+                  onClick: () => {
+                    handleDeleteBatch(data.batchId);
                   },
                   icon: <Trash className="h-4 w-4" />,
                   variant: "destructive",
@@ -76,9 +142,21 @@ const ScheduledBatchesTable = () => {
   ];
 
   // Use the shared column definitions for the batch detail table
-  const batchDetailColumns = getScheduledTweetColumns((id) => {
-    console.log("Cancel tweet with ID:", id);
-  });
+  const batchDetailColumns = getScheduledTweetColumns(
+    batchDetailsQueryKey, 
+    (id) => {
+      console.log("Cancel tweet with ID:", id);
+      // No need for extra feedback here as the ScheduledTweetColumns component already handles toasts
+      // We'll just invalidate the queries to refresh
+      queryClient.invalidateQueries({ queryKey: [batchDetailsQueryKey] });
+    },
+    (id) => {
+      console.log("Delete tweet with ID:", id);
+      // No need for extra feedback here as the ScheduledTweetColumns component already handles toasts
+      // We'll just invalidate the queries to refresh
+      queryClient.invalidateQueries({ queryKey: [batchDetailsQueryKey] });
+    }
+  );
 
   const handleBackToBatches = () => {
     // Clear the batchId from URL
@@ -106,14 +184,14 @@ const ScheduledBatchesTable = () => {
           ref={tableRef} 
           columns={batchDetailColumns} 
           serverAction={(params) => ScheduledTweetController.getSchedulesByBatchId(params, selectedBatchId) as any} 
-          queryKey={`batchDetails-${selectedBatchId}`} 
+          queryKey={batchDetailsQueryKey} 
           searchAble={false} 
         />
       </div>
     );
   }
 
-  return <DataTable ref={tableRef} columns={batchColumns} serverAction={ScheduledTweetController.getScheduledBatches as any} queryKey="scheduledTweetsList" searchAble={false} />;
+  return <DataTable ref={tableRef} columns={batchColumns} serverAction={ScheduledTweetController.getScheduledBatches as any} queryKey={batchesQueryKey} searchAble={false} />;
 };
 
 export default ScheduledBatchesTable;

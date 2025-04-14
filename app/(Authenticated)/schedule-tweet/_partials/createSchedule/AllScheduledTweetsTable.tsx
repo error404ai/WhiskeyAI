@@ -14,14 +14,28 @@ export interface ScheduledTweetWithAgent {
 
 const AllScheduledTweetsTable = () => {
   const tableRef = useRef<DataTableRef>(null);
+  const queryKey = "scheduledTweetsList";
   
-  // Use the shared column definitions
-  const columns = getScheduledTweetColumns((id) => {
-    console.log("Cancel tweet with ID:", id);
-    // Add your cancel logic here
-  });
+  // Use the shared column definitions with queryKey
+  const columns = getScheduledTweetColumns(
+    queryKey, 
+    (id) => {
+      console.log("Tweet cancelled with ID:", id);
+      // Refresh is handled in the column component
+    },
+    (id) => {
+      console.log("Tweet deleted with ID:", id);
+      // Refresh is handled in the column component
+    }
+  );
 
-  return <DataTable ref={tableRef} columns={columns} serverAction={ScheduledTweetController.getScheduledTweets as any} queryKey="scheduledTweetsList" searchAble={false} />;
+  return <DataTable 
+    ref={tableRef} 
+    columns={columns} 
+    serverAction={ScheduledTweetController.getScheduledTweets as any} 
+    queryKey={queryKey} 
+    searchAble={false} 
+  />;
 };
 
 export default AllScheduledTweetsTable;
