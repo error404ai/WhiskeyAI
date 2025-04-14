@@ -24,6 +24,8 @@ export class ScheduledTweetService {
         createdAt: sql`MIN(${scheduledTweetsTable.createdAt})`,
       })
       .from(scheduledTweetsTable)
+      .innerJoin(agentsTable, eq(scheduledTweetsTable.agentId, agentsTable.id))
+      .where(eq(agentsTable.userId, Number(authUser.id)))
       .groupBy(scheduledTweetsTable.batchId)
       .orderBy(desc(scheduledTweetsTable.batchId));
 
@@ -38,7 +40,11 @@ export class ScheduledTweetService {
       throw new Error("User not authenticated");
     }
 
-    const query = db.select().from(scheduledTweetsTable).innerJoin(agentsTable, eq(scheduledTweetsTable.agentId, agentsTable.id)).where(eq(scheduledTweetsTable.batchId, batchId));
+    const query = db
+      .select()
+      .from(scheduledTweetsTable)
+      .innerJoin(agentsTable, eq(scheduledTweetsTable.agentId, agentsTable.id))
+      .where(and(eq(agentsTable.userId, Number(authUser.id)), eq(scheduledTweetsTable.batchId, batchId)));
 
     const paginator = new DrizzlePaginator<ScheduledTweet>(db, query).page(params.page || 1).allowColumns(["batchId", "content", "scheduledAt", "status", "processedAt", "errorMessage", "createdAt"]);
 
@@ -52,7 +58,11 @@ export class ScheduledTweetService {
       throw new Error("User not authenticated");
     }
 
-    const query = db.select().from(scheduledTweetsTable).innerJoin(agentsTable, eq(scheduledTweetsTable.agentId, agentsTable.id));
+    const query = db
+      .select()
+      .from(scheduledTweetsTable)
+      .innerJoin(agentsTable, eq(scheduledTweetsTable.agentId, agentsTable.id))
+      .where(eq(agentsTable.userId, Number(authUser.id)));
 
     const paginator = new DrizzlePaginator<ScheduledTweet>(db, query).page(params.page || 1).allowColumns(["batchId", "content", "scheduledAt", "status", "processedAt", "errorMessage", "createdAt"]);
 
