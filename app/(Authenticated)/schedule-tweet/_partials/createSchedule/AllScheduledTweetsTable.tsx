@@ -3,10 +3,11 @@
 import { DataTable, DataTableRef } from "@/components/Datatable/Datatable";
 import { DataTableColumnHeader } from "@/components/Datatable/DatatableColumnHeader";
 import { ActionButtons } from "@/components/ui/action-buttons";
+import { Badge } from "@/components/ui/badge";
 import { DateTime } from "@/components/ui/datetime";
 import * as ScheduledTweetController from "@/server/controllers/ScheduledTweetController";
 import { ColumnDef } from "@tanstack/react-table";
-import { Edit, Eye, Trash } from "lucide-react";
+import { CheckCircle2, Clock, Edit, Eye, AlertCircle, Trash } from "lucide-react";
 import { useRef } from "react";
 import { ScheduledTweetWithAgent } from "./_partials/types";
 
@@ -37,6 +38,44 @@ const AllScheduledTweetsTable = () => {
       size: 80,
       enableSorting: false,
       cell: ({ row }) => <DateTime date={row.original.scheduledTweets?.scheduledAt} variant="twoLine" showRelative={false} />,
+    },
+    {
+      accessorKey: "scheduledTweets.status",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
+      size: 80,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const status: "pending" | "completed" | "failed" | null = row.original.scheduledTweets?.status;
+        if (status === null) {
+          return <div className="text-center">-</div>;
+        }
+
+        let variant: "default" | "success" | "destructive" | "warning" = "default";
+        let icon = null;
+        const label = status.charAt(0).toUpperCase() + status.slice(1);
+
+        switch (status) {
+          case "pending":
+            variant = "warning";
+            icon = <Clock className="h-3 w-3 mr-1" />;
+            break;
+          case "completed":
+            variant = "success";
+            icon = <CheckCircle2 className="h-3 w-3 mr-1" />;
+            break;
+          case "failed":
+            variant = "destructive";
+            icon = <AlertCircle className="h-3 w-3 mr-1" />;
+            break;
+        }
+
+        return (
+          <Badge variant={variant} className="flex items-center justify-center px-2 py-1 w-fit">
+            {icon}
+            {label}
+          </Badge>
+        );
+      },
     },
     {
       accessorKey: "scheduledTweets.createdAt",
