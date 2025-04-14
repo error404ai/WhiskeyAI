@@ -1,52 +1,39 @@
 import { DataTableColumnHeader } from "@/components/Datatable/DatatableColumnHeader";
 import { ActionButtons } from "@/components/ui/action-buttons";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { DateTime } from "@/components/ui/datetime";
+import * as ScheduledTweetController from "@/server/controllers/ScheduledTweetController";
+import { useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
-import { AlertCircle, CheckCircle2, Clock, Trash, Ban } from "lucide-react";
+import { AlertCircle, Ban, CheckCircle2, Clock, Trash } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { ScheduledTweetWithAgent } from "./AllScheduledTweetsTable";
 import ErrorMessage from "./ErrorMessage";
-import * as ScheduledTweetController from "@/server/controllers/ScheduledTweetController";
-import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
-export const getScheduledTweetColumns = (
-  queryKey: string,
-  onCancel?: (id: number) => void,
-  onDelete?: (id: number) => void
-): ColumnDef<ScheduledTweetWithAgent>[] => {
+export const getScheduledTweetColumns = (queryKey: string, onCancel?: (id: number) => void, onDelete?: (id: number) => void): ColumnDef<ScheduledTweetWithAgent>[] => {
   // Create a wrapper component to provide React hooks context
   const ActionButtonsWrapper = ({ id, status, content }: { id: number; status: string; content: string }) => {
     const queryClient = useQueryClient();
     const [showCancelDialog, setShowCancelDialog] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-    
+
     const handleCancel = async () => {
       try {
         // Show loading toast
         toast.loading("Cancelling scheduled tweet...");
-        
+
         // Call the controller method to cancel the tweet
         const result = await ScheduledTweetController.deleteScheduledTweet(id);
-        
+
         if (result.success) {
           // Show success toast
           toast.success(result.message || "Tweet cancelled successfully");
-          
+
           // Invalidate queries to refresh the data
           queryClient.invalidateQueries({ queryKey: [queryKey] });
-          
+
           // Call the custom onCancel if provided
           if (onCancel) {
             onCancel(id);
@@ -60,22 +47,22 @@ export const getScheduledTweetColumns = (
         toast.error("An error occurred while cancelling the tweet");
       }
     };
-    
+
     const handleDelete = async () => {
       try {
         // Show loading toast
         toast.loading("Deleting tweet...");
-        
+
         // Call the controller method to delete the tweet
         const result = await ScheduledTweetController.permanentlyDeleteTweet(id);
-        
+
         if (result.success) {
           // Show success toast
           toast.success(result.message || "Tweet deleted successfully");
-          
+
           // Invalidate queries to refresh the data
           queryClient.invalidateQueries({ queryKey: [queryKey] });
-          
+
           // Call the custom onDelete if provided
           if (onDelete) {
             onDelete(id);
@@ -89,11 +76,11 @@ export const getScheduledTweetColumns = (
         toast.error("An error occurred while deleting the tweet");
       }
     };
-    
+
     const isPending = status === "pending";
-    
+
     const actions = [];
-    
+
     // Add cancel action only for pending tweets
     if (isPending) {
       actions.push({
@@ -103,7 +90,7 @@ export const getScheduledTweetColumns = (
         variant: "secondary" as const,
       });
     }
-    
+
     // Add delete action for all tweets
     actions.push({
       label: "Delete",
@@ -111,11 +98,11 @@ export const getScheduledTweetColumns = (
       icon: <Trash className="h-4 w-4" />,
       variant: "destructive" as const,
     });
-    
+
     return (
       <>
         <ActionButtons actions={actions} />
-        
+
         {/* Cancel Confirmation Dialog */}
         <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
           <AlertDialogContent>
@@ -123,7 +110,7 @@ export const getScheduledTweetColumns = (
               <AlertDialogTitle>Cancel Scheduled Tweet</AlertDialogTitle>
               <AlertDialogDescription>
                 Are you sure you want to cancel this scheduled tweet?
-                <div className="mt-2 rounded-md bg-muted p-3">
+                <div className="bg-muted mt-2 rounded-md p-3">
                   <p className="text-sm font-medium">{content}</p>
                 </div>
                 <p className="mt-2 text-sm">This action will prevent the tweet from being posted but will not delete it from your records.</p>
@@ -142,7 +129,7 @@ export const getScheduledTweetColumns = (
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-        
+
         {/* Delete Confirmation Dialog */}
         <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
           <AlertDialogContent>
@@ -150,10 +137,10 @@ export const getScheduledTweetColumns = (
               <AlertDialogTitle>Delete Tweet</AlertDialogTitle>
               <AlertDialogDescription>
                 Are you sure you want to permanently delete this tweet?
-                <div className="mt-2 rounded-md bg-muted p-3">
-                  <p className="text-sm font-medium">{content}</p>
+                <div className="bg-muted mt-2 rounded-md p-3">
+                  <span className="text-sm font-medium">{content}</span>
                 </div>
-                <p className="mt-2 text-sm text-destructive font-semibold">This action cannot be undone.</p>
+                <p className="text-destructive mt-2 text-sm font-semibold">This action cannot be undone.</p>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -272,17 +259,13 @@ export const getScheduledTweetColumns = (
         const data = row.original;
         const status = data?.scheduledTweets?.status || "";
         const content = data?.scheduledTweets?.content || "";
-        
+
         return (
           <div className="flex justify-end">
-            <ActionButtonsWrapper 
-              id={data.scheduledTweets.id} 
-              status={status}
-              content={content}
-            />
+            <ActionButtonsWrapper id={data.scheduledTweets.id} status={status} content={content} />
           </div>
         );
       },
     },
   ];
-}; 
+};
