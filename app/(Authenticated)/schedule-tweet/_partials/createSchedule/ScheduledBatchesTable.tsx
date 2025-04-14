@@ -233,13 +233,13 @@ const ScheduledBatchesTable = () => {
             <AlertDialogTitle>Cancel Batch</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to cancel all pending tweets in this batch?
-              <div className="mt-2 rounded-md bg-muted p-3">
+              <span className="mt-2 rounded-md bg-muted p-3 block">
                 <span className="text-sm font-medium">Batch ID: {selectedBatchForAction}</span>
-              </div>
-              <p className="mt-2 text-sm">
+              </span>
+              <span className="mt-2 text-sm block">
                 This will cancel all pending tweets in the batch and prevent them from being posted. 
                 Already processed tweets will not be affected. Cancelled tweets will remain in your records.
-              </p>
+              </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
