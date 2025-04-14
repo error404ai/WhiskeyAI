@@ -7,6 +7,7 @@ export const scheduledTweetsTable = pgTable("scheduledTweets", {
   agentId: integer()
     .notNull()
     .references(() => agentsTable.id, { onDelete: "cascade" }),
+  batchId: varchar({ length: 50 }).notNull(),
   content: text().notNull(),
   scheduledAt: timestamp("scheduledAt", { withTimezone: true }).notNull(),
   status: varchar({ length: 50 }).$type<"pending" | "completed" | "failed">().default("pending"),
