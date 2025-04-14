@@ -113,6 +113,17 @@ const ScheduledBatchesTable = () => {
     createdAt: Date;
   }>[] = [
     {
+      accessorKey: "Schedule",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Schedule" />,
+      cell: ({ row }) => {
+        const page = Number(searchParams.get("page")) || 1;
+        const perPage = Number(searchParams.get("perPage")) || 10;
+        return <div>Schedule {row.index + 1 + (page - 1) * perPage}</div>;
+      },
+      size: 60,
+      enableSorting: false,
+    },
+    {
       accessorKey: "batchId",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Batch ID" />,
       size: 60,
