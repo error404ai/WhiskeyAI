@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from "@/db/db";
-import { NewScheduledTweet, ScheduledTweet, agentPlatformsTable, agentsTable, scheduledTweetsTable } from "@/db/schema";
+import { NewScheduledTweet, ScheduledTweet, agentPlatformsTable, scheduledTweetsTable } from "@/db/schema";
 import { DrizzlePaginator, PaginationResult } from "@skmirajbn/drizzle-paginator";
-import { and, eq, lte } from "drizzle-orm";
+import { and, desc, eq, lte, sql } from "drizzle-orm";
 import { PaginatedProps } from "../controllers/ScheduledTweetController";
 import TwitterService from "./TwitterService";
 import AuthService from "./auth/authService";
@@ -19,32 +18,19 @@ export class ScheduledTweetService {
       throw new Error("User not authenticated");
     }
 
-    const query = db.query.scheduledTweetsTable.findMany({
-      where: (scheduledTweetsTable, { inArray, eq }) => {
-        const subquery = db
-          .select({ id: agentsTable.id })
-          .from(agentsTable)
-          .where(eq(agentsTable.userId, Number(authUser.id)));
-        return inArray(scheduledTweetsTable.agentId, subquery);
-      },
-      with: {
-        agent: {
-          with: {
-            user: true,
-          },
-        },
-      },
-    });
+    const query = db
+      .select({
+        batchId: scheduledTweetsTable.batchId,
+        createdAt: sql`MIN(${scheduledTweetsTable.createdAt})`,
+      })
+      .from(scheduledTweetsTable)
+      .groupBy(scheduledTweetsTable.batchId)
+      .orderBy(desc(scheduledTweetsTable.createdAt));
+    const data = await query;
+    console.log("datais =====", data);
 
-    const paginator = new DrizzlePaginator<ScheduledTweet>(db, query).page(params.page || 1).allowColumns(["id", "agentId", "content", "scheduledAt", "status", "createdAt", "processedAt", "errorMessage"]);
-    paginator.map((item) => {
-      return {
-        ...item,
-        agentName: (item.agent as any)?.[3],
-      };
-    });
+    const paginator = new DrizzlePaginator<ScheduledTweet>(db, query).page(params.page || 1).allowColumns(["batchId", "createdAt"]);
 
-    paginator.orderBy("id", "desc");
     // console.log("paginator is", (await paginator.paginate(10)).data[0].agent);
     return paginator.paginate(params.perPage || 10);
   }
