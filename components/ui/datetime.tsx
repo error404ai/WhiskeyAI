@@ -2,7 +2,12 @@
 
 import React from "react";
 import { format, formatDistanceToNow } from "date-fns";
-import { Tooltip } from "./tooltip";
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from "./tooltip";
 
 export interface DateTimeProps {
   date: Date | string | number | null;
@@ -32,9 +37,16 @@ export function DateTime({
 
   if (showRelative) {
     return (
-      <Tooltip content={formattedDate}>
-        <span className={`text-sm ${className}`}>{relativeTime}</span>
-      </Tooltip>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className={`text-sm ${className}`}>{relativeTime}</span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{formattedDate}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   }
 
