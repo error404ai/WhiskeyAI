@@ -20,6 +20,12 @@ const AllScheduledTweetsTable = () => {
       enableSorting: false,
     },
     {
+      accessorKey: "agents.name",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Agent Name" />,
+      size: 60,
+      enableSorting: false,
+    },
+    {
       accessorKey: "scheduledTweets.content",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Content" />,
       size: 60,
@@ -28,8 +34,9 @@ const AllScheduledTweetsTable = () => {
     {
       accessorKey: "scheduledTweets.scheduledAt",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Scheduled At" />,
-      size: 60,
+      size: 80,
       enableSorting: false,
+      cell: ({ row }) => <DateTime date={row.original.scheduledTweets?.scheduledAt} variant="twoLine" showRelative={false} />,
     },
     {
       accessorKey: "scheduledTweets.createdAt",
