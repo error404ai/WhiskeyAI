@@ -133,9 +133,123 @@ export class ScheduledTweetService {
       throw new Error("Tweet not found or not owned by user");
     }
 
+    // Only allow cancelling if the tweet is pending
+    if (tweet.status !== "pending") {
+      throw new Error("Only pending tweets can be cancelled");
+    }
+
+    // Update tweet status to cancelled instead of deleting
+    await db.update(scheduledTweetsTable)
+      .set({
+        status: "cancelled",
+        processedAt: new Date(),
+      })
+      .where(eq(scheduledTweetsTable.id, tweetId));
+    
+    return true;
+  }
+
+  public static async cancelBatchTweets(batchId: string): Promise<number> {
+    const authUser = await AuthService.getAuthUser();
+    if (!authUser) {
+      throw new Error("User not authenticated");
+    }
+
+    // First get all pending tweets in this batch that belong to the user
+    const pendingTweets = await db.query.scheduledTweetsTable.findMany({
+      where: and(
+        eq(scheduledTweetsTable.batchId, batchId), 
+        eq(scheduledTweetsTable.status, "pending")
+      ),
+      with: {
+        agent: true,
+      },
+    });
+
+    // Filter tweets to only include those owned by the user
+    const userTweets = pendingTweets.filter(tweet => tweet.agent.userId === Number(authUser.id));
+    
+    if (userTweets.length === 0) {
+      return 0; // No tweets to cancel
+    }
+
+    // Get the IDs of the tweets to cancel
+    const tweetIds = userTweets.map(tweet => tweet.id);
+    
+    // Update tweets to cancelled status instead of deleting
+    await db.update(scheduledTweetsTable)
+      .set({
+        status: "cancelled",
+        processedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(scheduledTweetsTable.batchId, batchId),
+          eq(scheduledTweetsTable.status, "pending"),
+          sql`${scheduledTweetsTable.id} IN (${tweetIds.join(",")})`
+        )
+      );
+    
+    return tweetIds.length;
+  }
+
+  public static async deleteTweet(tweetId: number): Promise<boolean> {
+    const authUser = await AuthService.getAuthUser();
+    if (!authUser) {
+      throw new Error("User not authenticated");
+    }
+
+    // First verify the tweet belongs to the user
+    const tweet = await db.query.scheduledTweetsTable.findFirst({
+      where: eq(scheduledTweetsTable.id, tweetId),
+      with: {
+        agent: true,
+      },
+    });
+
+    if (!tweet || !tweet.agent || tweet.agent.userId !== Number(authUser.id)) {
+      throw new Error("Tweet not found or not owned by user");
+    }
+
     // Delete the tweet
     await db.delete(scheduledTweetsTable).where(eq(scheduledTweetsTable.id, tweetId));
     return true;
+  }
+  
+  public static async deleteBatchTweets(batchId: string): Promise<number> {
+    const authUser = await AuthService.getAuthUser();
+    if (!authUser) {
+      throw new Error("User not authenticated");
+    }
+
+    // Get all tweets in this batch that belong to the user
+    const tweets = await db.query.scheduledTweetsTable.findMany({
+      where: eq(scheduledTweetsTable.batchId, batchId),
+      with: {
+        agent: true,
+      },
+    });
+
+    // Filter tweets to only include those owned by the user
+    const userTweets = tweets.filter(tweet => tweet.agent.userId === Number(authUser.id));
+    
+    if (userTweets.length === 0) {
+      return 0; // No tweets to delete
+    }
+
+    // Get the IDs of the tweets to delete
+    const tweetIds = userTweets.map(tweet => tweet.id);
+    
+    // Delete the tweets
+    await db.delete(scheduledTweetsTable)
+      .where(
+        and(
+          eq(scheduledTweetsTable.batchId, batchId),
+          sql`${scheduledTweetsTable.id} IN (${tweetIds.join(",")})`
+        )
+      );
+    
+    return tweetIds.length;
   }
 }
 

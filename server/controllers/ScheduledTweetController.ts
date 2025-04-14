@@ -56,7 +56,57 @@ export const getScheduledTweets = async (params: PaginatedProps = { page: 1, per
 export const deleteScheduledTweet = async (tweetId: number): Promise<{ success: boolean; message?: string }> => {
   try {
     const result = await ScheduledTweetService.deleteScheduledTweet(tweetId);
-    return { success: result };
+    return { 
+      success: result,
+      message: "Tweet cancelled successfully" 
+    };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, message: error.message };
+    }
+    return { success: false, message: "An unknown error occurred" };
+  }
+};
+
+export const cancelBatchTweets = async (batchId: string): Promise<{ success: boolean; message?: string; count?: number }> => {
+  try {
+    const result = await ScheduledTweetService.cancelBatchTweets(batchId);
+    return { 
+      success: true,
+      count: result,
+      message: result > 0 ? `Successfully cancelled ${result} tweets` : "No pending tweets found to cancel" 
+    };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, message: error.message };
+    }
+    return { success: false, message: "An unknown error occurred" };
+  }
+};
+
+export const permanentlyDeleteTweet = async (tweetId: number): Promise<{ success: boolean; message?: string }> => {
+  try {
+    const result = await ScheduledTweetService.deleteTweet(tweetId);
+    return { 
+      success: result,
+      message: "Tweet deleted permanently" 
+    };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, message: error.message };
+    }
+    return { success: false, message: "An unknown error occurred" };
+  }
+};
+
+export const deleteBatchTweets = async (batchId: string): Promise<{ success: boolean; message?: string; count?: number }> => {
+  try {
+    const result = await ScheduledTweetService.deleteBatchTweets(batchId);
+    return { 
+      success: true,
+      count: result,
+      message: result > 0 ? `Successfully deleted ${result} tweets` : "No tweets found to delete" 
+    };
   } catch (error) {
     if (error instanceof Error) {
       return { success: false, message: error.message };
