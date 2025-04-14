@@ -19,7 +19,7 @@ import PostList from "./_partials/PostList";
 import SchedulingControls from "./_partials/SchedulingControls";
 import { Agent, FormStatus, FormValues } from "./_partials/types";
 
-export default function SchedulePosts() {
+export default function CreateSchedule() {
   "use no memo";
   const router = useRouter();
   const currentDelayRef = useRef<number>(10);
@@ -256,16 +256,6 @@ export default function SchedulePosts() {
 
   return (
     <div className="space-y-8">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-3xl font-bold text-transparent">Schedule Posts</h1>
-          <p className="text-muted-foreground text-lg">Create and schedule posts for your AI agents with customizable timing.</p>
-        </div>
-        <Button onClick={() => router.push("/scheduled-batches")} variant="outline" className="flex items-center gap-2">
-          View Scheduled Posts
-        </Button>
-      </div>
-
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">

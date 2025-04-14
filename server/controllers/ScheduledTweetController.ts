@@ -27,6 +27,14 @@ export const createScheduledTweet = async (data: unknown): Promise<{ success: bo
   }
 };
 
+export const getScheduledBatches = async (params: PaginatedProps = { page: 1, perPage: 10 }) => {
+  try {
+    return await ScheduledTweetService.getScheduledBatches(params);
+  } catch (error) {
+    console.error("Error getting scheduled tweets:", error);
+    throw error;
+  }
+};
 export const getScheduledTweets = async (params: PaginatedProps = { page: 1, perPage: 10 }) => {
   try {
     return await ScheduledTweetService.getScheduledTweets(params);

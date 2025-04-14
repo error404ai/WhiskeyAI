@@ -8,8 +8,19 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import Logo from "../Common/Logo";
 
+interface MenuItem {
+  title: string;
+  url?: string;
+  icon?: LucideIcon;
+  submenu?: Array<{
+    title: string;
+    url: string;
+    icon?: LucideIcon;
+  }>;
+}
+
 // Extended menu items with support for dropdown submenus
-const items = [
+const items: MenuItem[] = [
   {
     title: "My Agents",
     url: "/my-agents",
@@ -23,16 +34,7 @@ const items = [
   {
     title: "Schedule Tweet",
     icon: CalendarClock,
-    submenu: [
-      {
-        title: "Batches",
-        url: "/scheduled-batches",
-      },
-      {
-        title: "Schedule Tweet",
-        url: "/schedule-tweet",
-      },
-    ],
+    url: "/schedule-tweet",
   },
 ];
 
