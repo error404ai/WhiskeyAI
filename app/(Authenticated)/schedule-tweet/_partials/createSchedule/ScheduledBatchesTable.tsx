@@ -1,15 +1,15 @@
 "use client";
 import { DataTable, DataTableRef } from "@/components/Datatable/Datatable";
 import { DataTableColumnHeader } from "@/components/Datatable/DatatableColumnHeader";
+import { ActionButtons } from "@/components/ui/action-buttons";
+import { DateTime } from "@/components/ui/datetime";
 import * as ScheduledTweetController from "@/server/controllers/ScheduledTweetController";
 import { ColumnDef } from "@tanstack/react-table";
-import { useRef } from "react";
-import { ScheduledTweetWithAgent } from "./types";
-import { DateTime } from "@/components/ui/datetime";
-import { ActionButtons } from "@/components/ui/action-buttons";
 import { Edit, Eye, Trash } from "lucide-react";
+import { useRef } from "react";
+import { ScheduledTweetWithAgent } from "./_partials/types";
 
-const ScheduledTweetsTable = () => {
+const ScheduledBatchesTable = () => {
   const tableRef = useRef<DataTableRef>(null);
 
   // Define columns for the table - ensuring all have proper cell definitions
@@ -32,7 +32,7 @@ const ScheduledTweetsTable = () => {
       header: () => <div className="text-right">Actions</div>,
       cell: ({ row }) => {
         const tweet = row.original;
-        
+
         return (
           <div className="flex justify-end">
             <ActionButtons
@@ -72,7 +72,7 @@ const ScheduledTweetsTable = () => {
     },
   ];
 
-  return <DataTable ref={tableRef} columns={columns} serverAction={ScheduledTweetController.getScheduledTweets} queryKey="scheduledTweetsList" searchAble={true} />;
+  return <DataTable ref={tableRef} columns={columns} serverAction={ScheduledTweetController.getScheduledBatches} queryKey="scheduledTweetsList" searchAble={true} />;
 };
 
-export default ScheduledTweetsTable;
+export default ScheduledBatchesTable;

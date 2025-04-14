@@ -1,5 +1,5 @@
 import { db } from "@/db/db";
-import { NewScheduledTweet, ScheduledTweet, agentPlatformsTable, scheduledTweetsTable } from "@/db/schema";
+import { NewScheduledTweet, ScheduledTweet, agentPlatformsTable, agentsTable, scheduledTweetsTable } from "@/db/schema";
 import { DrizzlePaginator, PaginationResult } from "@skmirajbn/drizzle-paginator";
 import { and, eq, lte, sql } from "drizzle-orm";
 import { PaginatedProps } from "../controllers/ScheduledTweetController";
@@ -12,7 +12,7 @@ export class ScheduledTweetService {
     return result.id;
   }
 
-  public static async getScheduledTweets(params: PaginatedProps = { page: 1, perPage: 10 }): Promise<PaginationResult<ScheduledTweet>> {
+  public static async getScheduledBatches(params: PaginatedProps = { page: 1, perPage: 10 }): Promise<PaginationResult<ScheduledTweet>> {
     const authUser = await AuthService.getAuthUser();
     if (!authUser) {
       throw new Error("User not authenticated");
@@ -25,12 +25,24 @@ export class ScheduledTweetService {
       })
       .from(scheduledTweetsTable)
       .groupBy(scheduledTweetsTable.batchId);
-    const data = await query;
-    console.log("datais =====", data);
 
     const paginator = new DrizzlePaginator<ScheduledTweet>(db, query).page(params.page || 1).allowColumns(["batchId", "createdAt"]);
 
     // console.log("paginator is", (await paginator.paginate(10)).data[0].agent);
+    return paginator.paginate(params.perPage || 10);
+  }
+
+  public static async getScheduledTweets(params: PaginatedProps = { page: 1, perPage: 10 }): Promise<PaginationResult<ScheduledTweet>> {
+    const authUser = await AuthService.getAuthUser();
+    if (!authUser) {
+      throw new Error("User not authenticated");
+    }
+
+    const query = db.select().from(scheduledTweetsTable).innerJoin(agentsTable, eq(scheduledTweetsTable.agentId, agentsTable.id));
+
+    const paginator = new DrizzlePaginator<ScheduledTweet>(db, query).page(params.page || 1).allowColumns(["batchId", "content", "scheduledAt", "status", "processedAt", "errorMessage", "createdAt"]);
+
+    console.log("paginator is", (await paginator.paginate(10)).data[0]);
     return paginator.paginate(params.perPage || 10);
   }
 
