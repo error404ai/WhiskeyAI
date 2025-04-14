@@ -4,10 +4,10 @@
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import { UseFormReturn, useFieldArray } from "react-hook-form"
-import { Agent, FormValues } from "./types"
+import { Agent, DelayUnit, FormValues } from "./types"
 import PostItem from "./PostItem"
 import { useEffect, useState, useLayoutEffect } from "react"
-import { addMinutes, format } from "date-fns"
+import { addMinutes, addSeconds, addHours, format } from "date-fns"
 
 interface PostListProps {
     methods: UseFormReturn<FormValues>
@@ -25,12 +25,27 @@ export default function PostList({
     'use no memo'
     const [lastFieldCount, setLastFieldCount] = useState(0);
     const [forceRender, setForceRender] = useState(0);
-    const [lastDelayValue, setLastDelayValue] = useState(methods.getValues("delayMinutes"));
+    const [lastDelayValue, setLastDelayValue] = useState(methods.getValues("delayValue"));
+    const [lastDelayUnit, setLastDelayUnit] = useState(methods.getValues("delayUnit"));
     
     const { fields, append, remove } = useFieldArray({
         control: methods.control,
         name: "schedulePosts"
     })
+
+    // Helper function to calculate the next scheduled time based on delay settings
+    const calculateNextTime = (baseTime: Date, delayValue: number, delayUnit: DelayUnit, multiplier: number): Date => {
+        const totalDelay = delayValue * multiplier;
+        
+        if (delayUnit === "seconds") {
+            return addSeconds(baseTime, totalDelay);
+        } else if (delayUnit === "hours") {
+            return addHours(baseTime, totalDelay);
+        } else {
+            // Default to minutes
+            return addMinutes(baseTime, totalDelay);
+        }
+    };
 
     useEffect(() => {
         console.log(`Fields length changed: ${fields.length}`)
@@ -56,9 +71,11 @@ export default function PostList({
     }, [fields.length]);
 
     useEffect(() => {
-        const currentDelay = methods.watch("delayMinutes");
-                if (currentDelay !== lastDelayValue && fields.length > 1) {
-            console.log(`Delay changed from ${lastDelayValue} to ${currentDelay}, recalculating times for ${fields.length} posts`);
+        const currentDelayValue = methods.watch("delayValue");
+        const currentDelayUnit = methods.watch("delayUnit");
+        
+        if ((currentDelayValue !== lastDelayValue || currentDelayUnit !== lastDelayUnit) && fields.length > 1) {
+            console.log(`Delay changed (value: ${lastDelayValue} -> ${currentDelayValue}, unit: ${lastDelayUnit} -> ${currentDelayUnit}), recalculating times for ${fields.length} posts`);
             
             const currentPosts = methods.getValues("schedulePosts");
             if (currentPosts.length > 0) {
@@ -66,7 +83,7 @@ export default function PostList({
                     new Date(currentPosts[0].scheduledTime) : new Date();
                 
                 for (let i = 1; i < currentPosts.length; i++) {
-                    const newTime = addMinutes(firstPostTime, currentDelay * i);
+                    const newTime = calculateNextTime(firstPostTime, currentDelayValue, currentDelayUnit, i);
                     methods.setValue(
                         `schedulePosts.${i}.scheduledTime`, 
                         format(newTime, "yyyy-MM-dd'T'HH:mm")
@@ -77,9 +94,10 @@ export default function PostList({
                 setForceRender(prev => prev + 1);
             }
             
-            setLastDelayValue(currentDelay);
+            setLastDelayValue(currentDelayValue);
+            setLastDelayUnit(currentDelayUnit);
         }
-    }, [methods.watch("delayMinutes"), fields.length, lastDelayValue, methods]);
+    }, [methods.watch("delayValue"), methods.watch("delayUnit"), fields.length, lastDelayValue, lastDelayUnit, methods]);
 
     useEffect(() => {
         if (agents.length > 0 && fields.length > 0) {
@@ -119,8 +137,9 @@ export default function PostList({
         const firstPost = currentPosts[0]
         const lastPost = currentPosts[currentPosts.length - 1]
         
-        // Get the delay value
-        const currentDelay = Number(methods.getValues("delayMinutes"))
+        // Get the delay value and unit
+        const currentDelayValue = Number(methods.getValues("delayValue"))
+        const currentDelayUnit = methods.getValues("delayUnit")
         
         // Safely get the first post time (base time)
         const firstPostTime = firstPost?.scheduledTime ? new Date(firstPost.scheduledTime) : new Date()
@@ -131,7 +150,7 @@ export default function PostList({
         console.log('Adding post with:')
         console.log('- First post time:', firstPostTime)
         console.log('- Current post count:', currentPostCount)
-        console.log('- Current delay:', currentDelay, 'minutes')
+        console.log('- Current delay:', currentDelayValue, currentDelayUnit)
 
         // Find the next agent index based on the current pattern
         const lastAgentId = lastPost?.agentId || ""
@@ -158,9 +177,7 @@ export default function PostList({
             agentsInRange[nextAgentIndex]?.uuid : ""
 
         // Create the new post with calculated time using the current delay value and post count
-        // Use addMinutes from date-fns for more reliable calculation
-        // New post will be at firstPostTime + (currentPostCount * delay)
-        const newScheduledTime = addMinutes(firstPostTime, currentDelay * currentPostCount)
+        const newScheduledTime = calculateNextTime(firstPostTime, currentDelayValue, currentDelayUnit, currentPostCount);
         
         console.log('- New scheduled time:', newScheduledTime)
 

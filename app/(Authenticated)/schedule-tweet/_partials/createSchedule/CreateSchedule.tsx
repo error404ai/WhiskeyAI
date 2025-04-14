@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import * as AgentController from "@/server/controllers/agent/AgentController";
 import * as ScheduledTweetController from "@/server/controllers/ScheduledTweetController";
 import { useQuery } from "@tanstack/react-query";
-import { addMinutes, format } from "date-fns";
+import { addMinutes, addSeconds, addHours, format } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -17,12 +17,13 @@ import { toast } from "sonner";
 import AgentSelector from "./_partials/AgentSelector";
 import PostList from "./_partials/PostList";
 import SchedulingControls from "./_partials/SchedulingControls";
-import { Agent, FormStatus, FormValues } from "./_partials/types";
+import { Agent, DelayUnit, FormStatus, FormValues } from "./_partials/types";
 
 export default function CreateSchedule() {
   "use no memo";
   const router = useRouter();
   const currentDelayRef = useRef<number>(10);
+  const currentDelayUnitRef = useRef<DelayUnit>("minutes");
   const [uploadSuccess, setUploadSuccess] = useState<{ count: number } | null>(null);
   const [hasImportedPosts, setHasImportedPosts] = useState(false);
   const [forceRerender, setForceRerender] = useState(0);
@@ -53,7 +54,8 @@ export default function CreateSchedule() {
 
   const methods = useForm<FormValues>({
     defaultValues: {
-      delayMinutes: 10,
+      delayValue: 10,
+      delayUnit: "minutes",
       schedulePosts: [
         {
           content: "",
@@ -115,14 +117,29 @@ export default function CreateSchedule() {
     }
   };
 
+  const calculateNextTime = (baseTime: Date, delayValue: number, delayUnit: DelayUnit, multiplier: number): Date => {
+    const totalDelay = delayValue * multiplier;
+    
+    if (delayUnit === "seconds") {
+      return addSeconds(baseTime, totalDelay);
+    } else if (delayUnit === "hours") {
+      return addHours(baseTime, totalDelay);
+    } else {
+      // Default to minutes
+      return addMinutes(baseTime, totalDelay);
+    }
+  };
+
   const updateScheduledTimes = useCallback(() => {
     if (fields.length > 0) {
       methods.setValue("schedulePosts.0.scheduledTime", format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"));
 
-      const delayMinutes = Number(methods.getValues("delayMinutes"));
+      const delayValue = Number(methods.getValues("delayValue"));
+      const delayUnit = methods.getValues("delayUnit");
       const baseTime = scheduleStartDate;
+
       for (let i = 1; i < fields.length; i++) {
-        const nextTime = addMinutes(baseTime, delayMinutes * i);
+        const nextTime = calculateNextTime(baseTime, delayValue, delayUnit, i);
         methods.setValue(`schedulePosts.${i}.scheduledTime`, format(nextTime, "yyyy-MM-dd'T'HH:mm"));
       }
     }
@@ -139,10 +156,12 @@ export default function CreateSchedule() {
       if (fields.length > 0) {
         methods.setValue("schedulePosts.0.scheduledTime", format(newDateTime, "yyyy-MM-dd'T'HH:mm"));
 
-        const delayMinutes = Number(methods.getValues("delayMinutes"));
+        const delayValue = Number(methods.getValues("delayValue"));
+        const delayUnit = methods.getValues("delayUnit");
         const baseTime = newDateTime;
+        
         for (let i = 1; i < fields.length; i++) {
-          const nextTime = addMinutes(baseTime, delayMinutes * i);
+          const nextTime = calculateNextTime(baseTime, delayValue, delayUnit, i);
           methods.setValue(`schedulePosts.${i}.scheduledTime`, format(nextTime, "yyyy-MM-dd'T'HH:mm"));
         }
       }
@@ -165,8 +184,9 @@ export default function CreateSchedule() {
 
   useEffect(() => {
     const subscription = methods.watch((value, { name }) => {
-      if (name === "delayMinutes") {
-        currentDelayRef.current = Number(value.delayMinutes);
+      if (name === "delayValue" || name === "delayUnit") {
+        currentDelayRef.current = Number(value.delayValue);
+        currentDelayUnitRef.current = value.delayUnit as DelayUnit;
         updateScheduledTimes();
       }
     });
@@ -227,7 +247,7 @@ export default function CreateSchedule() {
         replace([
           {
             content: "",
-            scheduledTime: format(addMinutes(scheduleStartDate, Number(methods.getValues("delayMinutes"))), "yyyy-MM-dd'T'HH:mm"),
+            scheduledTime: format(calculateNextTime(scheduleStartDate, Number(methods.getValues("delayValue")), methods.getValues("delayUnit"), 1), "yyyy-MM-dd'T'HH:mm"),
             agentId: activeAgents.length > 0 ? activeAgents[0].uuid : "",
           },
         ]);
@@ -261,7 +281,7 @@ export default function CreateSchedule() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
             {/* Scheduling Controls (Delay, Start Date, File Upload) */}
             <div className="lg:col-span-12">
-              <SchedulingControls methods={methods} scheduleStartDate={scheduleStartDate} handleStartDateChange={handleStartDateChange} activeAgents={activeAgents} fields={fields} replace={replace} setHasImportedPosts={setHasImportedPosts} setUploadSuccess={setUploadSuccess} uploadSuccess={uploadSuccess} hasImportedPosts={hasImportedPosts} currentDelayRef={currentDelayRef} onImportSuccess={handleImportSuccess} />
+              <SchedulingControls methods={methods} scheduleStartDate={scheduleStartDate} handleStartDateChange={handleStartDateChange} activeAgents={activeAgents} fields={fields} replace={replace} setHasImportedPosts={setHasImportedPosts} setUploadSuccess={setUploadSuccess} uploadSuccess={uploadSuccess} hasImportedPosts={hasImportedPosts} currentDelayRef={currentDelayRef} currentDelayUnitRef={currentDelayUnitRef} onImportSuccess={handleImportSuccess} />
             </div>
 
             {/* Agents List */}
