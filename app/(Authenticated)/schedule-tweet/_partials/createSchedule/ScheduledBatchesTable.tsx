@@ -37,60 +37,72 @@ const ScheduledBatchesTable = () => {
   const [selectedBatchForAction, setSelectedBatchForAction] = useState<string | null>(null);
 
   const handleCancelBatch = async (batchId: string) => {
+    if (!batchId) return;
+    
     try {
-      // Show loading toast and store the ID
-      const loadingId = toast.loading(`Cancelling batch ${batchId}...`);
+      // Use a simpler toast pattern
+      toast.loading(`Cancelling batch ${batchId}`);
       
       // Call the controller method to cancel the batch
       const result = await ScheduledTweetController.cancelBatchTweets(batchId);
       
-      // First dismiss the loading toast (with a slight delay to ensure it's properly dismissed)
-      setTimeout(() => {
-        toast.dismiss(loadingId);
+      // Dismiss all toasts
+      toast.dismiss();
+      
+      // Show a simple success or error message
+      if (result.success) {
+        toast.success(result.message || `Successfully cancelled ${result.count || 0} tweets`);
         
-        // Then show the appropriate result toast
-        if (result.success) {
-          toast.success(result.message || `Successfully cancelled ${result.count || 0} tweets`);
-          
-          // Invalidate queries to refresh the data
-          queryClient.invalidateQueries({ queryKey: [batchesQueryKey] });
-        } else {
-          toast.error(result.message || "Failed to cancel batch");
-          console.error("Batch cancel error:", result);
-        }
-      }, 300);
+        // Invalidate queries to refresh the data
+        queryClient.invalidateQueries({ queryKey: [batchesQueryKey] });
+      } else {
+        toast.error(result.message || "Failed to cancel batch");
+      }
+      
+      // Close the dialog
+      setShowCancelBatchDialog(false);
     } catch (error) {
+      // Dismiss loading toast
+      toast.dismiss();
+      
+      // Show error
+      toast.error(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
       console.error("Error cancelling batch:", error);
-      toast.error(`An error occurred while cancelling the batch: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
   const handleDeleteBatch = async (batchId: string) => {
+    if (!batchId) return;
+    
     try {
-      // Show loading toast and store the ID
-      const loadingId = toast.loading(`Deleting batch ${batchId}...`);
+      // Use a simpler toast pattern
+      toast.loading(`Deleting batch ${batchId}`);
       
       // Call the controller method to delete the batch
       const result = await ScheduledTweetController.deleteBatchTweets(batchId);
       
-      // First dismiss the loading toast (with a slight delay to ensure it's properly dismissed)
-      setTimeout(() => {
-        toast.dismiss(loadingId);
+      // Dismiss all toasts
+      toast.dismiss();
+      
+      // Show a simple success or error message
+      if (result.success) {
+        toast.success(result.message || `Successfully deleted ${result.count || 0} tweets`);
         
-        // Then show the appropriate result toast
-        if (result.success) {
-          toast.success(result.message || `Successfully deleted ${result.count || 0} tweets`);
-          
-          // Invalidate queries to refresh the data
-          queryClient.invalidateQueries({ queryKey: [batchesQueryKey] });
-        } else {
-          toast.error(result.message || "Failed to delete batch");
-          console.error("Batch delete error:", result);
-        }
-      }, 300);
+        // Invalidate queries to refresh the data
+        queryClient.invalidateQueries({ queryKey: [batchesQueryKey] });
+      } else {
+        toast.error(result.message || "Failed to delete batch");
+      }
+      
+      // Close the dialog
+      setShowDeleteBatchDialog(false);
     } catch (error) {
+      // Dismiss loading toast
+      toast.dismiss();
+      
+      // Show error
+      toast.error(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
       console.error("Error deleting batch:", error);
-      toast.error(`An error occurred while deleting the batch: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 

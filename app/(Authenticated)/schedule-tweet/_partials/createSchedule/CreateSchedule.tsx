@@ -11,7 +11,7 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 
 // Import types and components
 import AgentSelector from "./_partials/AgentSelector";
@@ -303,8 +303,6 @@ export default function CreateSchedule() {
           </div>
         </form>
       </FormProvider>
-
-      <Toaster />
     </div>
   );
 }
