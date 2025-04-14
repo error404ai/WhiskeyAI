@@ -5,6 +5,9 @@ import * as ScheduledTweetController from "@/server/controllers/ScheduledTweetCo
 import { ColumnDef } from "@tanstack/react-table";
 import { useRef } from "react";
 import { ScheduledTweetWithAgent } from "./types";
+import { DateTime } from "@/components/ui/datetime";
+import { ActionButtons } from "@/components/ui/action-buttons";
+import { Edit, Eye, Trash } from "lucide-react";
 
 const ScheduledTweetsTable = () => {
   const tableRef = useRef<DataTableRef>(null);
@@ -22,6 +25,50 @@ const ScheduledTweetsTable = () => {
       header: ({ column }) => <DataTableColumnHeader column={column} title="Created" />,
       size: 60,
       enableSorting: false,
+      cell: ({ row }) => <DateTime date={row.original.createdAt} />,
+    },
+    {
+      id: "actions",
+      header: () => <div className="text-right">Actions</div>,
+      cell: ({ row }) => {
+        const tweet = row.original;
+        
+        return (
+          <div className="flex justify-end">
+            <ActionButtons
+              actions={[
+                {
+                  label: "View",
+                  onClick: () => {
+                    // View action logic
+                    console.log("View tweet", tweet.id);
+                  },
+                  icon: <Eye className="h-4 w-4" />,
+                },
+                {
+                  label: "Edit",
+                  onClick: () => {
+                    // Edit action logic
+                    console.log("Edit tweet", tweet.id);
+                  },
+                  icon: <Edit className="h-4 w-4" />,
+                  disabled: tweet.status === "completed",
+                },
+                {
+                  label: "Delete",
+                  onClick: () => {
+                    // Delete action logic
+                    console.log("Delete tweet", tweet.id);
+                  },
+                  icon: <Trash className="h-4 w-4" />,
+                  variant: "destructive",
+                  disabled: tweet.status === "completed",
+                },
+              ]}
+            />
+          </div>
+        );
+      },
     },
   ];
 
