@@ -39,13 +39,13 @@ const ScheduledBatchesTable = () => {
   const handleCancelBatch = async (batchId: string) => {
     try {
       // Show loading toast
-      const loadingToast = toast.loading(`Cancelling batch ${batchId}...`);
+      const loadingId = toast.loading(`Cancelling batch ${batchId}...`);
       
       // Call the controller method to cancel the batch
       const result = await ScheduledTweetController.cancelBatchTweets(batchId);
       
       // Dismiss the loading toast
-      toast.dismiss(loadingToast);
+      toast.dismiss(loadingId);
       
       if (result.success) {
         // Show success toast
@@ -54,25 +54,26 @@ const ScheduledBatchesTable = () => {
         // Invalidate queries to refresh the data
         queryClient.invalidateQueries({ queryKey: [batchesQueryKey] });
       } else {
-        // Show error toast
+        // Show error toast with detailed message
         toast.error(result.message || "Failed to cancel batch");
+        console.error("Batch cancel error:", result);
       }
     } catch (error) {
       console.error("Error cancelling batch:", error);
-      toast.error("An error occurred while cancelling the batch");
+      toast.error(`An error occurred while cancelling the batch: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
   const handleDeleteBatch = async (batchId: string) => {
     try {
       // Show loading toast
-      const loadingToast = toast.loading(`Deleting batch ${batchId}...`);
+      const loadingId = toast.loading(`Deleting batch ${batchId}...`);
       
       // Call the controller method to delete the batch
       const result = await ScheduledTweetController.deleteBatchTweets(batchId);
       
       // Dismiss the loading toast
-      toast.dismiss(loadingToast);
+      toast.dismiss(loadingId);
       
       if (result.success) {
         // Show success toast
@@ -81,12 +82,13 @@ const ScheduledBatchesTable = () => {
         // Invalidate queries to refresh the data
         queryClient.invalidateQueries({ queryKey: [batchesQueryKey] });
       } else {
-        // Show error toast
+        // Show error toast with detailed message
         toast.error(result.message || "Failed to delete batch");
+        console.error("Batch delete error:", result);
       }
     } catch (error) {
       console.error("Error deleting batch:", error);
-      toast.error("An error occurred while deleting the batch");
+      toast.error(`An error occurred while deleting the batch: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
