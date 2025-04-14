@@ -6,7 +6,7 @@ import { Plus } from "lucide-react"
 import { UseFormReturn, useFieldArray } from "react-hook-form"
 import { Agent, DelayUnit, FormValues } from "./types"
 import PostItem from "./PostItem"
-import { useEffect, useState, useLayoutEffect } from "react"
+import { useEffect, useState, useLayoutEffect, useRef } from "react"
 import { addMinutes, addSeconds, addHours, format } from "date-fns"
 
 interface PostListProps {
@@ -27,6 +27,9 @@ export default function PostList({
     const [forceRender, setForceRender] = useState(0);
     const [lastDelayValue, setLastDelayValue] = useState(methods.getValues("delayValue"));
     const [lastDelayUnit, setLastDelayUnit] = useState(methods.getValues("delayUnit"));
+    const [lastFirstPostTime, setLastFirstPostTime] = useState<string | null>(null);
+    // Flag to prevent recursive updates
+    const isUpdatingRef = useRef(false);
     
     const { fields, append, remove } = useFieldArray({
         control: methods.control,
@@ -70,32 +73,86 @@ export default function PostList({
         }
     }, [fields.length]);
 
+    // Watch for changes to the first post time (typically from start date change)
+    useEffect(() => {
+        if (fields.length > 0 && !isUpdatingRef.current) {
+            const currentPosts = methods.getValues("schedulePosts");
+            const firstPostTime = currentPosts[0]?.scheduledTime;
+            
+            if (firstPostTime && firstPostTime !== lastFirstPostTime) {
+                console.log(`First post time changed from ${lastFirstPostTime} to ${firstPostTime}, recalculating all post times`);
+                
+                // Only update if we have a previous value to compare with (skip initial render)
+                if (lastFirstPostTime) {
+                    try {
+                        isUpdatingRef.current = true;
+                        
+                        const delayValue = Number(methods.getValues("delayValue"));
+                        const delayUnit = methods.getValues("delayUnit");
+                        const baseTime = new Date(firstPostTime);
+                        
+                        for (let i = 1; i < currentPosts.length; i++) {
+                            const nextTime = calculateNextTime(baseTime, delayValue, delayUnit, i);
+                            methods.setValue(
+                                `schedulePosts.${i}.scheduledTime`, 
+                                format(nextTime, "yyyy-MM-dd'T'HH:mm"),
+                                {
+                                    shouldDirty: true,
+                                    shouldTouch: true,
+                                    shouldValidate: false
+                                }
+                            );
+                        }
+                        
+                        methods.trigger("schedulePosts");
+                        setForceRender(prev => prev + 1);
+                    } finally {
+                        isUpdatingRef.current = false;
+                    }
+                }
+                
+                setLastFirstPostTime(firstPostTime);
+            }
+        }
+    }, [methods.watch("schedulePosts.0.scheduledTime")]);
+
     useEffect(() => {
         const currentDelayValue = methods.watch("delayValue");
         const currentDelayUnit = methods.watch("delayUnit");
         
-        if ((currentDelayValue !== lastDelayValue || currentDelayUnit !== lastDelayUnit) && fields.length > 1) {
+        if ((currentDelayValue !== lastDelayValue || currentDelayUnit !== lastDelayUnit) && fields.length > 1 && !isUpdatingRef.current) {
             console.log(`Delay changed (value: ${lastDelayValue} -> ${currentDelayValue}, unit: ${lastDelayUnit} -> ${currentDelayUnit}), recalculating times for ${fields.length} posts`);
             
-            const currentPosts = methods.getValues("schedulePosts");
-            if (currentPosts.length > 0) {
-                const firstPostTime = currentPosts[0]?.scheduledTime ? 
-                    new Date(currentPosts[0].scheduledTime) : new Date();
+            try {
+                isUpdatingRef.current = true;
                 
-                for (let i = 1; i < currentPosts.length; i++) {
-                    const newTime = calculateNextTime(firstPostTime, currentDelayValue, currentDelayUnit, i);
-                    methods.setValue(
-                        `schedulePosts.${i}.scheduledTime`, 
-                        format(newTime, "yyyy-MM-dd'T'HH:mm")
-                    );
+                const currentPosts = methods.getValues("schedulePosts");
+                if (currentPosts.length > 0) {
+                    const firstPostTime = currentPosts[0]?.scheduledTime ? 
+                        new Date(currentPosts[0].scheduledTime) : new Date();
+                    
+                    for (let i = 1; i < currentPosts.length; i++) {
+                        const newTime = calculateNextTime(firstPostTime, currentDelayValue, currentDelayUnit, i);
+                        methods.setValue(
+                            `schedulePosts.${i}.scheduledTime`, 
+                            format(newTime, "yyyy-MM-dd'T'HH:mm"),
+                            {
+                                shouldDirty: true,
+                                shouldTouch: true,
+                                shouldValidate: false
+                            }
+                        );
+                    }
+                    
+                    methods.trigger("schedulePosts");
+                    setForceRender(prev => prev + 1);
                 }
                 
-                methods.trigger("schedulePosts");
-                setForceRender(prev => prev + 1);
+                setLastDelayValue(currentDelayValue);
+                setLastDelayUnit(currentDelayUnit);
+            } finally {
+                isUpdatingRef.current = false;
             }
-            
-            setLastDelayValue(currentDelayValue);
-            setLastDelayUnit(currentDelayUnit);
         }
     }, [methods.watch("delayValue"), methods.watch("delayUnit"), fields.length, lastDelayValue, lastDelayUnit, methods]);
 
