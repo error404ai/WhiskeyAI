@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import ScheduledTweetsTable from "../schedule-tweet/_partials/createSchedule/ScheduledBatchesTable";
+import ScheduledBatchesTable from "../schedule-tweet/_partials/createSchedule/ScheduledBatchesTable";
 
 const ScheduledBatchesPage = () => {
   const router = useRouter();
@@ -16,7 +16,7 @@ const ScheduledBatchesPage = () => {
         </Button>
       </div>
 
-      <ScheduledTweetsTable />
+      <ScheduledBatchesTable />
     </div>
   );
 };

@@ -177,18 +177,21 @@ export class ScheduledTweetService {
     const tweetIds = userTweets.map(tweet => tweet.id);
     
     // Update tweets to cancelled status instead of deleting
-    await db.update(scheduledTweetsTable)
-      .set({
-        status: "cancelled",
-        processedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(scheduledTweetsTable.batchId, batchId),
-          eq(scheduledTweetsTable.status, "pending"),
-          sql`${scheduledTweetsTable.id} IN (${tweetIds.join(",")})`
-        )
-      );
+    // Fix: Process each tweet separately instead of using IN clause
+    for (const id of tweetIds) {
+      await db.update(scheduledTweetsTable)
+        .set({
+          status: "cancelled",
+          processedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(scheduledTweetsTable.batchId, batchId),
+            eq(scheduledTweetsTable.id, id),
+            eq(scheduledTweetsTable.status, "pending")
+          )
+        );
+    }
     
     return tweetIds.length;
   }
@@ -240,14 +243,16 @@ export class ScheduledTweetService {
     // Get the IDs of the tweets to delete
     const tweetIds = userTweets.map(tweet => tweet.id);
     
-    // Delete the tweets
-    await db.delete(scheduledTweetsTable)
-      .where(
-        and(
-          eq(scheduledTweetsTable.batchId, batchId),
-          sql`${scheduledTweetsTable.id} IN (${tweetIds.join(",")})`
-        )
-      );
+    // Delete the tweets one by one instead of using IN clause
+    for (const id of tweetIds) {
+      await db.delete(scheduledTweetsTable)
+        .where(
+          and(
+            eq(scheduledTweetsTable.batchId, batchId),
+            eq(scheduledTweetsTable.id, id)
+          )
+        );
+    }
     
     return tweetIds.length;
   }
