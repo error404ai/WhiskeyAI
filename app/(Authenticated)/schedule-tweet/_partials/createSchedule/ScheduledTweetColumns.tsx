@@ -21,59 +21,69 @@ export const getScheduledTweetColumns = (queryKey: string, onCancel?: (id: numbe
 
     const handleCancel = async () => {
       try {
-        // Show loading toast
-        toast.loading("Cancelling scheduled tweet...");
-
+        // Show loading toast and store the ID
+        const loadingId = toast.loading("Cancelling scheduled tweet...");
+        
         // Call the controller method to cancel the tweet
         const result = await ScheduledTweetController.deleteScheduledTweet(id);
-
-        if (result.success) {
-          // Show success toast
-          toast.success(result.message || "Tweet cancelled successfully");
-
-          // Invalidate queries to refresh the data
-          queryClient.invalidateQueries({ queryKey: [queryKey] });
-
-          // Call the custom onCancel if provided
-          if (onCancel) {
-            onCancel(id);
+        
+        // Dismiss loading toast with a delay to ensure it's properly dismissed
+        setTimeout(() => {
+          toast.dismiss(loadingId);
+          
+          if (result.success) {
+            // Show success toast
+            toast.success(result.message || "Tweet cancelled successfully");
+            
+            // Invalidate queries to refresh the data
+            queryClient.invalidateQueries({ queryKey: [queryKey] });
+            
+            // Call the custom onCancel if provided
+            if (onCancel) {
+              onCancel(id);
+            }
+          } else {
+            // Show error toast
+            toast.error(result.message || "Failed to cancel tweet");
           }
-        } else {
-          // Show error toast
-          toast.error(result.message || "Failed to cancel tweet");
-        }
+        }, 300);
       } catch (error) {
         console.error("Error cancelling tweet:", error);
-        toast.error("An error occurred while cancelling the tweet");
+        toast.error(`An error occurred while cancelling the tweet: ${error instanceof Error ? error.message : String(error)}`);
       }
     };
 
     const handleDelete = async () => {
       try {
-        // Show loading toast
-        toast.loading("Deleting tweet...");
-
+        // Show loading toast and store the ID
+        const loadingId = toast.loading("Deleting tweet...");
+        
         // Call the controller method to delete the tweet
         const result = await ScheduledTweetController.permanentlyDeleteTweet(id);
-
-        if (result.success) {
-          // Show success toast
-          toast.success(result.message || "Tweet deleted successfully");
-
-          // Invalidate queries to refresh the data
-          queryClient.invalidateQueries({ queryKey: [queryKey] });
-
-          // Call the custom onDelete if provided
-          if (onDelete) {
-            onDelete(id);
+        
+        // Dismiss loading toast with a delay to ensure it's properly dismissed
+        setTimeout(() => {
+          toast.dismiss(loadingId);
+          
+          if (result.success) {
+            // Show success toast
+            toast.success(result.message || "Tweet deleted successfully");
+            
+            // Invalidate queries to refresh the data
+            queryClient.invalidateQueries({ queryKey: [queryKey] });
+            
+            // Call the custom onDelete if provided
+            if (onDelete) {
+              onDelete(id);
+            }
+          } else {
+            // Show error toast
+            toast.error(result.message || "Failed to delete tweet");
           }
-        } else {
-          // Show error toast
-          toast.error(result.message || "Failed to delete tweet");
-        }
+        }, 300);
       } catch (error) {
         console.error("Error deleting tweet:", error);
-        toast.error("An error occurred while deleting the tweet");
+        toast.error(`An error occurred while deleting the tweet: ${error instanceof Error ? error.message : String(error)}`);
       }
     };
 
@@ -137,10 +147,10 @@ export const getScheduledTweetColumns = (queryKey: string, onCancel?: (id: numbe
               <AlertDialogTitle>Delete Tweet</AlertDialogTitle>
               <AlertDialogDescription>
                 Are you sure you want to permanently delete this tweet?
-                <div className="bg-muted mt-2 rounded-md p-3">
+                <span className="bg-muted mt-2 rounded-md p-3 block">
                   <span className="text-sm font-medium">{content}</span>
-                </div>
-                <p className="text-destructive mt-2 text-sm font-semibold">This action cannot be undone.</p>
+                </span>
+                <span className="text-destructive mt-2 text-sm font-semibold block">This action cannot be undone.</span>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

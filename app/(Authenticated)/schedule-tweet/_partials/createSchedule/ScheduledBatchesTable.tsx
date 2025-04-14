@@ -38,26 +38,27 @@ const ScheduledBatchesTable = () => {
 
   const handleCancelBatch = async (batchId: string) => {
     try {
-      // Show loading toast
+      // Show loading toast and store the ID
       const loadingId = toast.loading(`Cancelling batch ${batchId}...`);
       
       // Call the controller method to cancel the batch
       const result = await ScheduledTweetController.cancelBatchTweets(batchId);
       
-      // Dismiss the loading toast
-      toast.dismiss(loadingId);
-      
-      if (result.success) {
-        // Show success toast
-        toast.success(result.message || "Batch cancelled successfully");
+      // First dismiss the loading toast (with a slight delay to ensure it's properly dismissed)
+      setTimeout(() => {
+        toast.dismiss(loadingId);
         
-        // Invalidate queries to refresh the data
-        queryClient.invalidateQueries({ queryKey: [batchesQueryKey] });
-      } else {
-        // Show error toast with detailed message
-        toast.error(result.message || "Failed to cancel batch");
-        console.error("Batch cancel error:", result);
-      }
+        // Then show the appropriate result toast
+        if (result.success) {
+          toast.success(result.message || `Successfully cancelled ${result.count || 0} tweets`);
+          
+          // Invalidate queries to refresh the data
+          queryClient.invalidateQueries({ queryKey: [batchesQueryKey] });
+        } else {
+          toast.error(result.message || "Failed to cancel batch");
+          console.error("Batch cancel error:", result);
+        }
+      }, 300);
     } catch (error) {
       console.error("Error cancelling batch:", error);
       toast.error(`An error occurred while cancelling the batch: ${error instanceof Error ? error.message : String(error)}`);
@@ -66,26 +67,27 @@ const ScheduledBatchesTable = () => {
 
   const handleDeleteBatch = async (batchId: string) => {
     try {
-      // Show loading toast
+      // Show loading toast and store the ID
       const loadingId = toast.loading(`Deleting batch ${batchId}...`);
       
       // Call the controller method to delete the batch
       const result = await ScheduledTweetController.deleteBatchTweets(batchId);
       
-      // Dismiss the loading toast
-      toast.dismiss(loadingId);
-      
-      if (result.success) {
-        // Show success toast
-        toast.success(result.message || "Batch deleted successfully");
+      // First dismiss the loading toast (with a slight delay to ensure it's properly dismissed)
+      setTimeout(() => {
+        toast.dismiss(loadingId);
         
-        // Invalidate queries to refresh the data
-        queryClient.invalidateQueries({ queryKey: [batchesQueryKey] });
-      } else {
-        // Show error toast with detailed message
-        toast.error(result.message || "Failed to delete batch");
-        console.error("Batch delete error:", result);
-      }
+        // Then show the appropriate result toast
+        if (result.success) {
+          toast.success(result.message || `Successfully deleted ${result.count || 0} tweets`);
+          
+          // Invalidate queries to refresh the data
+          queryClient.invalidateQueries({ queryKey: [batchesQueryKey] });
+        } else {
+          toast.error(result.message || "Failed to delete batch");
+          console.error("Batch delete error:", result);
+        }
+      }, 300);
     } catch (error) {
       console.error("Error deleting batch:", error);
       toast.error(`An error occurred while deleting the batch: ${error instanceof Error ? error.message : String(error)}`);
@@ -232,7 +234,7 @@ const ScheduledBatchesTable = () => {
             <AlertDialogDescription>
               Are you sure you want to cancel all pending tweets in this batch?
               <div className="mt-2 rounded-md bg-muted p-3">
-                <p className="text-sm font-medium">Batch ID: {selectedBatchForAction}</p>
+                <span className="text-sm font-medium">Batch ID: {selectedBatchForAction}</span>
               </div>
               <p className="mt-2 text-sm">
                 This will cancel all pending tweets in the batch and prevent them from being posted. 
