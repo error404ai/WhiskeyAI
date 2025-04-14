@@ -3,12 +3,12 @@
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import * as AgentController from "@/server/controllers/agent/AgentController";
 import * as ScheduledTweetController from "@/server/controllers/ScheduledTweetController";
 import { useQuery } from "@tanstack/react-query";
 import { addMinutes, format } from "date-fns";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import { toast, Toaster } from "sonner";
@@ -16,13 +16,12 @@ import { toast, Toaster } from "sonner";
 // Import types and components
 import AgentSelector from "./_partials/AgentSelector";
 import PostList from "./_partials/PostList";
-import ScheduledTweetsTable from "./_partials/ScheduledTweetsTable";
 import SchedulingControls from "./_partials/SchedulingControls";
 import { Agent, FormStatus, FormValues } from "./_partials/types";
 
 export default function SchedulePosts() {
   "use no memo";
-  const [activeTab, setActiveTab] = useState("create");
+  const router = useRouter();
   const currentDelayRef = useRef<number>(10);
   const [uploadSuccess, setUploadSuccess] = useState<{ count: number } | null>(null);
   const [hasImportedPosts, setHasImportedPosts] = useState(false);
@@ -233,7 +232,7 @@ export default function SchedulePosts() {
           },
         ]);
 
-        setActiveTab("list");
+        router.push("/scheduled-batches");
 
         setTimeout(() => {
           setFormStatus("idle");
@@ -257,71 +256,64 @@ export default function SchedulePosts() {
 
   return (
     <div className="space-y-8">
-      <div className="mb-6">
-        <h1 className="mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-3xl font-bold text-transparent">Schedule Posts</h1>
-        <p className="text-muted-foreground text-lg">Create and schedule posts for your AI agents with customizable timing.</p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-3xl font-bold text-transparent">Schedule Posts</h1>
+          <p className="text-muted-foreground text-lg">Create and schedule posts for your AI agents with customizable timing.</p>
+        </div>
+        <Button onClick={() => router.push("/scheduled-batches")} variant="outline" className="flex items-center gap-2">
+          View Scheduled Posts
+        </Button>
       </div>
 
-      <Tabs defaultValue="create" value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="mb-6">
-          <TabsTrigger value="create">Create New Posts</TabsTrigger>
-          <TabsTrigger value="list">View Scheduled Posts</TabsTrigger>
-        </TabsList>
+      <FormProvider {...methods}>
+        <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+            {/* Scheduling Controls (Delay, Start Date, File Upload) */}
+            <div className="lg:col-span-12">
+              <SchedulingControls methods={methods} scheduleStartDate={scheduleStartDate} handleStartDateChange={handleStartDateChange} activeAgents={activeAgents} fields={fields} replace={replace} setHasImportedPosts={setHasImportedPosts} setUploadSuccess={setUploadSuccess} uploadSuccess={uploadSuccess} hasImportedPosts={hasImportedPosts} currentDelayRef={currentDelayRef} onImportSuccess={handleImportSuccess} />
+            </div>
 
-        <TabsContent value="create" className="mt-0">
-          <FormProvider {...methods}>
-            <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-                {/* Scheduling Controls (Delay, Start Date, File Upload) */}
-                <div className="lg:col-span-12">
-                  <SchedulingControls methods={methods} scheduleStartDate={scheduleStartDate} handleStartDateChange={handleStartDateChange} activeAgents={activeAgents} fields={fields} replace={replace} setHasImportedPosts={setHasImportedPosts} setUploadSuccess={setUploadSuccess} uploadSuccess={uploadSuccess} hasImportedPosts={hasImportedPosts} currentDelayRef={currentDelayRef} onImportSuccess={handleImportSuccess} />
-                </div>
+            {/* Agents List */}
+            <div className="lg:col-span-3">
+              <AgentSelector agents={agents} isAgentsLoading={isAgentsLoading} agentRangeStart={agentRangeStart} agentRangeEnd={agentRangeEnd} setAgentRangeStart={setAgentRangeStart} setAgentRangeEnd={setAgentRangeEnd} applyAgentRange={applyAgentRange} />
+            </div>
 
-                {/* Agents List */}
-                <div className="lg:col-span-3">
-                  <AgentSelector agents={agents} isAgentsLoading={isAgentsLoading} agentRangeStart={agentRangeStart} agentRangeEnd={agentRangeEnd} setAgentRangeStart={setAgentRangeStart} setAgentRangeEnd={setAgentRangeEnd} applyAgentRange={applyAgentRange} />
-                </div>
+            {/* Schedule Posts */}
+            <div className="lg:col-span-9">
+              <PostList key={`posts-list-${forceRerender}-${fields.length}`} methods={methods} agents={agents} agentRangeStart={agentRangeStart} agentRangeEnd={agentRangeEnd} />
+            </div>
+          </div>
 
-                {/* Schedule Posts */}
-                <div className="lg:col-span-9">
-                  <PostList key={`posts-list-${forceRerender}-${fields.length}`} methods={methods} agents={agents} agentRangeStart={agentRangeStart} agentRangeEnd={agentRangeEnd} />
-                </div>
-              </div>
+          {formStatus === "error" && formError && (
+            <Alert variant="destructive" className="mt-6">
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{formError}</AlertDescription>
+            </Alert>
+          )}
 
-              {formStatus === "error" && formError && (
-                <Alert variant="destructive" className="mt-6">
-                  <AlertTitle>Error</AlertTitle>
-                  <AlertDescription>{formError}</AlertDescription>
-                </Alert>
+          {formStatus === "success" && (
+            <Alert className="mt-6 border-green-200 bg-green-50 text-green-700">
+              <AlertTitle>Success!</AlertTitle>
+              <AlertDescription>Your tweets have been scheduled successfully.</AlertDescription>
+            </Alert>
+          )}
+
+          <div className="mt-6 flex justify-end">
+            <Button type="submit" size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 font-medium hover:from-blue-700 hover:to-indigo-700" disabled={agents.length === 0 || formStatus === "submitting"}>
+              {formStatus === "submitting" ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Scheduling...
+                </>
+              ) : (
+                "Schedule Posts"
               )}
+            </Button>
+          </div>
+        </form>
+      </FormProvider>
 
-              {formStatus === "success" && (
-                <Alert className="mt-6 border-green-200 bg-green-50 text-green-700">
-                  <AlertTitle>Success!</AlertTitle>
-                  <AlertDescription>Your tweets have been scheduled successfully.</AlertDescription>
-                </Alert>
-              )}
-
-              <div className="mt-6 flex justify-end">
-                <Button type="submit" size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 font-medium hover:from-blue-700 hover:to-indigo-700" disabled={agents.length === 0 || formStatus === "submitting"}>
-                  {formStatus === "submitting" ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Scheduling...
-                    </>
-                  ) : (
-                    "Schedule Posts"
-                  )}
-                </Button>
-              </div>
-            </form>
-          </FormProvider>
-        </TabsContent>
-
-        <TabsContent value="list" className="mt-0">
-          <ScheduledTweetsTable />
-        </TabsContent>
-      </Tabs>
       <Toaster />
     </div>
   );
