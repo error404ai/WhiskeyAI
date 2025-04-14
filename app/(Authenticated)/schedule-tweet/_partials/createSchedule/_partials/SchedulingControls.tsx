@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { addMinutes, format } from "date-fns";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { addMinutes, addSeconds, addHours, format } from "date-fns";
 import { Clock, FileSpreadsheet, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { FieldArrayWithId, UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
-import { Agent, ExcelData, FormValues, SchedulePost } from "./types";
+import { Agent, DelayUnit, ExcelData, FormValues, SchedulePost } from "./types";
 
 interface SchedulingControlsProps {
   methods: UseFormReturn<FormValues>;
@@ -25,10 +26,11 @@ interface SchedulingControlsProps {
   uploadSuccess: { count: number } | null;
   hasImportedPosts: boolean;
   currentDelayRef: React.RefObject<number>;
+  currentDelayUnitRef: React.RefObject<DelayUnit>;
   onImportSuccess?: (count: number) => void;
 }
 
-export default function SchedulingControls({ methods, scheduleStartDate, handleStartDateChange, activeAgents, fields, replace, setHasImportedPosts, setUploadSuccess, uploadSuccess, hasImportedPosts, currentDelayRef, onImportSuccess }: SchedulingControlsProps) {
+export default function SchedulingControls({ methods, scheduleStartDate, handleStartDateChange, activeAgents, fields, replace, setHasImportedPosts, setUploadSuccess, uploadSuccess, currentDelayRef, currentDelayUnitRef, onImportSuccess }: SchedulingControlsProps) {
   "use no memo";
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -41,6 +43,61 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
       setSelectedFileName(file.name);
     } else {
       setSelectedFileName(null);
+    }
+  };
+
+  // Calculate next scheduled time based on delay unit and value
+  const calculateNextTime = (baseTime: Date, delayValue: number, delayUnit: DelayUnit, multiplier: number): Date => {
+    const totalDelay = delayValue * multiplier;
+    
+    if (delayUnit === "seconds") {
+      return addSeconds(baseTime, totalDelay);
+    } else if (delayUnit === "hours") {
+      return addHours(baseTime, totalDelay);
+    } else {
+      // Default to minutes
+      return addMinutes(baseTime, totalDelay);
+    }
+  };
+
+  // Helper function to get max value based on unit
+  const getMaxValueForUnit = (unit: DelayUnit): number => {
+    switch (unit) {
+      case "seconds":
+        return 3600; // 1 hour in seconds
+      case "minutes":
+        return 1440; // 24 hours in minutes
+      case "hours":
+        return 168; // 7 days in hours
+      default:
+        return 1440;
+    }
+  };
+
+  // Handle delay unit change
+  const handleDelayUnitChange = (newUnit: DelayUnit) => {
+    methods.setValue("delayUnit", newUnit);
+    currentDelayUnitRef.current = newUnit;
+
+    // Validate the current delay value based on the new unit
+    const currentValue = methods.getValues("delayValue");
+    const maxValue = getMaxValueForUnit(newUnit);
+    
+    if (currentValue > maxValue) {
+      methods.setValue("delayValue", maxValue);
+      currentDelayRef.current = maxValue;
+    }
+
+    // Update schedules based on new unit
+    if (fields.length > 0) {
+      methods.setValue("schedulePosts.0.scheduledTime", format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"));
+
+      const delayValue = Number(methods.getValues("delayValue"));
+      const baseTime = scheduleStartDate;
+      for (let i = 1; i < fields.length; i++) {
+        const nextTime = calculateNextTime(baseTime, delayValue, newUnit, i);
+        methods.setValue(`schedulePosts.${i}.scheduledTime`, format(nextTime, "yyyy-MM-dd'T'HH:mm"));
+      }
     }
   };
 
@@ -106,6 +163,7 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
 
         // Create schedule posts from tweets
         const currentDelay = currentDelayRef.current;
+        const currentDelayUnit = currentDelayUnitRef.current;
 
         // Use active agents for assignment
         const agentsToUse = activeAgents;
@@ -124,7 +182,9 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
         const newPosts: SchedulePost[] = tweets.map((content, index) => {
           // For the first post (index 0), use exactly scheduleStartDate
           // For subsequent posts, add accumulated delay based on position
-          const postTime = index === 0 ? scheduleStartDate : addMinutes(scheduleStartDate, currentDelay * index);
+          const postTime = index === 0 
+            ? scheduleStartDate 
+            : calculateNextTime(scheduleStartDate, currentDelay, currentDelayUnit, index);
 
           const agentIndex = index % agentsToUse.length;
 
@@ -215,99 +275,121 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
     <Card className="border-[1px] border-blue-100 shadow-md transition-all hover:border-blue-200">
       <CardContent className="p-4">
         <div className="relative grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="flex items-center gap-2 rounded-md bg-blue-50/50 p-2">
+          <div className="flex flex-col gap-2 rounded-md bg-blue-50/50 p-2">
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4 text-blue-600" />
-              <Label htmlFor="delayMinutes" className="font-medium">
+              <Label htmlFor="delayValue" className="font-medium">
                 Delay Between Posts:
               </Label>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               <Input
-                id="delayMinutes"
+                id="delayValue"
                 type="number"
-                className="h-8 w-20 border-blue-200 focus:border-blue-400"
+                className="h-8 w-24 border-blue-200 focus:border-blue-400"
                 min="0"
-                max="1440"
-                {...methods.register("delayMinutes", {
+                max={getMaxValueForUnit(methods.watch("delayUnit"))}
+                {...methods.register("delayValue", {
                   required: "Delay is required",
-                  min: { value: 0, message: "Minimum delay is 0 minutes" },
-                  max: { value: 1440, message: "Maximum delay is 1440 minutes (24 hours)" },
+                  min: { value: 0, message: "Minimum delay is 0" },
+                  max: { 
+                    value: getMaxValueForUnit(methods.watch("delayUnit")),
+                    message: `Maximum delay exceeds the limit for ${methods.watch("delayUnit")}`
+                  },
                 })}
                 onChange={(e) => {
                   const newDelay = e.target.value === "" ? 0 : Number.parseInt(e.target.value) || 0;
-                  methods.setValue("delayMinutes", newDelay);
+                  methods.setValue("delayValue", newDelay);
                   currentDelayRef.current = newDelay;
 
                   if (fields.length > 0) {
                     methods.setValue("schedulePosts.0.scheduledTime", format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"));
 
                     const baseTime = scheduleStartDate;
+                    const delayUnit = methods.getValues("delayUnit");
                     for (let i = 1; i < fields.length; i++) {
-                      const nextTime = addMinutes(baseTime, newDelay * i);
+                      const nextTime = calculateNextTime(baseTime, newDelay, delayUnit, i);
                       methods.setValue(`schedulePosts.${i}.scheduledTime`, format(nextTime, "yyyy-MM-dd'T'HH:mm"));
                     }
                   }
                 }}
               />
-              <span className="text-muted-foreground text-sm">minutes</span>
+              
+              <Select
+                value={methods.watch("delayUnit")}
+                onValueChange={(value) => handleDelayUnitChange(value as DelayUnit)}
+              >
+                <SelectTrigger className="h-8 w-28 border-blue-200 focus:border-blue-400">
+                  <SelectValue placeholder="Select unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="seconds">Seconds</SelectItem>
+                    <SelectItem value="minutes">Minutes</SelectItem>
+                    <SelectItem value="hours">Hours</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </div>
-            {methods.formState.errors.delayMinutes && <p className="text-destructive text-xs">{methods.formState.errors.delayMinutes.message}</p>}
+          </div>
+          
+          {/* Start Date Time Picker */}
+          <div className="flex flex-col gap-2 rounded-md bg-blue-50/50 p-2">
+            <div className="flex items-center gap-1">
+              <Clock className="h-4 w-4 text-blue-600" />
+              <Label htmlFor="scheduleStartDate" className="font-medium">
+                Start Date & Time:
+              </Label>
+            </div>
+            <Input type="datetime-local" id="scheduleStartDate" value={format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm")} onChange={handleStartDateChange} className="h-8 border-blue-200 focus:border-blue-400" min={format(new Date(), "yyyy-MM-dd'T'HH:mm")} />
           </div>
 
-          <div className="flex items-center rounded-md bg-blue-50/50 p-2">
-            <Clock className="mr-1 h-4 w-4 text-blue-600" />
-            <Label htmlFor="scheduleStartDate" className="mr-2 font-medium whitespace-nowrap">
-              Start From:
-            </Label>
-            <div className="flex-1">
-              <Input id="scheduleStartDate" type="datetime-local" className="h-8 border-blue-200 focus:border-blue-400" defaultValue={format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm")} onChange={handleStartDateChange} />
+          {/* File Upload */}
+          <div className="flex flex-col gap-2 rounded-md bg-blue-50/50 p-2">
+            <div className="flex items-center gap-1">
+              <FileSpreadsheet className="h-4 w-4 text-blue-600" />
+              <Label htmlFor="excelUpload" className="font-medium">
+                Import from Excel:
+              </Label>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <Input
+                id="excelUpload"
+                type="file"
+                accept=".xlsx, .xls"
+                className="hidden"
+                ref={fileInputRef}
+                onChange={handleFileSelect}
+              />
+              <Button onClick={() => fileInputRef.current?.click()} variant="outline" size="sm" className="h-8 border-blue-200 px-2 text-xs hover:border-blue-400 hover:bg-blue-50">
+                Choose File
+              </Button>
+              <Button onClick={handleFileUpload} variant="outline" size="sm" disabled={isUploading || !selectedFileName} className={`h-8 border-blue-200 px-2 text-xs hover:border-blue-400 hover:bg-blue-50 ${selectedFileName ? "border-blue-400" : ""}`}>
+                {isUploading ? "Uploading..." : "Upload"}
+              </Button>
+              {selectedFileName && <span className="truncate">{selectedFileName}</span>}
             </div>
           </div>
 
-          <div className="flex items-center rounded-md bg-blue-50/50 p-2">
-            <FileSpreadsheet className="mr-1 h-4 w-4 text-blue-600" />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1">
-                <span className="text-sm font-medium whitespace-nowrap">Import:</span>
-                <div className="flex min-w-0 flex-1 items-center gap-1">
-                  <div className="min-w-0 flex-1">
-                    <Input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleFileSelect} disabled={isUploading} />
-                    <div className="flex h-8 min-w-0 cursor-pointer items-center rounded-md border border-blue-200 px-2 py-1 text-sm hover:bg-blue-50" onClick={() => fileInputRef.current?.click()}>
-                      <span className="text-xs font-medium">Choose File</span>
-                      <span className="text-muted-foreground ml-1 max-w-[100px] truncate text-xs">{selectedFileName || "No file chosen"}</span>
-                    </div>
-                  </div>
-                  <Button type="button" onClick={handleFileUpload} disabled={isUploading || !selectedFileName} className="h-8 flex-shrink-0 bg-blue-600 px-2 text-xs hover:bg-blue-700">
-                    {isUploading ? "Uploading..." : "Upload"}
+          {/* Status messages and controls */}
+          {uploadSuccess && (
+            <div className="col-span-full flex items-center gap-2">
+              <Alert className="border-green-100 bg-green-50">
+                <div className="flex items-center justify-between">
+                  <AlertDescription>
+                    <span className="font-medium text-green-700">
+                      Successfully imported {uploadSuccess.count} posts from Excel. Schedule will be refreshed every minute to keep times updated.
+                    </span>
+                  </AlertDescription>
+                  <Button variant="ghost" size="icon" onClick={clearImportedPosts} className="h-6 w-6 rounded-full p-0 hover:bg-green-100">
+                    <X className="h-4 w-4 text-green-700" />
                   </Button>
                 </div>
-              </div>
-              <div className="mt-1 truncate text-xs text-blue-500">Excel/CSV with &quot;Tweets&quot; or &quot;Content&quot; column</div>
+              </Alert>
             </div>
-          </div>
+          )}
         </div>
-
-        {uploadSuccess && (
-          <div className="mt-4 flex items-center justify-between">
-            <Alert className="flex-1 rounded-md border-green-200 bg-green-50 px-3 py-2 text-green-800">
-              {/* <AlertTitle className="flex items-center text-sm font-medium text-green-800">
-                <svg xmlns="http://www.w3.org/2000/svg" className="mr-1 h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Import Successful
-              </AlertTitle> */}
-              <AlertDescription className="text-sm text-green-700">Successfully imported {uploadSuccess.count} posts from the file</AlertDescription>
-            </Alert>
-            {hasImportedPosts && (
-              <Button type="button" variant="outline" className="ml-4 h-9 border-red-200 text-sm text-red-500 hover:bg-red-50 hover:text-red-600" onClick={clearImportedPosts}>
-                <X className="mr-1 h-4 w-4" />
-                Clear Imported Posts
-              </Button>
-            )}
-          </div>
-        )}
       </CardContent>
     </Card>
   );

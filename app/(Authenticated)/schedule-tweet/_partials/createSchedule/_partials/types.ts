@@ -18,8 +18,11 @@ export interface SchedulePost {
   agentId: string;
 }
 
+export type DelayUnit = "seconds" | "minutes" | "hours";
+
 export interface FormValues {
-  delayMinutes: number;
+  delayValue: number;
+  delayUnit: DelayUnit;
   schedulePosts: SchedulePost[];
 }
 
