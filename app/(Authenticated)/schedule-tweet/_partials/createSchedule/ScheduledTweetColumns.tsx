@@ -252,7 +252,7 @@ export const getScheduledTweetColumns = (queryKey: string, onCancel?: (id: numbe
             icon = <AlertCircle className="mr-1 h-3 w-3" />;
             break;
           case "cancelled":
-            variant = "default";
+            variant = "destructive";
             icon = <Ban className="mr-1 h-3 w-3" />;
             break;
         }
