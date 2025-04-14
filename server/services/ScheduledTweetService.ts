@@ -1,7 +1,7 @@
 import { db } from "@/db/db";
 import { NewScheduledTweet, ScheduledTweet, agentPlatformsTable, agentsTable, scheduledTweetsTable } from "@/db/schema";
 import { DrizzlePaginator, PaginationResult } from "@skmirajbn/drizzle-paginator";
-import { and, eq, lte, sql } from "drizzle-orm";
+import { and, desc, eq, lte, sql } from "drizzle-orm";
 import { PaginatedProps } from "../controllers/ScheduledTweetController";
 import TwitterService from "./TwitterService";
 import AuthService from "./auth/authService";
@@ -24,7 +24,8 @@ export class ScheduledTweetService {
         createdAt: sql`MIN(${scheduledTweetsTable.createdAt})`,
       })
       .from(scheduledTweetsTable)
-      .groupBy(scheduledTweetsTable.batchId);
+      .groupBy(scheduledTweetsTable.batchId)
+      .orderBy(desc(scheduledTweetsTable.batchId));
 
     const paginator = new DrizzlePaginator<ScheduledTweet>(db, query).page(params.page || 1).allowColumns(["batchId", "createdAt"]);
 
@@ -139,13 +140,14 @@ export class ScheduledTweetService {
     }
 
     // Update tweet status to cancelled instead of deleting
-    await db.update(scheduledTweetsTable)
+    await db
+      .update(scheduledTweetsTable)
       .set({
         status: "cancelled",
         processedAt: new Date(),
       })
       .where(eq(scheduledTweetsTable.id, tweetId));
-    
+
     return true;
   }
 
@@ -157,42 +159,34 @@ export class ScheduledTweetService {
 
     // First get all pending tweets in this batch that belong to the user
     const pendingTweets = await db.query.scheduledTweetsTable.findMany({
-      where: and(
-        eq(scheduledTweetsTable.batchId, batchId), 
-        eq(scheduledTweetsTable.status, "pending")
-      ),
+      where: and(eq(scheduledTweetsTable.batchId, batchId), eq(scheduledTweetsTable.status, "pending")),
       with: {
         agent: true,
       },
     });
 
     // Filter tweets to only include those owned by the user
-    const userTweets = pendingTweets.filter(tweet => tweet.agent.userId === Number(authUser.id));
-    
+    const userTweets = pendingTweets.filter((tweet) => tweet.agent.userId === Number(authUser.id));
+
     if (userTweets.length === 0) {
       return 0; // No tweets to cancel
     }
 
     // Get the IDs of the tweets to cancel
-    const tweetIds = userTweets.map(tweet => tweet.id);
-    
+    const tweetIds = userTweets.map((tweet) => tweet.id);
+
     // Update tweets to cancelled status instead of deleting
     // Fix: Process each tweet separately instead of using IN clause
     for (const id of tweetIds) {
-      await db.update(scheduledTweetsTable)
+      await db
+        .update(scheduledTweetsTable)
         .set({
           status: "cancelled",
           processedAt: new Date(),
         })
-        .where(
-          and(
-            eq(scheduledTweetsTable.batchId, batchId),
-            eq(scheduledTweetsTable.id, id),
-            eq(scheduledTweetsTable.status, "pending")
-          )
-        );
+        .where(and(eq(scheduledTweetsTable.batchId, batchId), eq(scheduledTweetsTable.id, id), eq(scheduledTweetsTable.status, "pending")));
     }
-    
+
     return tweetIds.length;
   }
 
@@ -218,7 +212,7 @@ export class ScheduledTweetService {
     await db.delete(scheduledTweetsTable).where(eq(scheduledTweetsTable.id, tweetId));
     return true;
   }
-  
+
   public static async deleteBatchTweets(batchId: string): Promise<number> {
     const authUser = await AuthService.getAuthUser();
     if (!authUser) {
@@ -234,26 +228,20 @@ export class ScheduledTweetService {
     });
 
     // Filter tweets to only include those owned by the user
-    const userTweets = tweets.filter(tweet => tweet.agent.userId === Number(authUser.id));
-    
+    const userTweets = tweets.filter((tweet) => tweet.agent.userId === Number(authUser.id));
+
     if (userTweets.length === 0) {
       return 0; // No tweets to delete
     }
 
     // Get the IDs of the tweets to delete
-    const tweetIds = userTweets.map(tweet => tweet.id);
-    
+    const tweetIds = userTweets.map((tweet) => tweet.id);
+
     // Delete the tweets one by one instead of using IN clause
     for (const id of tweetIds) {
-      await db.delete(scheduledTweetsTable)
-        .where(
-          and(
-            eq(scheduledTweetsTable.batchId, batchId),
-            eq(scheduledTweetsTable.id, id)
-          )
-        );
+      await db.delete(scheduledTweetsTable).where(and(eq(scheduledTweetsTable.batchId, batchId), eq(scheduledTweetsTable.id, id)));
     }
-    
+
     return tweetIds.length;
   }
 }

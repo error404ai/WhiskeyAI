@@ -38,6 +38,9 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
 
   // Handle file selection
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    // Prevent event bubbling to avoid unwanted form validation
+    event.stopPropagation();
+    
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFileName(file.name);
@@ -198,11 +201,12 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
         console.log(`Importing ${tweets.length} posts from Excel`);
 
         try {
-          // Replace first to ensure clean state
+          // We need to replace the posts without triggering immediate validation
+          // that could show errors while we're still processing
           replace(newPosts);
 
-          // Important: Force-update the UI right away
-          Promise.resolve().then(() => {
+          // Wait a short tick for the UI to update before validating
+          setTimeout(() => {
             // Update state immediately after replacement
             setHasImportedPosts(true);
             setUploadSuccess({ count: tweets.length });
@@ -212,7 +216,7 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
               onImportSuccess(tweets.length);
             }
 
-            // Force re-render and validation of all form fields
+            // Now perform validation after everything is set up
             methods.trigger("schedulePosts").then(() => {
               console.log(`Validation complete after import: ${tweets.length} posts should be visible`);
             });
@@ -221,7 +225,7 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
 
             // Log completion for debugging
             console.log(`Excel import complete: ${newPosts.length} posts added to form`);
-          });
+          }, 100);
         } catch (error) {
           console.error("Error updating form with imported posts:", error);
           toast.error("Error updating form with imported posts. Please try again.");
@@ -248,15 +252,20 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
   };
 
   // Clear imported posts
-  const clearImportedPosts = () => {
-    // Reset to a single empty post
-    replace([
-      {
-        content: "",
-        scheduledTime: format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"),
-        agentId: activeAgents.length > 0 ? activeAgents[0].uuid : "",
-      },
-    ]);
+  const clearImportedPosts = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    // Reset to a single empty post without triggering immediate validation
+    const emptyPost = {
+      content: "",
+      scheduledTime: format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"),
+      agentId: activeAgents.length > 0 ? activeAgents[0].uuid : "",
+    };
+    
+    replace([emptyPost]);
 
     // Clear success message and reset state
     setUploadSuccess(null);
@@ -268,7 +277,10 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
       setSelectedFileName(null);
     }
 
-    toast.success("Imported posts cleared. All imported posts have been removed.");
+    // Give UI time to update before showing success message
+    setTimeout(() => {
+      toast.success("Imported posts cleared. All imported posts have been removed.");
+    }, 100);
   };
 
   return (
@@ -361,11 +373,33 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
                 className="hidden"
                 ref={fileInputRef}
                 onChange={handleFileSelect}
+                onClick={(e) => e.stopPropagation()}
               />
-              <Button onClick={() => fileInputRef.current?.click()} variant="outline" size="sm" className="h-8 border-blue-200 px-2 text-xs hover:border-blue-400 hover:bg-blue-50">
+              <Button 
+                onClick={(e) => {
+                  e.preventDefault(); // Prevent form submission
+                  e.stopPropagation(); // Stop propagation to prevent unwanted validation
+                  fileInputRef.current?.click();
+                }} 
+                variant="outline" 
+                size="sm" 
+                className="h-8 border-blue-200 px-2 text-xs hover:border-blue-400 hover:bg-blue-50"
+                type="button" // Explicitly set as button type to avoid form submission
+              >
                 Choose File
               </Button>
-              <Button onClick={handleFileUpload} variant="outline" size="sm" disabled={isUploading || !selectedFileName} className={`h-8 border-blue-200 px-2 text-xs hover:border-blue-400 hover:bg-blue-50 ${selectedFileName ? "border-blue-400" : ""}`}>
+              <Button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleFileUpload();
+                }} 
+                variant="outline" 
+                size="sm" 
+                disabled={isUploading || !selectedFileName} 
+                className={`h-8 border-blue-200 px-2 text-xs hover:border-blue-400 hover:bg-blue-50 ${selectedFileName ? "border-blue-400" : ""}`}
+                type="button" // Explicitly set as button type to avoid form submission
+              >
                 {isUploading ? "Uploading..." : "Upload"}
               </Button>
               {selectedFileName && <span className="truncate">{selectedFileName}</span>}
@@ -382,7 +416,7 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
                       Successfully imported {uploadSuccess.count} posts from Excel. Schedule will be refreshed every minute to keep times updated.
                     </span>
                   </AlertDescription>
-                  <Button variant="ghost" size="icon" onClick={clearImportedPosts} className="h-6 w-6 rounded-full p-0 hover:bg-green-100">
+                  <Button variant="ghost" size="icon" onClick={clearImportedPosts} className="h-6 w-6 rounded-full p-0 hover:bg-green-100" type="button">
                     <X className="h-4 w-4 text-green-700" />
                   </Button>
                 </div>
