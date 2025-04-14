@@ -23,20 +23,20 @@ export const getScheduledTweetColumns = (queryKey: string, onCancel?: (id: numbe
       try {
         // Use simple toast pattern
         toast.loading("Cancelling scheduled tweet...");
-        
+
         // Call the controller method to cancel the tweet
         const result = await ScheduledTweetController.deleteScheduledTweet(id);
-        
+
         // Dismiss all toasts
         toast.dismiss();
-        
+
         if (result.success) {
           // Show success toast
           toast.success(result.message || "Tweet cancelled successfully");
-          
+
           // Invalidate queries to refresh the data
           queryClient.invalidateQueries({ queryKey: [queryKey] });
-          
+
           // Call the custom onCancel if provided
           if (onCancel) {
             onCancel(id);
@@ -45,13 +45,13 @@ export const getScheduledTweetColumns = (queryKey: string, onCancel?: (id: numbe
           // Show error toast
           toast.error(result.message || "Failed to cancel tweet");
         }
-        
+
         // Close the dialog
         setShowCancelDialog(false);
       } catch (error) {
         // Dismiss loading toast
         toast.dismiss();
-        
+
         // Show error
         toast.error(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
         console.error("Error cancelling tweet:", error);
@@ -62,20 +62,20 @@ export const getScheduledTweetColumns = (queryKey: string, onCancel?: (id: numbe
       try {
         // Use simple toast pattern
         toast.loading("Deleting tweet...");
-        
+
         // Call the controller method to delete the tweet
         const result = await ScheduledTweetController.permanentlyDeleteTweet(id);
-        
+
         // Dismiss all toasts
         toast.dismiss();
-        
+
         if (result.success) {
           // Show success toast
           toast.success(result.message || "Tweet deleted successfully");
-          
+
           // Invalidate queries to refresh the data
           queryClient.invalidateQueries({ queryKey: [queryKey] });
-          
+
           // Call the custom onDelete if provided
           if (onDelete) {
             onDelete(id);
@@ -84,13 +84,13 @@ export const getScheduledTweetColumns = (queryKey: string, onCancel?: (id: numbe
           // Show error toast
           toast.error(result.message || "Failed to delete tweet");
         }
-        
+
         // Close the dialog
         setShowDeleteDialog(false);
       } catch (error) {
         // Dismiss loading toast
         toast.dismiss();
-        
+
         // Show error
         toast.error(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
         console.error("Error deleting tweet:", error);
@@ -130,10 +130,10 @@ export const getScheduledTweetColumns = (queryKey: string, onCancel?: (id: numbe
               <AlertDialogTitle>Cancel Scheduled Tweet</AlertDialogTitle>
               <AlertDialogDescription>
                 Are you sure you want to cancel this scheduled tweet?
-                <div className="bg-muted mt-2 rounded-md p-3">
-                  <p className="text-sm font-medium">{content}</p>
-                </div>
-                <p className="mt-2 text-sm">This action will prevent the tweet from being posted but will not delete it from your records.</p>
+                <span className="bg-muted mt-2 block rounded-md p-3">
+                  <span className="block text-sm font-medium">{content}</span>
+                </span>
+                <span className="mt-2 block text-sm">This action will prevent the tweet from being posted but will not delete it from your records.</span>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -157,10 +157,10 @@ export const getScheduledTweetColumns = (queryKey: string, onCancel?: (id: numbe
               <AlertDialogTitle>Delete Tweet</AlertDialogTitle>
               <AlertDialogDescription>
                 Are you sure you want to permanently delete this tweet?
-                <span className="bg-muted mt-2 rounded-md p-3 block">
+                <span className="bg-muted mt-2 block rounded-md p-3">
                   <span className="text-sm font-medium">{content}</span>
                 </span>
-                <span className="text-destructive mt-2 text-sm font-semibold block">This action cannot be undone.</span>
+                <span className="text-destructive mt-2 block text-sm font-semibold">This action cannot be undone.</span>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
