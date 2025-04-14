@@ -1,7 +1,7 @@
 import { db } from "@/db/db";
-import { NewScheduledTweet, ScheduledTweet, agentPlatformsTable, scheduledTweetsTable } from "@/db/schema";
+import { NewScheduledTweet, ScheduledTweet, agentPlatformsTable, agentsTable, scheduledTweetsTable } from "@/db/schema";
 import { DrizzlePaginator, PaginationResult } from "@skmirajbn/drizzle-paginator";
-import { and, eq, lte, sql } from "drizzle-orm";
+import { and, desc, eq, lte, sql } from "drizzle-orm";
 import { PaginatedProps } from "../controllers/ScheduledTweetController";
 import TwitterService from "./TwitterService";
 import AuthService from "./auth/authService";
@@ -12,7 +12,7 @@ export class ScheduledTweetService {
     return result.id;
   }
 
-  public static async getScheduledTweets(params: PaginatedProps = { page: 1, perPage: 10 }): Promise<PaginationResult<ScheduledTweet>> {
+  public static async getScheduledBatches(params: PaginatedProps = { page: 1, perPage: 10 }): Promise<PaginationResult<ScheduledTweet>> {
     const authUser = await AuthService.getAuthUser();
     if (!authUser) {
       throw new Error("User not authenticated");
@@ -24,13 +24,39 @@ export class ScheduledTweetService {
         createdAt: sql`MIN(${scheduledTweetsTable.createdAt})`,
       })
       .from(scheduledTweetsTable)
-      .groupBy(scheduledTweetsTable.batchId);
-    const data = await query;
-    console.log("datais =====", data);
+      .groupBy(scheduledTweetsTable.batchId)
+      .orderBy(desc(scheduledTweetsTable.batchId));
 
     const paginator = new DrizzlePaginator<ScheduledTweet>(db, query).page(params.page || 1).allowColumns(["batchId", "createdAt"]);
 
     // console.log("paginator is", (await paginator.paginate(10)).data[0].agent);
+    return paginator.paginate(params.perPage || 10);
+  }
+  public static async getSchedulesByBatchId(params: PaginatedProps = { page: 1, perPage: 10 }, batchId: string): Promise<PaginationResult<ScheduledTweet>> {
+    const authUser = await AuthService.getAuthUser();
+    if (!authUser) {
+      throw new Error("User not authenticated");
+    }
+
+    const query = db.select().from(scheduledTweetsTable).innerJoin(agentsTable, eq(scheduledTweetsTable.agentId, agentsTable.id)).where(eq(scheduledTweetsTable.batchId, batchId));
+
+    const paginator = new DrizzlePaginator<ScheduledTweet>(db, query).page(params.page || 1).allowColumns(["batchId", "content", "scheduledAt", "status", "processedAt", "errorMessage", "createdAt"]);
+
+    console.log("paginator is", (await paginator.paginate(10)).data[0]);
+    return paginator.paginate(params.perPage || 10);
+  }
+
+  public static async getScheduledTweets(params: PaginatedProps = { page: 1, perPage: 10 }): Promise<PaginationResult<ScheduledTweet>> {
+    const authUser = await AuthService.getAuthUser();
+    if (!authUser) {
+      throw new Error("User not authenticated");
+    }
+
+    const query = db.select().from(scheduledTweetsTable).innerJoin(agentsTable, eq(scheduledTweetsTable.agentId, agentsTable.id));
+
+    const paginator = new DrizzlePaginator<ScheduledTweet>(db, query).page(params.page || 1).allowColumns(["batchId", "content", "scheduledAt", "status", "processedAt", "errorMessage", "createdAt"]);
+
+    console.log("paginator is", (await paginator.paginate(10)).data[0]);
     return paginator.paginate(params.perPage || 10);
   }
 
@@ -108,9 +134,115 @@ export class ScheduledTweetService {
       throw new Error("Tweet not found or not owned by user");
     }
 
+    // Only allow cancelling if the tweet is pending
+    if (tweet.status !== "pending") {
+      throw new Error("Only pending tweets can be cancelled");
+    }
+
+    // Update tweet status to cancelled instead of deleting
+    await db
+      .update(scheduledTweetsTable)
+      .set({
+        status: "cancelled",
+        processedAt: new Date(),
+      })
+      .where(eq(scheduledTweetsTable.id, tweetId));
+
+    return true;
+  }
+
+  public static async cancelBatchTweets(batchId: string): Promise<number> {
+    const authUser = await AuthService.getAuthUser();
+    if (!authUser) {
+      throw new Error("User not authenticated");
+    }
+
+    // First get all pending tweets in this batch that belong to the user
+    const pendingTweets = await db.query.scheduledTweetsTable.findMany({
+      where: and(eq(scheduledTweetsTable.batchId, batchId), eq(scheduledTweetsTable.status, "pending")),
+      with: {
+        agent: true,
+      },
+    });
+
+    // Filter tweets to only include those owned by the user
+    const userTweets = pendingTweets.filter((tweet) => tweet.agent.userId === Number(authUser.id));
+
+    if (userTweets.length === 0) {
+      return 0; // No tweets to cancel
+    }
+
+    // Get the IDs of the tweets to cancel
+    const tweetIds = userTweets.map((tweet) => tweet.id);
+
+    // Update tweets to cancelled status instead of deleting
+    // Fix: Process each tweet separately instead of using IN clause
+    for (const id of tweetIds) {
+      await db
+        .update(scheduledTweetsTable)
+        .set({
+          status: "cancelled",
+          processedAt: new Date(),
+        })
+        .where(and(eq(scheduledTweetsTable.batchId, batchId), eq(scheduledTweetsTable.id, id), eq(scheduledTweetsTable.status, "pending")));
+    }
+
+    return tweetIds.length;
+  }
+
+  public static async deleteTweet(tweetId: number): Promise<boolean> {
+    const authUser = await AuthService.getAuthUser();
+    if (!authUser) {
+      throw new Error("User not authenticated");
+    }
+
+    // First verify the tweet belongs to the user
+    const tweet = await db.query.scheduledTweetsTable.findFirst({
+      where: eq(scheduledTweetsTable.id, tweetId),
+      with: {
+        agent: true,
+      },
+    });
+
+    if (!tweet || !tweet.agent || tweet.agent.userId !== Number(authUser.id)) {
+      throw new Error("Tweet not found or not owned by user");
+    }
+
     // Delete the tweet
     await db.delete(scheduledTweetsTable).where(eq(scheduledTweetsTable.id, tweetId));
     return true;
+  }
+
+  public static async deleteBatchTweets(batchId: string): Promise<number> {
+    const authUser = await AuthService.getAuthUser();
+    if (!authUser) {
+      throw new Error("User not authenticated");
+    }
+
+    // Get all tweets in this batch that belong to the user
+    const tweets = await db.query.scheduledTweetsTable.findMany({
+      where: eq(scheduledTweetsTable.batchId, batchId),
+      with: {
+        agent: true,
+      },
+    });
+
+    // Filter tweets to only include those owned by the user
+    const userTweets = tweets.filter((tweet) => tweet.agent.userId === Number(authUser.id));
+
+    if (userTweets.length === 0) {
+      return 0; // No tweets to delete
+    }
+
+    // Get the IDs of the tweets to delete
+    const tweetIds = userTweets.map((tweet) => tweet.id);
+
+    // Delete the tweets one by one instead of using IN clause
+    for (const id of tweetIds) {
+      await db.delete(scheduledTweetsTable).where(and(eq(scheduledTweetsTable.batchId, batchId), eq(scheduledTweetsTable.id, id)));
+    }
+
+    return tweetIds.length;
   }
 }
 

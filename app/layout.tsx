@@ -1,6 +1,7 @@
 import ReduxProvider from "@/components/Providers/ReduxProvider";
 import TanstackQueryProvider from "@/components/Providers/TanstackQueryProvider";
 import WalletContextProvider from "@/components/Providers/WalletContextProvider";
+import { Toaster } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
 import "@/resources/css/globals.css";
 import { AnimatePresence } from "motion/react";
@@ -40,6 +41,7 @@ export default function RootLayout({
               <body className={cn(`${geistSans.variable} ${geistMono.variable} antialiased`, "flex min-h-screen flex-col justify-between bg-white dark:bg-[#080808] dark:text-white")}>
                 <NextTopLoader color="#2299DD" initialPosition={0.08} crawlSpeed={200} height={6} crawl={true} showSpinner={false} easing="ease" speed={200} shadow="0 0 10px #2299DD,0 0 5px #2299DD" zIndex={1600} showAtBottom={false} />
                 <AnimatePresence>{children}</AnimatePresence>
+                <Toaster />
               </body>
             </html>
           </WalletContextProvider>
