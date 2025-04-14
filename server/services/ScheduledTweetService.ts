@@ -31,6 +31,19 @@ export class ScheduledTweetService {
     // console.log("paginator is", (await paginator.paginate(10)).data[0].agent);
     return paginator.paginate(params.perPage || 10);
   }
+  public static async getSchedulesByBatchId(params: PaginatedProps = { page: 1, perPage: 10 }, batchId: string): Promise<PaginationResult<ScheduledTweet>> {
+    const authUser = await AuthService.getAuthUser();
+    if (!authUser) {
+      throw new Error("User not authenticated");
+    }
+
+    const query = db.select().from(scheduledTweetsTable).innerJoin(agentsTable, eq(scheduledTweetsTable.agentId, agentsTable.id)).where(eq(scheduledTweetsTable.batchId, batchId));
+
+    const paginator = new DrizzlePaginator<ScheduledTweet>(db, query).page(params.page || 1).allowColumns(["batchId", "content", "scheduledAt", "status", "processedAt", "errorMessage", "createdAt"]);
+
+    console.log("paginator is", (await paginator.paginate(10)).data[0]);
+    return paginator.paginate(params.perPage || 10);
+  }
 
   public static async getScheduledTweets(params: PaginatedProps = { page: 1, perPage: 10 }): Promise<PaginationResult<ScheduledTweet>> {
     const authUser = await AuthService.getAuthUser();

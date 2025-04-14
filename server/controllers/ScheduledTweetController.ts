@@ -35,6 +35,15 @@ export const getScheduledBatches = async (params: PaginatedProps = { page: 1, pe
     throw error;
   }
 };
+export const getSchedulesByBatchId = async (params: PaginatedProps = { page: 1, perPage: 10 }, batchId: string) => {
+  try {
+    return await ScheduledTweetService.getSchedulesByBatchId(params, batchId);
+  } catch (error) {
+    console.error("Error getting scheduled tweets:", error);
+    throw error;
+  }
+};
+
 export const getScheduledTweets = async (params: PaginatedProps = { page: 1, perPage: 10 }) => {
   try {
     return await ScheduledTweetService.getScheduledTweets(params);
