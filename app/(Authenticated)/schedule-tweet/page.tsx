@@ -1,10 +1,19 @@
 "use client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import AllScheduledTweetsTable from "./_partials/createSchedule/AllScheduledTweetsTable";
 import CreateSchedule from "./_partials/createSchedule/CreateSchedule";
 import ScheduledBatchesTable from "./_partials/createSchedule/ScheduledBatchesTable";
 
 const Page = () => {
+  const params = useSearchParams();
+  const [tab, setTab] = useState(params.get("tab") || "create");
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("tab", tab);
+    window.history.replaceState(null, "", `?${params.toString()}`);
+  }, [tab]);
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
@@ -13,7 +22,7 @@ const Page = () => {
           <p className="text-muted-foreground text-lg">Create and schedule posts for your AI agents with customizable timing.</p>
         </div>
       </div>
-      <Tabs defaultValue="create">
+      <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="create">Create Schedule</TabsTrigger>
           <TabsTrigger value="scheduledBatches">Scheduled Batches</TabsTrigger>

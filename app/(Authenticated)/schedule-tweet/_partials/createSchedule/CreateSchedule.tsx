@@ -6,9 +6,8 @@ import { Button } from "@/components/ui/button";
 import * as AgentController from "@/server/controllers/agent/AgentController";
 import * as ScheduledTweetController from "@/server/controllers/ScheduledTweetController";
 import { useQuery } from "@tanstack/react-query";
-import { addMinutes, addSeconds, addHours, format } from "date-fns";
+import { addHours, addMinutes, addSeconds, format } from "date-fns";
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -21,7 +20,6 @@ import { Agent, DelayUnit, FormStatus, FormValues } from "./_partials/types";
 
 export default function CreateSchedule() {
   "use no memo";
-  const router = useRouter();
   const currentDelayRef = useRef<number>(10);
   const currentDelayUnitRef = useRef<DelayUnit>("minutes");
   const [uploadSuccess, setUploadSuccess] = useState<{ count: number } | null>(null);
@@ -121,7 +119,7 @@ export default function CreateSchedule() {
 
   const calculateNextTime = (baseTime: Date, delayValue: number, delayUnit: DelayUnit, multiplier: number): Date => {
     const totalDelay = delayValue * multiplier;
-    
+
     if (delayUnit === "seconds") {
       return addSeconds(baseTime, totalDelay);
     } else if (delayUnit === "hours") {
@@ -135,17 +133,17 @@ export default function CreateSchedule() {
   const updateScheduledTimes = useCallback(() => {
     // Skip if already updating to prevent infinite recursion
     if (isUpdatingRef.current) return;
-    
+
     try {
       // Set flag to prevent recursive calls
       isUpdatingRef.current = true;
-      
+
       if (fields.length > 0) {
         methods.setValue("schedulePosts.0.scheduledTime", format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"), {
           shouldDirty: true,
           shouldTouch: true,
           // This will prevent triggering watch callbacks
-          shouldValidate: false
+          shouldValidate: false,
         });
 
         const delayValue = Number(methods.getValues("delayValue"));
@@ -157,10 +155,10 @@ export default function CreateSchedule() {
           methods.setValue(`schedulePosts.${i}.scheduledTime`, format(nextTime, "yyyy-MM-dd'T'HH:mm"), {
             shouldDirty: true,
             shouldTouch: true,
-            shouldValidate: false
+            shouldValidate: false,
           });
         }
-        
+
         // Do one single validation after all updates
         methods.trigger("schedulePosts");
       }
@@ -180,35 +178,35 @@ export default function CreateSchedule() {
 
       // Skip if already updating to prevent infinite recursion
       if (isUpdatingRef.current) return;
-      
+
       try {
         // Set flag to prevent recursive calls
         isUpdatingRef.current = true;
-        
+
         if (fields.length > 0) {
           methods.setValue("schedulePosts.0.scheduledTime", format(newDateTime, "yyyy-MM-dd'T'HH:mm"), {
             shouldDirty: true,
             shouldTouch: true,
-            shouldValidate: false
+            shouldValidate: false,
           });
 
           const delayValue = Number(methods.getValues("delayValue"));
           const delayUnit = methods.getValues("delayUnit");
           const baseTime = newDateTime;
-          
+
           for (let i = 1; i < fields.length; i++) {
             const nextTime = calculateNextTime(baseTime, delayValue, delayUnit, i);
             methods.setValue(`schedulePosts.${i}.scheduledTime`, format(nextTime, "yyyy-MM-dd'T'HH:mm"), {
               shouldDirty: true,
               shouldTouch: true,
-              shouldValidate: false
+              shouldValidate: false,
             });
           }
-          
+
           // Trigger form validation and force update UI
           methods.trigger("schedulePosts");
           // Force re-render the PostList component to reflect the updated times
-          setForceRerender(prev => prev + 1);
+          setForceRerender((prev) => prev + 1);
         }
       } finally {
         // Always clear the flag
@@ -301,7 +299,7 @@ export default function CreateSchedule() {
           },
         ]);
 
-        router.push("/scheduled-batches");
+        window.location.href = "/schedule-tweet?tab=scheduledBatches";
 
         setTimeout(() => {
           setFormStatus("idle");
@@ -338,15 +336,22 @@ export default function CreateSchedule() {
               <AgentSelector agents={agents} isAgentsLoading={isAgentsLoading} agentRangeStart={agentRangeStart} agentRangeEnd={agentRangeEnd} setAgentRangeStart={setAgentRangeStart} setAgentRangeEnd={setAgentRangeEnd} applyAgentRange={applyAgentRange} />
             </div>
 
-            {/* Schedule Posts */}
             <div className="lg:col-span-9">
-              <PostList 
-                key={`posts-list-${forceRerender}-${fields.length}-${scheduleStartDate.getTime()}`} 
-                methods={methods} 
-                agents={agents} 
-                agentRangeStart={agentRangeStart} 
-                agentRangeEnd={agentRangeEnd} 
-              />
+              {/* Schedule Posts */}
+              <PostList key={`posts-list-${forceRerender}-${fields.length}-${scheduleStartDate.getTime()}`} methods={methods} agents={agents} agentRangeStart={agentRangeStart} agentRangeEnd={agentRangeEnd} />
+              {/* Submit Button */}
+              <div className="mt-4 flex justify-end">
+                <Button type="submit" size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 font-medium hover:from-blue-700 hover:to-indigo-700" disabled={agents.length === 0 || formStatus === "submitting"}>
+                  {formStatus === "submitting" ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Scheduling...
+                    </>
+                  ) : (
+                    "Schedule Posts"
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -363,19 +368,6 @@ export default function CreateSchedule() {
               <AlertDescription>Your tweets have been scheduled successfully.</AlertDescription>
             </Alert>
           )}
-
-          <div className="mt-6 flex justify-end">
-            <Button type="submit" size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 font-medium hover:from-blue-700 hover:to-indigo-700" disabled={agents.length === 0 || formStatus === "submitting"}>
-              {formStatus === "submitting" ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Scheduling...
-                </>
-              ) : (
-                "Schedule Posts"
-              )}
-            </Button>
-          </div>
         </form>
       </FormProvider>
     </div>
