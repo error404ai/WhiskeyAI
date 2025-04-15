@@ -61,13 +61,13 @@ export class ScheduledTweetService {
     const query = db
       .select()
       .from(scheduledTweetsTable)
-      .innerJoin(agentsTable, eq(scheduledTweetsTable.agentId, agentsTable.id))
+      .leftJoin(agentsTable, eq(scheduledTweetsTable.agentId, agentsTable.id))
       .where(eq(agentsTable.userId, Number(authUser.id)));
 
-    const paginator = new DrizzlePaginator<ScheduledTweet>(db, query).page(params.page || 1).allowColumns(["batchId", "content", "scheduledAt", "status", "processedAt", "errorMessage", "createdAt"]);
+    const paginator = new DrizzlePaginator<ScheduledTweet>(db, query).page(params.page ?? 10);
 
-    console.log("paginator is", (await paginator.paginate(10)).data[0]);
-    return paginator.paginate(params.perPage || 10);
+    // console.log("paginator is", await paginator.paginate(10));
+    return paginator.paginate(params.perPage);
   }
 
   public static async getPendingScheduledTweets(): Promise<(ScheduledTweet & { agent: { uuid: string } })[]> {

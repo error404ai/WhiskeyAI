@@ -1,4 +1,5 @@
 import { db } from "@/db/db";
+import { agentsTable } from "@/db/schema";
 import { NewTriggerLog, TriggerLog, triggerLogsTable } from "@/db/schema/triggerLogsTable";
 import { DrizzlePaginator, PaginationResult } from "@skmirajbn/drizzle-paginator";
 import { desc, eq } from "drizzle-orm";
@@ -29,32 +30,22 @@ export class TriggerLogService {
       throw new Error("Authentication required to access trigger logs");
     }
 
-    // Convert the string ID to a number
-    const userId = parseInt(authUser.id, 10);
-
     // Build a filtered query using Drizzle's query builder
-    const query = db.query.triggerLogsTable.findMany({
-      where: eq(triggerLogsTable.userId, userId),
-      with: {
-        agent: true,
-        trigger: true,
-      },
-    });
+
+    const query = db
+      .select()
+      .from(triggerLogsTable)
+      .leftJoin(agentsTable, eq(triggerLogsTable.agentId, agentsTable.id))
+      .where(eq(triggerLogsTable.userId, Number(authUser.id)))
+      .orderBy(desc(triggerLogsTable.id));
+
+    console.log("data is ==========", await query);
 
     // Create paginator with the query
-    const paginator = new DrizzlePaginator<TriggerLog>(db, query).page(page).allowColumns(["id", "user_id", "agent_id", "function_name", "status", "error_details"]);
+    const paginator = new DrizzlePaginator<TriggerLog>(db, query).page(page);
 
     // Set ordering
-    paginator.orderBy("id", "desc");
-
-    paginator.map((item) => {
-      console.log("agent is", item.agent);
-      return {
-        ...item,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        agentName: item.agent ? (item.agent as any)[3] : "Unknown",
-      };
-    });
+    // paginator.orderBy("id", "desc");
 
     return paginator.paginate(perPage);
   }
