@@ -336,9 +336,22 @@ export default function CreateSchedule() {
               <AgentSelector agents={agents} isAgentsLoading={isAgentsLoading} agentRangeStart={agentRangeStart} agentRangeEnd={agentRangeEnd} setAgentRangeStart={setAgentRangeStart} setAgentRangeEnd={setAgentRangeEnd} applyAgentRange={applyAgentRange} />
             </div>
 
-            {/* Schedule Posts */}
             <div className="lg:col-span-9">
+              {/* Schedule Posts */}
               <PostList key={`posts-list-${forceRerender}-${fields.length}-${scheduleStartDate.getTime()}`} methods={methods} agents={agents} agentRangeStart={agentRangeStart} agentRangeEnd={agentRangeEnd} />
+              {/* Submit Button */}
+              <div className="mt-4 flex justify-end">
+                <Button type="submit" size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 font-medium hover:from-blue-700 hover:to-indigo-700" disabled={agents.length === 0 || formStatus === "submitting"}>
+                  {formStatus === "submitting" ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Scheduling...
+                    </>
+                  ) : (
+                    "Schedule Posts"
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -355,19 +368,6 @@ export default function CreateSchedule() {
               <AlertDescription>Your tweets have been scheduled successfully.</AlertDescription>
             </Alert>
           )}
-
-          <div className="mt-6 flex justify-end">
-            <Button type="submit" size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 font-medium hover:from-blue-700 hover:to-indigo-700" disabled={agents.length === 0 || formStatus === "submitting"}>
-              {formStatus === "submitting" ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Scheduling...
-                </>
-              ) : (
-                "Schedule Posts"
-              )}
-            </Button>
-          </div>
         </form>
       </FormProvider>
     </div>
