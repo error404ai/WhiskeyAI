@@ -6,7 +6,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { addMinutes, addSeconds, addHours, format } from "date-fns";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { addHours, addMinutes, addSeconds, format } from "date-fns";
 import { Clock, FileSpreadsheet, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { FieldArrayWithId, UseFormReturn } from "react-hook-form";
@@ -40,7 +41,7 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     // Prevent event bubbling to avoid unwanted form validation
     event.stopPropagation();
-    
+
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFileName(file.name);
@@ -52,7 +53,7 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
   // Calculate next scheduled time based on delay unit and value
   const calculateNextTime = (baseTime: Date, delayValue: number, delayUnit: DelayUnit, multiplier: number): Date => {
     const totalDelay = delayValue * multiplier;
-    
+
     if (delayUnit === "seconds") {
       return addSeconds(baseTime, totalDelay);
     } else if (delayUnit === "hours") {
@@ -85,7 +86,7 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
     // Validate the current delay value based on the new unit
     const currentValue = methods.getValues("delayValue");
     const maxValue = getMaxValueForUnit(newUnit);
-    
+
     if (currentValue > maxValue) {
       methods.setValue("delayValue", maxValue);
       currentDelayRef.current = maxValue;
@@ -185,9 +186,7 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
         const newPosts: SchedulePost[] = tweets.map((content, index) => {
           // For the first post (index 0), use exactly scheduleStartDate
           // For subsequent posts, add accumulated delay based on position
-          const postTime = index === 0 
-            ? scheduleStartDate 
-            : calculateNextTime(scheduleStartDate, currentDelay, currentDelayUnit, index);
+          const postTime = index === 0 ? scheduleStartDate : calculateNextTime(scheduleStartDate, currentDelay, currentDelayUnit, index);
 
           const agentIndex = index % agentsToUse.length;
 
@@ -257,14 +256,14 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
       e.preventDefault();
       e.stopPropagation();
     }
-    
+
     // Reset to a single empty post without triggering immediate validation
     const emptyPost = {
       content: "",
       scheduledTime: format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"),
       agentId: activeAgents.length > 0 ? activeAgents[0].uuid : "",
     };
-    
+
     replace([emptyPost]);
 
     // Clear success message and reset state
@@ -305,9 +304,9 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
                 {...methods.register("delayValue", {
                   required: "Delay is required",
                   min: { value: 0, message: "Minimum delay is 0" },
-                  max: { 
+                  max: {
                     value: getMaxValueForUnit(methods.watch("delayUnit")),
-                    message: `Maximum delay exceeds the limit for ${methods.watch("delayUnit")}`
+                    message: `Maximum delay exceeds the limit for ${methods.watch("delayUnit")}`,
                   },
                 })}
                 onChange={(e) => {
@@ -327,11 +326,8 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
                   }
                 }}
               />
-              
-              <Select
-                value={methods.watch("delayUnit")}
-                onValueChange={(value) => handleDelayUnitChange(value as DelayUnit)}
-              >
+
+              <Select value={methods.watch("delayUnit")} onValueChange={(value) => handleDelayUnitChange(value as DelayUnit)}>
                 <SelectTrigger className="h-8 w-28 border-blue-200 focus:border-blue-400">
                   <SelectValue placeholder="Select unit" />
                 </SelectTrigger>
@@ -345,7 +341,7 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
               </Select>
             </div>
           </div>
-          
+
           {/* Start Date Time Picker */}
           <div className="flex flex-col gap-2 rounded-md bg-blue-50/50 p-2">
             <div className="flex items-center gap-1">
@@ -364,39 +360,56 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
               <Label htmlFor="excelUpload" className="font-medium">
                 Import from Excel:
               </Label>
+              (
+              <a className="text-sm text-blue-600 underline" href="/example/example.xlsx" target="_blank" onClick={(e) => e.stopPropagation()}>
+                Example
+              </a>
+              )
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="size-5">
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 16v-4" />
+                      <path d="M12 8h.01" />
+                    </svg>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs p-2">
+                    <p className="text-sm font-medium">Excel File Requirements</p>
+                    <ul className="list-inside list-disc space-y-1 text-xs">
+                      <li>
+                        The Excel file should contain a single column named <code>content</code>.
+                      </li>
+                      <li>The column should contain the tweet content.</li>
+                    </ul>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             <div className="flex items-center gap-2 text-xs">
-              <Input
-                id="excelUpload"
-                type="file"
-                accept=".xlsx, .xls"
-                className="hidden"
-                ref={fileInputRef}
-                onChange={handleFileSelect}
-                onClick={(e) => e.stopPropagation()}
-              />
-              <Button 
+              <Input id="excelUpload" type="file" accept=".xlsx, .xls" className="hidden" ref={fileInputRef} onChange={handleFileSelect} onClick={(e) => e.stopPropagation()} />
+              <Button
                 onClick={(e) => {
                   e.preventDefault(); // Prevent form submission
                   e.stopPropagation(); // Stop propagation to prevent unwanted validation
                   fileInputRef.current?.click();
-                }} 
-                variant="outline" 
-                size="sm" 
+                }}
+                variant="outline"
+                size="sm"
                 className="h-8 border-blue-200 px-2 text-xs hover:border-blue-400 hover:bg-blue-50"
                 type="button" // Explicitly set as button type to avoid form submission
               >
                 Choose File
               </Button>
-              <Button 
+              <Button
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   handleFileUpload();
-                }} 
-                variant="outline" 
-                size="sm" 
-                disabled={isUploading || !selectedFileName} 
+                }}
+                variant="outline"
+                size="sm"
+                disabled={isUploading || !selectedFileName}
                 className={`h-8 border-blue-200 px-2 text-xs hover:border-blue-400 hover:bg-blue-50 ${selectedFileName ? "border-blue-400" : ""}`}
                 type="button" // Explicitly set as button type to avoid form submission
               >
@@ -412,9 +425,7 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
               <Alert className="border-green-100 bg-green-50">
                 <div className="flex items-center justify-between">
                   <AlertDescription>
-                    <span className="font-medium text-green-700">
-                      Successfully imported {uploadSuccess.count} posts from Excel. Schedule will be refreshed every minute to keep times updated.
-                    </span>
+                    <span className="font-medium text-green-700">Successfully imported {uploadSuccess.count} posts from Excel. Schedule will be refreshed every minute to keep times updated.</span>
                   </AlertDescription>
                   <Button variant="ghost" size="icon" onClick={clearImportedPosts} className="h-6 w-6 rounded-full p-0 hover:bg-green-100" type="button">
                     <X className="h-4 w-4 text-green-700" />
