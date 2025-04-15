@@ -3,7 +3,7 @@
 import { DataTable, DataTableRef } from "@/components/Datatable/Datatable";
 import { DataTableColumnHeader } from "@/components/Datatable/DatatableColumnHeader";
 import { Badge } from "@/components/ui/badge";
-import { TriggerLog } from "@/db/schema";
+import { Agent, TriggerLog } from "@/db/schema";
 import * as TriggerLogController from "@/server/controllers/triggerLogController";
 import { ColumnDef } from "@tanstack/react-table";
 import { formatDistanceToNow } from "date-fns";
@@ -12,53 +12,56 @@ import { useRef } from "react";
 const LogList = () => {
   const tableRef = useRef<DataTableRef>(null);
 
-  const columns: ColumnDef<TriggerLog & { agentName: string }>[] = [
+  const columns: ColumnDef<{
+    triggerLogs: TriggerLog;
+    agents: Agent;
+  }>[] = [
     {
-      accessorKey: "id",
+      accessorKey: "triggerLogs.id",
       header: ({ column }) => {
         return <DataTableColumnHeader column={column} title="ID" />;
       },
       enableSorting: false,
     },
     {
-      accessorKey: "agentName",
+      accessorKey: "agents.name",
       header: ({ column }) => {
         return <DataTableColumnHeader column={column} title="Agent Name" />;
       },
       enableSorting: false,
     },
     {
-      accessorKey: "functionName",
+      accessorKey: "triggerLogs.functionName",
       header: ({ column }) => {
         return <DataTableColumnHeader column={column} title="Function" />;
       },
       enableSorting: false,
     },
     {
-      accessorKey: "status",
+      accessorKey: "triggerLogs.status",
       header: ({ column }) => {
         return <DataTableColumnHeader column={column} title="Status" />;
       },
       cell: ({ row }) => {
-        const status = row.getValue("status") as string;
+        const status = row.original.triggerLogs.status as string;
         return <Badge variant={status === "success" ? "success" : status === "error" ? "destructive" : "outline"}>{status}</Badge>;
       },
       enableSorting: false,
     },
     {
-      accessorKey: "errorDetails",
+      accessorKey: "triggerLogs.errorDetails",
       header: ({ column }) => {
         return <DataTableColumnHeader column={column} title="Error Details" />;
       },
       enableSorting: false,
     },
     {
-      accessorKey: "createdAt",
+      accessorKey: "triggerLogs.createdAt",
       header: ({ column }) => {
         return <DataTableColumnHeader column={column} title="Time" />;
       },
       cell: ({ row }) => {
-        const date = row.getValue("createdAt") as string;
+        const date = row.original.triggerLogs?.createdAt;
         const dateObj = date ? new Date(date) : null;
         return dateObj ? formatDistanceToNow(dateObj, { addSuffix: true }) : "N/A";
       },
@@ -68,7 +71,7 @@ const LogList = () => {
 
   return (
     <div>
-      <DataTable<TriggerLog & { agentName: string }, unknown> ref={tableRef} columns={columns} serverAction={TriggerLogController.getUserTriggerLogs as any} queryKey="triggerLogsList" searchAble={false} />
+      <DataTable<TriggerLog & { agentName: string }, unknown> ref={tableRef} columns={columns as any} serverAction={TriggerLogController.getUserTriggerLogs as any} queryKey="triggerLogsList" searchAble={false} />
     </div>
   );
 };

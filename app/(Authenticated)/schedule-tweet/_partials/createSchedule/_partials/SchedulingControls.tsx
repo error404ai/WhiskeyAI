@@ -364,7 +364,7 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
               <a className="text-sm text-blue-600 underline" href="/example/example.xlsx" target="_blank" onClick={(e) => e.stopPropagation()}>
                 Example
               </a>
-              ){" "}
+              )
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
