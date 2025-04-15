@@ -1,4 +1,5 @@
 "use client";
+import NoSsr from "@/components/NoSsr/NoSsr";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -12,10 +13,12 @@ const Page = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     params.set("tab", tab);
-    window.history.replaceState(null, "", `?${params.toString()}`);
+    setTimeout(() => {
+      window.history.replaceState(null, "", `?${params.toString()}`);
+    }, 0);
   }, [tab]);
   return (
-    <div>
+    <NoSsr>
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-3xl font-bold text-transparent">Schedule Posts</h1>
@@ -38,7 +41,7 @@ const Page = () => {
           <AllScheduledTweetsTable />
         </TabsContent>
       </Tabs>
-    </div>
+    </NoSsr>
   );
 };
 
