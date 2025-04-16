@@ -36,6 +36,9 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+  const [tempDelayValue, setTempDelayValue] = useState(methods.getValues("delayValue"));
+  const [tempDelayUnit, setTempDelayUnit] = useState(methods.getValues("delayUnit"));
+  const [tempStartDate, setTempStartDate] = useState(format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"));
 
   // Handle file selection
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,30 +81,60 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
     }
   };
 
-  // Handle delay unit change
-  const handleDelayUnitChange = (newUnit: DelayUnit) => {
-    methods.setValue("delayUnit", newUnit);
-    currentDelayUnitRef.current = newUnit;
-
-    // Validate the current delay value based on the new unit
-    const currentValue = methods.getValues("delayValue");
-    const maxValue = getMaxValueForUnit(newUnit);
-
-    if (currentValue > maxValue) {
-      methods.setValue("delayValue", maxValue);
-      currentDelayRef.current = maxValue;
+  // Apply delay changes
+  const applyDelayChanges = () => {
+    // Validate the delay value based on the unit
+    const maxValue = getMaxValueForUnit(tempDelayUnit);
+    if (tempDelayValue > maxValue) {
+      toast.error(`Maximum delay for ${tempDelayUnit} is ${maxValue}`);
+      return;
     }
 
-    // Update schedules based on new unit
+    methods.setValue("delayValue", tempDelayValue);
+    methods.setValue("delayUnit", tempDelayUnit);
+    currentDelayRef.current = tempDelayValue;
+    currentDelayUnitRef.current = tempDelayUnit;
+
+    // Update schedules based on new values
     if (fields.length > 0) {
       methods.setValue("schedulePosts.0.scheduledTime", format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"));
 
-      const delayValue = Number(methods.getValues("delayValue"));
       const baseTime = scheduleStartDate;
       for (let i = 1; i < fields.length; i++) {
-        const nextTime = calculateNextTime(baseTime, delayValue, newUnit, i);
+        const nextTime = calculateNextTime(baseTime, tempDelayValue, tempDelayUnit, i);
         methods.setValue(`schedulePosts.${i}.scheduledTime`, format(nextTime, "yyyy-MM-dd'T'HH:mm"));
       }
+    }
+
+    toast.success(`Applied delay: ${tempDelayValue} ${tempDelayUnit}`);
+  };
+
+  // Apply start date changes
+  const applyStartDateChanges = () => {
+    if (!tempStartDate) {
+      toast.error("Invalid date format");
+      return;
+    }
+
+    // Create a synthetic event to pass to the handler
+    const syntheticEvent = {
+      target: { value: tempStartDate },
+      preventDefault: () => {},
+      stopPropagation: () => {},
+    } as React.ChangeEvent<HTMLInputElement>;
+
+    handleStartDateChange(syntheticEvent);
+    toast.success("Applied new start date and time");
+  };
+
+  // Handle temp delay unit change
+  const handleTempDelayUnitChange = (newUnit: DelayUnit) => {
+    setTempDelayUnit(newUnit);
+    
+    // Validate the current temp delay value based on the new unit
+    const maxValue = getMaxValueForUnit(newUnit);
+    if (tempDelayValue > maxValue) {
+      setTempDelayValue(maxValue);
     }
   };
 
@@ -294,51 +327,43 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
               </Label>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Input
-                id="delayValue"
-                type="number"
-                className="h-8 w-24 border-blue-200 focus:border-blue-400"
-                min="0"
-                max={getMaxValueForUnit(methods.watch("delayUnit"))}
-                {...methods.register("delayValue", {
-                  required: "Delay is required",
-                  min: { value: 0, message: "Minimum delay is 0" },
-                  max: {
-                    value: getMaxValueForUnit(methods.watch("delayUnit")),
-                    message: `Maximum delay exceeds the limit for ${methods.watch("delayUnit")}`,
-                  },
-                })}
-                onChange={(e) => {
-                  const newDelay = e.target.value === "" ? 0 : Number.parseInt(e.target.value) || 0;
-                  methods.setValue("delayValue", newDelay);
-                  currentDelayRef.current = newDelay;
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center gap-2">
+                <Input
+                  id="delayValue"
+                  type="number"
+                  className="h-8 w-24 border-blue-200 focus:border-blue-400"
+                  min="0"
+                  max={getMaxValueForUnit(tempDelayUnit)}
+                  value={tempDelayValue}
+                  onChange={(e) => {
+                    const newDelay = e.target.value === "" ? 0 : Number.parseInt(e.target.value) || 0;
+                    setTempDelayValue(newDelay);
+                  }}
+                />
 
-                  if (fields.length > 0) {
-                    methods.setValue("schedulePosts.0.scheduledTime", format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"));
-
-                    const baseTime = scheduleStartDate;
-                    const delayUnit = methods.getValues("delayUnit");
-                    for (let i = 1; i < fields.length; i++) {
-                      const nextTime = calculateNextTime(baseTime, newDelay, delayUnit, i);
-                      methods.setValue(`schedulePosts.${i}.scheduledTime`, format(nextTime, "yyyy-MM-dd'T'HH:mm"));
-                    }
-                  }
-                }}
-              />
-
-              <Select value={methods.watch("delayUnit")} onValueChange={(value) => handleDelayUnitChange(value as DelayUnit)}>
-                <SelectTrigger className="h-8 w-28 border-blue-200 focus:border-blue-400">
-                  <SelectValue placeholder="Select unit" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="seconds">Seconds</SelectItem>
-                    <SelectItem value="minutes">Minutes</SelectItem>
-                    <SelectItem value="hours">Hours</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+                <Select value={tempDelayUnit} onValueChange={(value) => handleTempDelayUnitChange(value as DelayUnit)}>
+                  <SelectTrigger className="h-8 w-28 border-blue-200 focus:border-blue-400">
+                    <SelectValue placeholder="Select unit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="seconds">Seconds</SelectItem>
+                      <SelectItem value="minutes">Minutes</SelectItem>
+                      <SelectItem value="hours">Hours</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                 <Button 
+                onClick={applyDelayChanges}
+                size="sm"
+                className="h-8 bg-blue-600 hover:bg-blue-700 text-white"
+                type="button"
+              >
+                Apply Delay
+              </Button>
+              </div>
+             
             </div>
           </div>
 
@@ -350,7 +375,24 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
                 Start Date & Time:
               </Label>
             </div>
-            <Input type="datetime-local" id="scheduleStartDate" value={format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm")} onChange={handleStartDateChange} className="h-8 border-blue-200 focus:border-blue-400" min={format(new Date(), "yyyy-MM-dd'T'HH:mm")} />
+            <div className="flex gap-2">
+              <Input 
+                type="datetime-local" 
+                id="scheduleStartDate" 
+                value={tempStartDate} 
+                onChange={(e) => setTempStartDate(e.target.value)} 
+                className="h-8 border-blue-200 focus:border-blue-400" 
+                min={format(new Date(), "yyyy-MM-dd'T'HH:mm")} 
+              />
+              <Button 
+                onClick={applyStartDateChanges}
+                size="sm"
+                className="h-8 bg-blue-600 hover:bg-blue-700 text-white"
+                type="button"
+              >
+                Apply Date & Time
+              </Button>
+            </div>
           </div>
 
           {/* File Upload */}
