@@ -30,8 +30,6 @@ export class ScheduledTweetService {
       .orderBy(desc(scheduledTweetsTable.batchId));
 
     const paginator = new DrizzlePaginator<ScheduledTweet>(db, query).page(params.page || 1).allowColumns(["batchId", "createdAt"]);
-
-    // console.log("paginator is", (await paginator.paginate(10)).data[0].agent);
     return paginator.paginate(params.perPage || 10);
   }
   public static async getSchedulesByBatchId(params: PaginatedProps = { page: 1, perPage: 10 }, batchId: string): Promise<PaginationResult<ScheduledTweet>> {
@@ -47,8 +45,6 @@ export class ScheduledTweetService {
       .where(and(eq(agentsTable.userId, Number(authUser.id)), eq(scheduledTweetsTable.batchId, batchId)));
 
     const paginator = new DrizzlePaginator<ScheduledTweet>(db, query).page(params.page || 1).allowColumns(["batchId", "content", "scheduledAt", "status", "processedAt", "errorMessage", "createdAt"]);
-
-    console.log("paginator is", (await paginator.paginate(10)).data[0]);
     return paginator.paginate(params.perPage || 10);
   }
 
