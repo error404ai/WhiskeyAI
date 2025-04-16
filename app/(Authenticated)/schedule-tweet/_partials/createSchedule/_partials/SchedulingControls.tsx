@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { addHours, addMinutes, addSeconds, format } from "date-fns";
-import { Clock, FileSpreadsheet, X } from "lucide-react";
+import { Clock, FileSpreadsheet, Loader2, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { FieldArrayWithId, UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
@@ -39,6 +39,8 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
   const [tempDelayValue, setTempDelayValue] = useState(methods.getValues("delayValue"));
   const [tempDelayUnit, setTempDelayUnit] = useState(methods.getValues("delayUnit"));
   const [tempStartDate, setTempStartDate] = useState(format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"));
+  const [isApplyingDelay, setIsApplyingDelay] = useState(false);
+  const [isApplyingStartDate, setIsApplyingStartDate] = useState(false);
 
   // Handle file selection
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,23 +92,35 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
       return;
     }
 
-    methods.setValue("delayValue", tempDelayValue);
-    methods.setValue("delayUnit", tempDelayUnit);
-    currentDelayRef.current = tempDelayValue;
-    currentDelayUnitRef.current = tempDelayUnit;
+    setIsApplyingDelay(true);
 
-    // Update schedules based on new values
-    if (fields.length > 0) {
-      methods.setValue("schedulePosts.0.scheduledTime", format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"));
+    try {
+      // Use setTimeout to simulate processing and allow the UI to update with loading state
+      setTimeout(() => {
+        methods.setValue("delayValue", tempDelayValue);
+        methods.setValue("delayUnit", tempDelayUnit);
+        currentDelayRef.current = tempDelayValue;
+        currentDelayUnitRef.current = tempDelayUnit;
 
-      const baseTime = scheduleStartDate;
-      for (let i = 1; i < fields.length; i++) {
-        const nextTime = calculateNextTime(baseTime, tempDelayValue, tempDelayUnit, i);
-        methods.setValue(`schedulePosts.${i}.scheduledTime`, format(nextTime, "yyyy-MM-dd'T'HH:mm"));
-      }
+        // Update schedules based on new values
+        if (fields.length > 0) {
+          methods.setValue("schedulePosts.0.scheduledTime", format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"));
+
+          const baseTime = scheduleStartDate;
+          for (let i = 1; i < fields.length; i++) {
+            const nextTime = calculateNextTime(baseTime, tempDelayValue, tempDelayUnit, i);
+            methods.setValue(`schedulePosts.${i}.scheduledTime`, format(nextTime, "yyyy-MM-dd'T'HH:mm"));
+          }
+        }
+
+        toast.success(`Applied delay: ${tempDelayValue} ${tempDelayUnit}`);
+        setIsApplyingDelay(false);
+      }, 100); 
+    } catch (error) {
+      console.error("Error applying delay:", error);
+      toast.error("Error applying delay. Please try again.");
+      setIsApplyingDelay(false);
     }
-
-    toast.success(`Applied delay: ${tempDelayValue} ${tempDelayUnit}`);
   };
 
   // Apply start date changes
@@ -116,15 +130,27 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
       return;
     }
 
-    // Create a synthetic event to pass to the handler
-    const syntheticEvent = {
-      target: { value: tempStartDate },
-      preventDefault: () => {},
-      stopPropagation: () => {},
-    } as React.ChangeEvent<HTMLInputElement>;
+    setIsApplyingStartDate(true);
 
-    handleStartDateChange(syntheticEvent);
-    toast.success("Applied new start date and time");
+    try {
+      // Use setTimeout to simulate processing and allow the UI to update with loading state
+      setTimeout(() => {
+        // Create a synthetic event to pass to the handler
+        const syntheticEvent = {
+          target: { value: tempStartDate },
+          preventDefault: () => {},
+          stopPropagation: () => {},
+        } as React.ChangeEvent<HTMLInputElement>;
+
+        handleStartDateChange(syntheticEvent);
+        toast.success("Applied new start date and time");
+        setIsApplyingStartDate(false);
+      }, 100); 
+    } catch (error) {
+      console.error("Error applying start date:", error);
+      toast.error("Error applying start date. Please try again.");
+      setIsApplyingStartDate(false);
+    }
   };
 
   // Handle temp delay unit change
@@ -354,14 +380,22 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
                     </SelectGroup>
                   </SelectContent>
                 </Select>
-                 <Button 
-                onClick={applyDelayChanges}
-                size="sm"
-                className="h-8 bg-blue-600 hover:bg-blue-700 text-white"
-                type="button"
-              >
-                Apply Delay
-              </Button>
+                <Button 
+                  onClick={applyDelayChanges}
+                  size="sm"
+                  className="h-8 bg-blue-600 hover:bg-blue-700 text-white"
+                  type="button"
+                  disabled={isApplyingDelay}
+                >
+                  {isApplyingDelay ? (
+                    <>
+                      <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                      Applying...
+                    </>
+                  ) : (
+                    "Apply Delay"
+                  )}
+                </Button>
               </div>
              
             </div>
@@ -389,8 +423,16 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
                 size="sm"
                 className="h-8 bg-blue-600 hover:bg-blue-700 text-white"
                 type="button"
+                disabled={isApplyingStartDate}
               >
-                Apply Date & Time
+                {isApplyingStartDate ? (
+                  <>
+                    <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                    Applying...
+                  </>
+                ) : (
+                  "Apply Date & Time"
+                )}
               </Button>
             </div>
           </div>
