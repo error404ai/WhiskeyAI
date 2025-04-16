@@ -113,8 +113,10 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
           }
         }
 
-        toast.success(`Applied delay: ${tempDelayValue} ${tempDelayUnit}`);
+        // Set loading state to false immediately before showing the toast
         setIsApplyingDelay(false);
+        // Show success toast
+        toast.success(`Applied delay: ${tempDelayValue} ${tempDelayUnit}`);
       }, 100); 
     } catch (error) {
       console.error("Error applying delay:", error);
@@ -143,8 +145,11 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
         } as React.ChangeEvent<HTMLInputElement>;
 
         handleStartDateChange(syntheticEvent);
-        toast.success("Applied new start date and time");
+        
+        // Set loading state to false immediately before showing the toast
         setIsApplyingStartDate(false);
+        // Show success toast
+        toast.success("Applied new start date and time");
       }, 100); 
     } catch (error) {
       console.error("Error applying start date:", error);
@@ -277,27 +282,31 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
             // Now perform validation after everything is set up
             methods.trigger("schedulePosts").then(() => {
               console.log(`Validation complete after import: ${tweets.length} posts should be visible`);
+              
+              // Set loading state to false before showing toast
+              setIsUploading(false);
+              // Reset the file input
+              if (fileInputRef.current) {
+                fileInputRef.current.value = "";
+                setSelectedFileName(null);
+              }
+              
+              // Show success toast
+              toast.success(`Successfully imported ${tweets.length} posts from the file`);
+
+              // Log completion for debugging
+              console.log(`Excel import complete: ${newPosts.length} posts added to form`);
             });
-
-            toast.success(`Successfully imported ${tweets.length} posts from the file`);
-
-            // Log completion for debugging
-            console.log(`Excel import complete: ${newPosts.length} posts added to form`);
           }, 100);
         } catch (error) {
           console.error("Error updating form with imported posts:", error);
           toast.error("Error updating form with imported posts. Please try again.");
+          setIsUploading(false);
         }
       } catch (error) {
         console.error("Error processing file:", error);
         toast.error("Error processing file. There was an error reading the uploaded file. Please make sure it's a valid Excel file.");
-      } finally {
         setIsUploading(false);
-        // Reset the file input
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-          setSelectedFileName(null);
-        }
       }
     };
 
