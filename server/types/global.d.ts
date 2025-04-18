@@ -4,4 +4,5 @@ interface PaginatedProps {
   sortColumn?: string;
   sortOrder?: "asc" | "desc";
   search?: string;
-} 
+  searchColumns?: string[];
+}
