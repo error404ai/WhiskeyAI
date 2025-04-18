@@ -2,11 +2,12 @@
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bot, CalendarClock, ChevronDown, Logs, LucideIcon } from "lucide-react";
+import { Bot, CalendarClock, ChevronDown, Logs, LucideIcon, Settings, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import Logo from "../Common/Logo";
+import useIsAdmin from "@/hooks/useIsAdmin";
 
 interface MenuItem {
   title: string;
@@ -19,8 +20,8 @@ interface MenuItem {
   }>;
 }
 
-// Extended menu items with support for dropdown submenus
-const items: MenuItem[] = [
+// User menu items
+const userItems: MenuItem[] = [
   {
     title: "My Agents",
     url: "/my-agents",
@@ -35,6 +36,35 @@ const items: MenuItem[] = [
     title: "Schedule Tweet",
     icon: CalendarClock,
     url: "/schedule-tweet",
+  },
+];
+
+// Admin menu items
+const adminItems: MenuItem[] = [
+  {
+    title: "My Agents",
+    url: "/my-agents",
+    icon: Bot,
+  },
+  {
+    title: "Agent Logs",
+    url: "/agent-logs",
+    icon: Logs,
+  },
+  {
+    title: "Schedule Tweet",
+    icon: CalendarClock,
+    url: "/schedule-tweet",
+  },
+  {
+    title: "Manage Users",
+    url: "/admin/users",
+    icon: Users,
+  },
+  {
+    title: "Settings",
+    url: "/admin/settings",
+    icon: Settings,
   },
 ];
 
@@ -211,6 +241,10 @@ const MenuItem = ({ item, isActive, open }: MenuItemProps) => {
 export default function AppSidebar() {
   const path = usePathname();
   const { open } = useSidebar();
+  const {isAdmin, isLoading} = useIsAdmin();
+  
+  // Choose menu items based on admin status
+  const items = isAdmin ? adminItems : userItems;
 
   return (
     <Sidebar collapsible="icon">
