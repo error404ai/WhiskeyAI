@@ -2,16 +2,8 @@
 "use client";
 import { DataTable, DataTableRef } from "@/components/Datatable/Datatable";
 import { DataTableColumnHeader } from "@/components/Datatable/DatatableColumnHeader";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ActionButtons, ActionItem } from "@/components/ui/action-buttons";
+import { ActiveBadge, BlockedBadge } from "@/components/ui/status-badge";
 import { 
   Dialog, 
   DialogContent, 
@@ -20,10 +12,11 @@ import {
   DialogHeader, 
   DialogTitle 
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
 import { useRef, useState } from "react";
 import * as UserManagementController from "@/server/controllers/admin/UserManagementController";
-import { MoreHorizontal, UserX, UserCheck, Trash2 } from "lucide-react";
+import { UserX, UserCheck, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -116,11 +109,7 @@ const UserManagementPage = () => {
       header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
       cell: ({ row }) => {
         const isActive = row.original.is_active !== false; // Default to true if undefined
-        return (
-          <Badge variant={isActive ? "success" : "destructive"}>
-            {isActive ? "Active" : "Blocked"}
-          </Badge>
-        );
+        return isActive ? <ActiveBadge /> : <BlockedBadge />;
       },
       enableSorting: true,
     },
@@ -143,63 +132,40 @@ const UserManagementPage = () => {
         const user = row.original;
         const isActive = user.is_active !== false; // Default to true if undefined
         
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {isActive ? (
-                <DropdownMenuItem 
-                  className="text-destructive"
-                  onClick={() => handleBlockUser(user.id)}
-                >
-                  <UserX className="mr-2 h-4 w-4" />
-                  Block User
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem 
-                  onClick={() => handleUnblockUser(user.id)}
-                >
-                  <UserCheck className="mr-2 h-4 w-4" />
-                  Unblock User
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuItem 
-                className="text-destructive" 
-                onClick={() => confirmDelete(user)}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete Permanently
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
+        const actions: ActionItem[] = [
+          {
+            label: isActive ? "Block User" : "Unblock User",
+            onClick: () => isActive ? handleBlockUser(user.id) : handleUnblockUser(user.id),
+            icon: isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />,
+            variant: isActive ? "destructive" : "default",
+          },
+          {
+            label: "Delete Permanently",
+            onClick: () => confirmDelete(user),
+            icon: <Trash2 className="h-4 w-4" />,
+            variant: "destructive",
+          }
+        ];
+        
+        return <ActionButtons actions={actions} label="User Actions" />;
       },
     },
   ];
 
   return (
-    <div >
+    <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold">User Management</h1>
         <p className="text-muted-foreground mt-1">Manage user accounts, permissions and status.</p>
       </div>
 
- 
-        <DataTable 
-          ref={tableRef}
-          columns={columns} 
-          serverAction={UserManagementController.getAllUsers as any}
-          queryKey="adminUsersList"
-          searchAble={false}
-        />
-    
+      <DataTable 
+        ref={tableRef}
+        columns={columns} 
+        serverAction={UserManagementController.getAllUsers as any}
+        queryKey="adminUsersList"
+        searchAble={false}
+      />
 
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
