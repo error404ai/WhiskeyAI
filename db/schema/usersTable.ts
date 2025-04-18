@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { boolean, date, integer, pgTable, varchar } from "drizzle-orm/pg-core";
+import { boolean, date, integer, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
 import { rolesTable } from "./rolesTable";
 
 export const usersTable = pgTable("users", {
@@ -15,8 +15,9 @@ export const usersTable = pgTable("users", {
     .references(() => rolesTable.id),
   emailVerified: date(),
   hasPaidForAgents: boolean().default(false).notNull(),
-  created_at: varchar({ length: 255 }).notNull().default("CURRENT_TIMESTAMP"),
-  updated_at: varchar({ length: 255 }).notNull().default("CURRENT_TIMESTAMP"),
+  is_active: boolean().default(true).notNull(),
+  createdAt: timestamp("createdAt", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export type UserType = typeof usersTable.$inferSelect;

@@ -1,8 +1,9 @@
 "use client";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
+import useIsAdmin from "@/hooks/useIsAdmin";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bot, CalendarClock, ChevronDown, Logs, LucideIcon } from "lucide-react";
+import { Bot, CalendarClock, ChevronDown, Gauge, Loader2, Logs, LucideIcon, Settings, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -19,8 +20,8 @@ interface MenuItem {
   }>;
 }
 
-// Extended menu items with support for dropdown submenus
-const items: MenuItem[] = [
+// User menu items
+const userItems: MenuItem[] = [
   {
     title: "My Agents",
     url: "/my-agents",
@@ -35,6 +36,25 @@ const items: MenuItem[] = [
     title: "Schedule Tweet",
     icon: CalendarClock,
     url: "/schedule-tweet",
+  },
+];
+
+// Admin menu items
+const adminItems: MenuItem[] = [
+  {
+    title: "Dashboard",
+    url: "/admin/dashboard",
+    icon: Gauge,
+  },
+  {
+    title: "Manage Users",
+    url: "/admin/user-management",
+    icon: Users,
+  },
+  {
+    title: "Settings",
+    url: "/admin/settings",
+    icon: Settings,
   },
 ];
 
@@ -54,16 +74,13 @@ interface MenuItemProps {
 }
 
 const MenuItem = ({ item, isActive, open }: MenuItemProps) => {
-  // Check if current path is in submenu
   const path = usePathname();
   const isSubmenuActive = item.submenu?.some((subItem) => path === subItem.url);
 
-  // Initialize submenuOpen state based on whether a submenu item is active
   const [submenuOpen, setSubmenuOpen] = useState(isSubmenuActive);
 
   const hasSubmenu = item.submenu && item.submenu.length > 0;
 
-  // Toggle submenu
   const toggleSubmenu = (e: React.MouseEvent) => {
     if (hasSubmenu) {
       e.preventDefault();
@@ -71,7 +88,6 @@ const MenuItem = ({ item, isActive, open }: MenuItemProps) => {
     }
   };
 
-  // Animation variants for dropdown
   const dropdownVariants = {
     hidden: {
       opacity: 0,
@@ -102,7 +118,6 @@ const MenuItem = ({ item, isActive, open }: MenuItemProps) => {
     },
   };
 
-  // Animation for individual submenu items
   const itemVariants = {
     hidden: { opacity: 0, x: -10 },
     visible: {
@@ -211,6 +226,10 @@ const MenuItem = ({ item, isActive, open }: MenuItemProps) => {
 export default function AppSidebar() {
   const path = usePathname();
   const { open } = useSidebar();
+  const { isAdmin, isLoading } = useIsAdmin();
+
+  // Choose menu items based on admin status
+  const items = isAdmin ? adminItems : userItems;
 
   return (
     <Sidebar collapsible="icon">
@@ -222,16 +241,23 @@ export default function AppSidebar() {
           {/* <SidebarGroupLabel>Chrome Extension</SidebarGroupLabel> */}
 
           <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => {
-                // Check if current item or any of its submenu items are active
-                const isActive = path === item.url;
-                const isSubmenuActive = item.submenu?.some((subItem) => path === subItem.url) || false;
-                const activeState = isActive || isSubmenuActive;
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center px-4 py-8">
+                <Loader2 className="mb-3 size-8 animate-spin text-blue-500" />
+                <p className={cn("text-sm text-slate-500", { hidden: !open })}>Loading menu...</p>
+              </div>
+            ) : (
+              <SidebarMenu>
+                {items.map((item) => {
+                  // Check if current item or any of its submenu items are active
+                  const isActive = path === item.url;
+                  const isSubmenuActive = item.submenu?.some((subItem) => path === subItem.url) || false;
+                  const activeState = isActive || isSubmenuActive;
 
-                return <MenuItem key={item.title} item={item} isActive={activeState} open={open} />;
-              })}
-            </SidebarMenu>
+                  return <MenuItem key={item.title} item={item} isActive={activeState} open={open} />;
+                })}
+              </SidebarMenu>
+            )}
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
