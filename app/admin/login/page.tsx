@@ -6,20 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { Lock } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { adminLoginSchema } from "@/server/zodSchema/adminLoginSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { Lock } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { FormProvider, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 export default function LoginForm() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof adminLoginSchema>>({
+  const methods = useForm<z.infer<typeof adminLoginSchema>>({
     resolver: zodResolver(adminLoginSchema),
     defaultValues: {
       username: "",
@@ -28,15 +26,7 @@ export default function LoginForm() {
     mode: "onTouched",
   });
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = form;
-
   const onSubmit = async (data: z.infer<typeof adminLoginSchema>) => {
-    setIsLoading(true);
-
     try {
       const result = await signIn("admin-login", {
         username: data.username,
@@ -58,55 +48,34 @@ export default function LoginForm() {
       toast.error("Login Error", {
         description: "An error occurred during login. Please try again.",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+    <div className="flex min-h-screen items-center justify-center bg-gray-100">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1">
-          <Lock className="mx-auto size-6 text-primary" />
+          <Lock className="text-primary mx-auto size-6" />
           <CardTitle className="text-center text-2xl font-bold">Admin Login</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input 
-                id="username" 
-                {...register("username")} 
-                placeholder="Enter your username" 
-                autoComplete="username" 
-              />
-              {errors.username && (
-                <p className="text-sm text-red-500">{errors.username.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
+          <FormProvider {...methods}>
+            <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input name="username" placeholder="Enter your username" autoComplete="username" />
               </div>
-              <Input 
-                id="password" 
-                type="password" 
-                {...register("password")} 
-                placeholder="••••••••" 
-                autoComplete="current-password" 
-              />
-              {errors.password && (
-                <p className="text-sm text-red-500">{errors.password.message}</p>
-              )}
-            </div>
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={isLoading || isSubmitting}
-            >
-              {isLoading || isSubmitting ? "Logging in..." : "Login"}
-            </Button>
-          </form>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                </div>
+                <Input name="password" type="password" placeholder="••••••••" autoComplete="current-password" />
+              </div>
+              <Button type="submit" className="w-full" loading={methods.formState.isSubmitting}>
+                Login
+              </Button>
+            </form>
+          </FormProvider>
         </CardContent>
       </Card>
     </div>
