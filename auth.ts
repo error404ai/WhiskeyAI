@@ -5,6 +5,7 @@ import Credentials from "next-auth/providers/credentials";
 import * as nacl from "tweetnacl";
 import { UserResourceType } from "./server/resource/userResource";
 import UserService from "./server/services/userService";
+import AdminService from "./server/services/adminService";
 
 declare module "next-auth" {
   interface Session {
@@ -58,7 +59,35 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
   secret: process.env.AUTH_SECRET,
   providers: [
+    // Admin credentials provider for username/password login
     Credentials({
+      id: "admin-login",
+      name: "Admin Login",
+      credentials: {
+        username: { label: "Username", type: "text" },
+        password: { label: "Password", type: "password" },
+      },
+      authorize: async (credentials) => {
+        const { username, password } = credentials as { username: string; password: string };
+
+        if (!username || !password) {
+          throw new Error("Missing credentials");
+        }
+
+        // Verify admin credentials
+        const user = await AdminService.validateAdminCredentials(username, password);
+
+        if (!user) {
+          throw new Error("Invalid username or password");
+        }
+
+        return user;
+      },
+    }),
+    // Wallet credentials provider for regular users
+    Credentials({
+      id: "wallet-login",
+      name: "Wallet Login",
       credentials: {
         publicKey: { label: "Public Key", type: "text" },
         signature: { label: "Signature", type: "text" },

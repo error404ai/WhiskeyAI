@@ -18,6 +18,7 @@
     "db:seed:one": "tsx db/seed/seedRunner.ts",
     "db:seed:one:fresh": "tsx db/seed/seedRunner.ts --fresh",
     "db:seed:create": "tsx db/seed/createSeeder.ts",
+    "admin:create": "tsx scripts/create-admin.ts",
     "shell": "docker exec -it ext-web-next sh",
     "permission": "sudo chmod 777 -R .",
     "ngrock": "sh ngRock.sh",
