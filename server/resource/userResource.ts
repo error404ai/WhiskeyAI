@@ -8,6 +8,8 @@ export type UserResourceType = {
   email: string;
   avatar: string;
   emailVerified: Date | null;
+  roleId: number;
+  isAdmin: boolean;
 };
 
 class UserResource {
@@ -39,6 +41,8 @@ class UserResource {
       email: this.user.email ?? "",
       avatar: this.getAvatarUrl(),
       emailVerified: this.user.emailVerified ? new Date(this.user.emailVerified) : null,
+      roleId: this.user.roleId,
+      isAdmin: this.user.roleId === 1
     };
   }
 }

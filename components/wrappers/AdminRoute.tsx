@@ -5,10 +5,11 @@ import { redirect } from "next/navigation";
 type Props = {
   children: React.ReactNode;
 };
-const AuthenticatedRoute: React.FC<Props> = async ({ children }) => {
+const AdminRoute: React.FC<Props> = async ({ children }) => {
   const session = await auth();
+  console.log("session in AdminRoute", session);
   const intended = (await headers()).get("request_url");
-  if (!session) {
+  if (!session || session.user.isAdmin === false) {
     const url = new URL(process.env.AUTH_URL + "/");
     if (intended) {
       url.searchParams.set("intended", intended);
@@ -19,4 +20,4 @@ const AuthenticatedRoute: React.FC<Props> = async ({ children }) => {
   return children;
 };
 
-export default AuthenticatedRoute;
+export default AdminRoute;
