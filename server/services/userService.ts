@@ -1,11 +1,11 @@
 import { db } from "@/db/db";
-import { usersTable } from "@/db/schema";
+import { rolesTable, usersTable } from "@/db/schema";
 import { profileBasicInfoSchema } from "@/server/zodSchema/profileUpdateSchema";
+import { DrizzlePaginator } from "@skmirajbn/drizzle-paginator";
 import { eq } from "drizzle-orm";
 import { z, ZodError } from "zod";
 import UserResource, { UserResourceType } from "../resource/userResource";
 import { UploadService } from "./uploadService";
-import { DrizzlePaginator } from "@skmirajbn/drizzle-paginator";
 
 class UserService {
   static async getUsers() {
@@ -52,7 +52,6 @@ class UserService {
         throw new ZodError([{ code: "custom", message: "User not found", path: ["customer_id"] }]).toString();
       }
 
-      // check if the email is already exist
       if (user?.email !== data.email) {
         const existingUser = await UserService.findUserByCustomerId(data.customer_id);
         if (existingUser && existingUser.customer_id !== user?.customer_id) {
@@ -91,35 +90,20 @@ class UserService {
     return true;
   }
 
-  /**
-   * Get all users with pagination for admin panel
-   */
-  static async getAllUsersForAdmin({ perPage = 10, page = 1, sortColumn = "id", sortOrder = "desc" }: PaginatedProps) {
-    const query = db.select().from(usersTable);
-    
-    // Create paginator with the query
+  static async getAllUsersForAdmin({ perPage = 10, page = 1 }: PaginatedProps) {
+    const query = db.select().from(usersTable).leftJoin(rolesTable, eq(usersTable.roleId, rolesTable.id)).orderBy(usersTable.id);
+
     const paginator = new DrizzlePaginator(db, query).page(page);
-    
-    // Set ordering
-    if (sortOrder === "desc") {
-      paginator.orderBy(sortColumn, "desc");
-    } else {
-      paginator.orderBy(sortColumn, "asc");
-    }
-    
+
     return paginator.paginate(perPage);
   }
 
-  /**
-   * Update user status (block/unblock)
-   * We will add an is_active field to the user table
-   */
   static async updateUserStatus(userId: number, isActive: boolean): Promise<void> {
     try {
       await db
         .update(usersTable)
-        .set({ 
-          is_active: isActive 
+        .set({
+          is_active: isActive,
         })
         .where(eq(usersTable.id, userId));
     } catch (error) {
