@@ -2,7 +2,7 @@
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bot, CalendarClock, ChevronDown, Logs, LucideIcon, Settings, Users } from "lucide-react";
+import { Bot, CalendarClock, ChevronDown, Loader2, Logs, LucideIcon, Settings, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -41,21 +41,7 @@ const userItems: MenuItem[] = [
 
 // Admin menu items
 const adminItems: MenuItem[] = [
-  {
-    title: "My Agents",
-    url: "/my-agents",
-    icon: Bot,
-  },
-  {
-    title: "Agent Logs",
-    url: "/agent-logs",
-    icon: Logs,
-  },
-  {
-    title: "Schedule Tweet",
-    icon: CalendarClock,
-    url: "/schedule-tweet",
-  },
+
   {
     title: "Manage Users",
     url: "/admin/users",
@@ -256,16 +242,23 @@ export default function AppSidebar() {
           {/* <SidebarGroupLabel>Chrome Extension</SidebarGroupLabel> */}
 
           <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => {
-                // Check if current item or any of its submenu items are active
-                const isActive = path === item.url;
-                const isSubmenuActive = item.submenu?.some((subItem) => path === subItem.url) || false;
-                const activeState = isActive || isSubmenuActive;
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-8 px-4">
+                <Loader2 className="size-8 animate-spin text-blue-500 mb-3" />
+                <p className={cn("text-sm text-slate-500", { "hidden": !open })}>Loading menu...</p>
+              </div>
+            ) : (
+              <SidebarMenu>
+                {items.map((item) => {
+                  // Check if current item or any of its submenu items are active
+                  const isActive = path === item.url;
+                  const isSubmenuActive = item.submenu?.some((subItem) => path === subItem.url) || false;
+                  const activeState = isActive || isSubmenuActive;
 
-                return <MenuItem key={item.title} item={item} isActive={activeState} open={open} />;
-              })}
-            </SidebarMenu>
+                  return <MenuItem key={item.title} item={item} isActive={activeState} open={open} />;
+                })}
+              </SidebarMenu>
+            )}
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
