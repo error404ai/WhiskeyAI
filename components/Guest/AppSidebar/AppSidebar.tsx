@@ -48,7 +48,7 @@ const adminItems: MenuItem[] = [
   },
   {
     title: "Manage Users",
-    url: "/admin/users",
+    url: "/admin/user-management",
     icon: Users,
   },
   {
