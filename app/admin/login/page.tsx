@@ -1,22 +1,21 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import { signIn } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import * as AdminAuthController from "@/server/controllers/auth/adminAuthController";
 import { adminLoginSchema } from "@/server/zodSchema/adminLoginSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FormProvider, useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { toast, Toaster } from "sonner";
 import { z } from "zod";
 
-export default function LoginForm() {
+export default function AdminLoginPage() {
   const router = useRouter();
-
   const methods = useForm<z.infer<typeof adminLoginSchema>>({
     resolver: zodResolver(adminLoginSchema),
     defaultValues: {
@@ -28,15 +27,11 @@ export default function LoginForm() {
 
   const onSubmit = async (data: z.infer<typeof adminLoginSchema>) => {
     try {
-      const result = await signIn("admin-login", {
-        username: data.username,
-        password: data.password,
-        redirect: false,
-      });
+      const result = await AdminAuthController.adminLogin(data);
 
-      if (result?.error) {
+      if (!result.success) {
         toast.error("Login Failed", {
-          description: "Invalid username or password. Please try again.",
+          description: result.error || "Invalid username or password. Please try again.",
         });
       } else {
         toast.success("Success", {
@@ -53,6 +48,7 @@ export default function LoginForm() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
+      <Toaster richColors position="top-right" />
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1">
           <Lock className="text-primary mx-auto size-6" />
@@ -69,7 +65,7 @@ export default function LoginForm() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
                 </div>
-                <Input name="password" type="password" placeholder="••••••••" autoComplete="current-password" />
+                <Input type="password" name="password" placeholder="••••••••" autoComplete="current-password" isPassword />
               </div>
               <Button type="submit" className="w-full" loading={methods.formState.isSubmitting}>
                 Login
