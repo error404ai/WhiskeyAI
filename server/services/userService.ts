@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { z, ZodError } from "zod";
 import UserResource, { UserResourceType } from "../resource/userResource";
 import { UploadService } from "./uploadService";
+import { DrizzlePaginator } from "@skmirajbn/drizzle-paginator";
 
 class UserService {
   static async getUsers() {
@@ -88,6 +89,43 @@ class UserService {
     });
 
     return true;
+  }
+
+  /**
+   * Get all users with pagination for admin panel
+   */
+  static async getAllUsersForAdmin({ perPage = 10, page = 1, sortColumn = "id", sortOrder = "desc" }: PaginatedProps) {
+    const query = db.select().from(usersTable);
+    
+    // Create paginator with the query
+    const paginator = new DrizzlePaginator(db, query).page(page);
+    
+    // Set ordering
+    if (sortOrder === "desc") {
+      paginator.orderBy(sortColumn, "desc");
+    } else {
+      paginator.orderBy(sortColumn, "asc");
+    }
+    
+    return paginator.paginate(perPage);
+  }
+
+  /**
+   * Update user status (block/unblock)
+   * We will add an is_active field to the user table
+   */
+  static async updateUserStatus(userId: number, isActive: boolean): Promise<void> {
+    try {
+      await db
+        .update(usersTable)
+        .set({ 
+          is_active: isActive 
+        })
+        .where(eq(usersTable.id, userId));
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      throw new Error("Failed to update user status.");
+    }
   }
 
   static async deleteUser(userId: number): Promise<void> {

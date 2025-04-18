@@ -15,6 +15,7 @@ export const usersTable = pgTable("users", {
     .references(() => rolesTable.id),
   emailVerified: date(),
   hasPaidForAgents: boolean().default(false).notNull(),
+  is_active: boolean().default(true).notNull(),
   created_at: varchar({ length: 255 }).notNull().default("CURRENT_TIMESTAMP"),
   updated_at: varchar({ length: 255 }).notNull().default("CURRENT_TIMESTAMP"),
 });
