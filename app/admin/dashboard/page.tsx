@@ -2,16 +2,18 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { signOut } from "@/auth";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import * as AdminAuthController from "@/server/controllers/auth/adminAuthController";
+import { LogOut } from "lucide-react";
 
 export default function AdminDashboard() {
   const { data: session } = useSession();
   const { isAdmin, isLoading } = useIsAdmin();
   const [pageLoading, setPageLoading] = useState(true);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   useEffect(() => {
     if (session) {
@@ -19,9 +21,16 @@ export default function AdminDashboard() {
     }
   }, [session]);
 
-  const handleSignOut = () => {
-    toast.info("Signing out...");
-    signOut({ redirectTo: "/" });
+  const handleSignOut = async () => {
+    try {
+      setIsSigningOut(true);
+      toast.info("Signing out...");
+      await AdminAuthController.adminLogout();
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast.error("Failed to sign out");
+      setIsSigningOut(false);
+    }
   };
 
   if (pageLoading || isLoading) {
@@ -45,8 +54,13 @@ export default function AdminDashboard() {
               variant="destructive"
               className="w-full" 
               onClick={handleSignOut}
+              disabled={isSigningOut}
             >
-              Sign Out
+              {isSigningOut ? "Signing Out..." : (
+                <>
+                  <LogOut className="mr-2 h-4 w-4" /> Sign Out
+                </>
+              )}
             </Button>
           </CardContent>
         </Card>
@@ -58,8 +72,16 @@ export default function AdminDashboard() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-        <Button variant="destructive" onClick={handleSignOut}>
-          Sign Out
+        <Button 
+          variant="destructive" 
+          onClick={handleSignOut}
+          disabled={isSigningOut}
+        >
+          {isSigningOut ? "Signing Out..." : (
+            <>
+              <LogOut className="mr-2 h-4 w-4" /> Sign Out
+            </>
+          )}
         </Button>
       </div>
 

@@ -1,9 +1,9 @@
 import { db } from "@/db/db";
 import { adminCredentialsTable, usersTable } from "@/db/schema";
-import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
-import UserService from "./userService";
+import { eq } from "drizzle-orm";
 import UserResource, { UserResourceType } from "../resource/userResource";
+import UserService from "./userService";
 
 class AdminService {
   static async findAdminByUsername(username: string) {
@@ -19,13 +19,16 @@ class AdminService {
 
   static async validateAdminCredentials(username: string, password: string): Promise<UserResourceType | null> {
     const adminCredential = await this.findAdminByUsername(username);
-    
+    console.log("username is", username);
+    console.log("adminCredential is", adminCredential);
+
     if (!adminCredential) {
       return null;
     }
 
     const isPasswordValid = await bcrypt.compare(password, adminCredential.password);
-    
+    console.log("isPasswordValid is", isPasswordValid);
+
     if (!isPasswordValid) {
       return null;
     }
@@ -46,13 +49,16 @@ class AdminService {
 
       return await db.transaction(async (tx) => {
         // Create user with admin role (roleId 1 for admin)
-        const user = await tx.insert(usersTable).values({
-          customer_id: UserService.generateCustomerId(),
-          publicKey: `admin_${username}`, // Special prefix for admin users
-          name: name,
-          email: email,
-          roleId: 1, // Assuming 1 is for admin role
-        }).returning();
+        const user = await tx
+          .insert(usersTable)
+          .values({
+            customer_id: UserService.generateCustomerId(),
+            publicKey: `admin_${username}`, // Special prefix for admin users
+            name: name,
+            email: email,
+            roleId: 1, // Assuming 1 is for admin role
+          })
+          .returning();
 
         if (!user || user.length === 0) {
           throw new Error("Failed to create admin user");
@@ -62,7 +68,7 @@ class AdminService {
         await tx.insert(adminCredentialsTable).values({
           userId: user[0].id,
           username: username,
-          password: hashedPassword
+          password: hashedPassword,
         });
 
         return true;
@@ -82,4 +88,4 @@ class AdminService {
   }
 }
 
-export default AdminService; 
+export default AdminService;

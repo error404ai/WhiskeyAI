@@ -1,7 +1,8 @@
 "use server";
-import { signIn } from "../../../auth";
+import { signIn, signOut } from "../../../auth";
 import { z } from "zod";
 import { adminLoginSchema } from "@/server/zodSchema/adminLoginSchema";
+import { redirect } from "next/navigation";
 
 export const adminLogin = async (formData: z.infer<typeof adminLoginSchema>): Promise<{ success: boolean; error?: string }> => {
   try {
@@ -39,4 +40,9 @@ export const adminLogin = async (formData: z.infer<typeof adminLoginSchema>): Pr
       error: "An unexpected error occurred" 
     };
   }
+};
+
+export const adminLogout = async (): Promise<void> => {
+  await signOut();
+  redirect("/admin/login");
 }; 
