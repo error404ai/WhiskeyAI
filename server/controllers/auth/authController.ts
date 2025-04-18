@@ -4,7 +4,7 @@ import { signIn, signOut } from "../../../auth";
 
 export const login = async ({ publicKey, signature, message }: { publicKey: string; signature: string; message: string }): Promise<boolean | string> => {
   try {
-    await signIn("credentials", {
+    await signIn("wallet-login", {
       redirect: false,
       publicKey,
       signature,
