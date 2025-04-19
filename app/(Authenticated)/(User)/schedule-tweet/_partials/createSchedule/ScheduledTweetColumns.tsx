@@ -204,7 +204,7 @@ export const getScheduledTweetColumns = (queryKey: string, onCancel?: (id: numbe
       header: ({ column }) => <DataTableColumnHeader column={column} title="Scheduled At" />,
       size: 80,
       enableSorting: false,
-      cell: ({ row }) => <DateTime date={row.original.scheduledTweets?.scheduledAt} variant="twoLine" showRelative={false} />,
+      cell: ({ row }) => <DateTime date={row.original.scheduledTweets?.scheduledAt} relative={false} />,
     },
     {
       accessorKey: "scheduledTweets.processedAt",
@@ -214,7 +214,7 @@ export const getScheduledTweetColumns = (queryKey: string, onCancel?: (id: numbe
       cell: ({ row }) => {
         const date = row.original.scheduledTweets?.processedAt;
         if (!date) return <span className="text-muted-foreground text-xs">Not processed</span>;
-        return <DateTime date={date} variant="twoLine" showRelative={false} />;
+        return <DateTime date={date} relative={false} />;
       },
     },
     {
