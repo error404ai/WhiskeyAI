@@ -7,3 +7,4 @@ export * from "./usersTable";
 export * from "./triggerLogsTable";
 export * from "./scheduledTweetsTable";
 export * from "./adminCredentialsTable";
+export * from "./settings";
