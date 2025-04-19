@@ -1,10 +1,8 @@
 import { db } from "@/db/db";
 import AdminService from "@/server/services/adminService";
-import { config } from "dotenv";
+
 import readline from "readline";
 
-// Load environment variables from .env file
-config();
 
 const rl = readline.createInterface({
   input: process.stdin,
