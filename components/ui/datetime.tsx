@@ -1,86 +1,102 @@
 "use client";
 
 import React from "react";
-import { format, formatDistanceToNow } from "date-fns";
+import { format, formatDistance, Locale } from "date-fns";
+import { enUS } from "date-fns/locale";
 import { 
   Tooltip, 
   TooltipContent, 
   TooltipProvider, 
   TooltipTrigger 
-} from "./tooltip";
-import { Calendar, Clock } from "lucide-react";
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-export interface DateTimeProps {
-  date: Date | string | number | null;
-  format?: string;
-  showRelative?: boolean;
+type DateTimeProps = {
+  /**
+   * The date to format (string, Date object, or timestamp)
+   */
+  date: string | Date | number | null | undefined;
+  
+  /**
+   * Format to display the date
+   * @default "PPP" (e.g., "April 29, 2023")
+   */
+  formatStr?: string;
+  
+  /**
+   * Whether to show relative time (e.g., "2 hours ago")
+   * @default false
+   */
+  relative?: boolean;
+  
+  /**
+   * Whether to show the exact time in a tooltip on hover
+   * @default true
+   */
+  showTooltip?: boolean;
+  
+  /**
+   * Locale for formatting
+   * @default enUS
+   */
+  locale?: Locale;
+  
+  /**
+   * Additional CSS classes
+   */
   className?: string;
-  emptyText?: string;
-  variant?: "default" | "twoLine";
-}
+
+  /**
+   * Optional tooltip text override
+   */
+  tooltipText?: string;
+};
 
 export function DateTime({
   date,
-  format: formatString = "MMM dd, yyyy hh:mm a",
-  showRelative = true,
-  className = "",
-  emptyText = "Not available",
-  variant = "default",
+  formatStr = "PPP",
+  relative = false,
+  showTooltip = true,
+  locale = enUS,
+  className,
+  tooltipText,
 }: DateTimeProps) {
-  if (!date) return <span className="text-muted-foreground text-sm">{emptyText}</span>;
+  if (!date) return <span className={cn("text-muted-foreground", className)}>No date</span>;
 
-  // Convert to Date object if needed
+  // Convert to Date object if string or number
   const dateObj = typeof date === "string" || typeof date === "number" ? new Date(date) : date;
   
-  // Format the date in the specified format
-  const formattedDate = format(dateObj, formatString);
+  // Format the date according to the format string
+  const formattedDate = relative 
+    ? formatDistance(dateObj, new Date(), { addSuffix: true, locale }) 
+    : format(dateObj, formatStr, { locale });
   
-  // For two-line variant, split date and time - using 12-hour format with AM/PM
-  const dateOnly = format(dateObj, "MMM dd, yyyy");
-  const timeOnly = format(dateObj, "hh:mm a"); // 12-hour format with AM/PM
-  
-  // Get relative time (e.g., "2 hours ago", "5 days ago")
-  const relativeTime = formatDistanceToNow(dateObj, { addSuffix: true });
+  // Full date-time for tooltip
+  const fullDateTime = tooltipText || format(dateObj, "PPpp", { locale });
 
-  if (variant === "twoLine") {
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className={cn("flex flex-col space-y-0.5 rounded-md py-1", className)}>
-              <div className="flex items-center gap-1.5 text-sm font-medium">
-                <Calendar className="h-3.5 w-3.5 text-primary/70" />
-                <span>{dateOnly}</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Clock className="h-3.5 w-3.5 text-primary/60" />
-                <span>{timeOnly}</span>
-              </div>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent side="right">
-            <p className="text-sm font-medium">{showRelative ? relativeTime : formattedDate}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
+  // If tooltip is disabled, just return the formatted date
+  if (!showTooltip) {
+    return <span className={className}>{formattedDate}</span>;
   }
 
-  if (showRelative) {
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className={cn("text-sm", className)}>{relativeTime}</span>
-          </TooltipTrigger>
-          <TooltipContent side="right">
-            <p className="text-sm font-medium">{formattedDate}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
-  }
+  // Return date with tooltip
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className={className}>{formattedDate}</span>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{fullDateTime}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
 
-  return <span className={cn("text-sm", className)}>{formattedDate}</span>;
+/**
+ * RelativeTime component for showing times like "2 hours ago"
+ */
+export function RelativeTime(props: Omit<DateTimeProps, 'relative'>) {
+  return <DateTime {...props} relative={true} />;
 } 
