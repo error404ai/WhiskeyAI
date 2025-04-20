@@ -7,28 +7,17 @@ import { Button } from "@/components/ui/button";
 import { DateTime } from "@/components/ui/datetime";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ActiveBadge, BlockedBadge } from "@/components/ui/status-badge";
-import { Role } from "@/db/schema";
+import { Role, UserType } from "@/db/schema";
 import * as UserManagementController from "@/server/controllers/admin/UserManagementController";
 import { ColumnDef } from "@tanstack/react-table";
 import { KeyIcon, ShieldIcon, Star, Trash2, UserCheck, UserIcon, UserX } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
-type User = {
-  id: number;
-  customer_id: string;
-  name: string | null;
-  email: string | null;
-  avatar: string | null;
-  is_active: boolean;
-  has_unlimited_access: boolean;
-  created_at: string;
-  updated_at: string;
-};
 
 const UserManagementPage = () => {
   const tableRef = useRef<DataTableRef>(null);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const refreshTable = () => {
@@ -91,13 +80,13 @@ const UserManagementPage = () => {
     }
   };
 
-  const confirmDelete = (user: User) => {
+  const confirmDelete = (user: UserType) => {
     setSelectedUser(user);
     setShowDeleteDialog(true);
   };
 
   const columns: ColumnDef<{
-    users: User;
+    users: UserType;
     roles: Role;
   }>[] = [
     {
@@ -166,7 +155,7 @@ const UserManagementPage = () => {
     },
     {
       accessorKey: "users.has_unlimited_access",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Unlimited Access" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Access Type" />,
       cell: ({ row }) => {
         const hasUnlimitedAccess = row.original.users.has_unlimited_access === true;
         return (
@@ -191,8 +180,8 @@ const UserManagementPage = () => {
       accessorKey: "users.created_at",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Registered On" />,
       cell: ({ row }) => {
-        const date = row.original.users.created_at;
-        <DateTime date={date} />;
+        const date = row.original.users.createdAt;
+        return <DateTime date={date} />;
       },
       enableSorting: false,
     },
