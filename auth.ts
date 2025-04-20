@@ -120,6 +120,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           throw new Error("Failed to login");
         }
 
+        // Check if the user is blocked
+        if (user.is_active === false) {
+          // Instead of throwing an error, return null with status code
+          // This will be handled by NextAuth and our login controller
+          return null;
+        }
+
         return user;
       },
     }),
