@@ -1,5 +1,6 @@
 'use server'
 import { AdminSettingsService } from "@/server/services/admin/AdminSettingsService";
+import AuthService from "@/server/services/auth/authService";
 import { z } from "zod";
 
 // Validation schema for SOL payment update
@@ -23,13 +24,26 @@ const telegramSettingsSchema = z.object({
   telegramBotToken: z.string().optional(),
 });
 
+// Utility function to check if user is admin
+async function checkAdminAccess() {
+  const authUser = await AuthService.getAuthUser();
+  if (!authUser || !authUser.isAdmin) {
+    throw new Error("Unauthorized access. Admin privileges required.");
+  }
+  return authUser;
+}
+
 // Controller functions
 export async function getSettings() {
+  await checkAdminAccess();
   return await AdminSettingsService.getSettings();
 }
 
 export async function updateSolPayment(amountStr: string) {
   try {
+    // Verify admin access
+    await checkAdminAccess();
+    
     // Validate input
     const { amount } = solPaymentSchema.parse({ amount: amountStr });
     const numAmount = parseFloat(amount);
@@ -40,12 +54,15 @@ export async function updateSolPayment(amountStr: string) {
     if (error instanceof z.ZodError) {
       return { success: false, error: error.errors[0].message };
     }
-    return { success: false, error: "Invalid payment amount" };
+    return { success: false, error: error instanceof Error ? error.message : "Invalid payment amount" };
   }
 }
 
 export async function updateTelegramSettings(settings: Record<string, string>) {
   try {
+    // Verify admin access
+    await checkAdminAccess();
+    
     // Validate input
     const validatedSettings = telegramSettingsSchema.parse(settings);
     
@@ -55,10 +72,17 @@ export async function updateTelegramSettings(settings: Record<string, string>) {
     if (error instanceof z.ZodError) {
       return { success: false, error: error.errors[0].message };
     }
-    return { success: false, error: "Invalid Telegram settings" };
+    return { success: false, error: error instanceof Error ? error.message : "Invalid Telegram settings" };
   }
 }
 
 export async function setTelegramAuthenticated(isAuthenticated: boolean, sessionString?: string) {
-  return await AdminSettingsService.setTelegramAuthenticated(isAuthenticated, sessionString);
+  try {
+    // Verify admin access
+    await checkAdminAccess();
+    
+    return await AdminSettingsService.setTelegramAuthenticated(isAuthenticated, sessionString);
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Authentication update failed" };
+  }
 } 
