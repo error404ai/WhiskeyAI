@@ -60,6 +60,7 @@ const AdminDashboardPage = () => {
           failedTriggers: 0,
           newUsersToday: 0,
           payingUsers: 0,
+          unlimitedUsers: 0,
           triggerSuccessRate: 0,
           userConversionRate: 0,
           userActivityRate: 0,
@@ -144,6 +145,10 @@ const AdminDashboardPage = () => {
               </>
             )}
           </div>
+          <div className="mt-2">
+            <div className="text-md font-medium">{statsLoading ? <Skeleton className="h-6 w-20" /> : stats.unlimitedUsers}</div>
+            <div className="text-muted-foreground text-xs">Users with unlimited access</div>
+          </div>
         </CardContent>
       </Card>
 
@@ -221,8 +226,8 @@ const AdminDashboardPage = () => {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Badge variant={user.hasPaidForAgents ? "success" : "outline"} className="ml-2">
-                      {user.hasPaidForAgents ? "Paid" : "Free"}
+                    <Badge variant={(user.hasPaidForAgents || user.has_unlimited_access) ? "success" : "outline"} className="ml-2">
+                      {user.has_unlimited_access ? "Unlimited" : user.hasPaidForAgents ? "Paid" : "Free"}
                     </Badge>
                     {user.is_active ? <ActiveBadge /> : <BlockedBadge />}
                     <div className="text-muted-foreground text-xs">
