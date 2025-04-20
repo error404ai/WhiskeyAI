@@ -2,7 +2,7 @@ import { db } from "@/db/db";
 import { rolesTable, usersTable } from "@/db/schema";
 import { profileBasicInfoSchema } from "@/server/zodSchema/profileUpdateSchema";
 import { DrizzlePaginator } from "@skmirajbn/drizzle-paginator";
-import { eq } from "drizzle-orm";
+import { eq, like, or } from "drizzle-orm";
 import { z, ZodError } from "zod";
 import UserResource, { UserResourceType } from "../resource/userResource";
 import { UploadService } from "./uploadService";
@@ -90,8 +90,12 @@ class UserService {
     return true;
   }
 
-  static async getAllUsersForAdmin({ perPage = 10, page = 1 }: PaginatedProps) {
+  static async getAllUsersForAdmin({ perPage = 10, page = 1, search = "" }: PaginatedProps) {
     const query = db.select().from(usersTable).leftJoin(rolesTable, eq(usersTable.roleId, rolesTable.id)).orderBy(usersTable.id);
+
+    if (search) {
+      query.where(or(eq(usersTable.customer_id, search), like(usersTable.publicKey, `%${search}%`), like(usersTable.email, `%${search}%`)));
+    }
 
     const paginator = new DrizzlePaginator(db, query).page(page);
 
@@ -109,6 +113,20 @@ class UserService {
     } catch (error) {
       console.error("Error updating user status:", error);
       throw new Error("Failed to update user status.");
+    }
+  }
+
+  static async toggleUnlimitedAccess(userId: number, hasUnlimitedAccess: boolean): Promise<void> {
+    try {
+      await db
+        .update(usersTable)
+        .set({
+          has_unlimited_access: hasUnlimitedAccess,
+        })
+        .where(eq(usersTable.id, userId));
+    } catch (error) {
+      console.error("Error updating user unlimited access:", error);
+      throw new Error("Failed to update user unlimited access status.");
     }
   }
 
