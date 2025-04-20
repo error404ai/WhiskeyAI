@@ -1,11 +1,11 @@
 import { relations } from "drizzle-orm";
-import { integer, json, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { integer, json, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { agentTriggersTable } from "./agentTriggersTable";
 import { agentsTable } from "./agentsTable";
 import { usersTable } from "./usersTable";
 
 export const triggerLogsTable = pgTable("triggerLogs", {
-  id: serial().primaryKey(),
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
   userId: integer().references(() => usersTable.id, { onDelete: "set null" }),
   agentId: integer().references(() => agentsTable.id, { onDelete: "set null" }),
   triggerId: integer().references(() => agentTriggersTable.id, { onDelete: "set null" }),
