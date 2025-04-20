@@ -1,7 +1,7 @@
 import { db } from "@/db/db";
 import { agentsTable, scheduledTweetsTable, triggerLogsTable, usersTable } from "@/db/schema";
-import { SQL, count, desc, eq, gt, sql } from "drizzle-orm";
 import { startOfDay, subMonths, subWeeks, subYears } from "date-fns";
+import { SQL, count, desc, eq, gt, sql } from "drizzle-orm";
 
 export class AdminDashboardService {
   /**
@@ -25,45 +25,28 @@ export class AdminDashboardService {
     const totalTweets = totalTweetsResult?.count || 0;
 
     // Active users (users who have created agents)
-    const [activeUsersResult] = await db
-      .select({ count: sql<number>`COUNT(DISTINCT ${agentsTable.userId})` })
-      .from(agentsTable);
+    const [activeUsersResult] = await db.select({ count: sql<number>`COUNT(DISTINCT ${agentsTable.userId})` }).from(agentsTable);
     const activeUsers = activeUsersResult?.count || 0;
 
     // Successful trigger executions
-    const [successfulTriggersResult] = await db
-      .select({ count: count() })
-      .from(triggerLogsTable)
-      .where(eq(triggerLogsTable.status, "success"));
+    const [successfulTriggersResult] = await db.select({ count: count() }).from(triggerLogsTable).where(eq(triggerLogsTable.status, "success"));
     const successfulTriggers = successfulTriggersResult?.count || 0;
 
     // Failed trigger executions
-    const [failedTriggersResult] = await db
-      .select({ count: count() })
-      .from(triggerLogsTable)
-      .where(eq(triggerLogsTable.status, "error"));
+    const [failedTriggersResult] = await db.select({ count: count() }).from(triggerLogsTable).where(eq(triggerLogsTable.status, "error"));
     const failedTriggers = failedTriggersResult?.count || 0;
 
     // New users today
     const today = startOfDay(new Date());
-    const [newUsersTodayResult] = await db
-      .select({ count: count() })
-      .from(usersTable)
-      .where(gt(usersTable.createdAt, today));
+    const [newUsersTodayResult] = await db.select({ count: count() }).from(usersTable).where(gt(usersTable.createdAt, today));
     const newUsersToday = newUsersTodayResult?.count || 0;
 
     // Paying users (only those who have paid, not including unlimited access)
-    const [payingUsersResult] = await db
-      .select({ count: count() })
-      .from(usersTable)
-      .where(eq(usersTable.hasPaidForAgents, true));
+    const [payingUsersResult] = await db.select({ count: count() }).from(usersTable).where(eq(usersTable.hasPaidForAgents, true));
     const payingUsers = payingUsersResult?.count || 0;
 
     // Unlimited access users
-    const [unlimitedUsersResult] = await db
-      .select({ count: count() })
-      .from(usersTable)
-      .where(eq(usersTable.has_unlimited_access, true));
+    const [unlimitedUsersResult] = await db.select({ count: count() }).from(usersTable).where(eq(usersTable.has_unlimited_access, true));
     const unlimitedUsers = unlimitedUsersResult?.count || 0;
 
     return {
@@ -150,7 +133,7 @@ export class AdminDashboardService {
         agentId: triggerLogsTable.agentId,
         agentName: agentsTable.name,
         userId: triggerLogsTable.userId,
-        userName: usersTable.name,
+        publicKey: usersTable.publicKey,
       })
       .from(triggerLogsTable)
       .leftJoin(agentsTable, eq(triggerLogsTable.agentId, agentsTable.id))
@@ -167,16 +150,16 @@ export class AdminDashboardService {
   /**
    * Get user registrations over time
    */
-  static async getUserRegistrationsOverTime(period: 'week' | 'month' | 'year' = 'week') {
+  static async getUserRegistrationsOverTime(period: "week" | "month" | "year" = "week") {
     const now = new Date();
     let startDate: Date;
     let intervalSql: SQL<unknown>;
 
     // Set the parameters based on the requested period
-    if (period === 'week') {
+    if (period === "week") {
       startDate = subWeeks(now, 1);
       intervalSql = sql`date_trunc('day', ${usersTable.createdAt})`;
-    } else if (period === 'month') {
+    } else if (period === "month") {
       startDate = subMonths(now, 1);
       intervalSql = sql`date_trunc('day', ${usersTable.createdAt})`;
     } else {
@@ -196,8 +179,8 @@ export class AdminDashboardService {
       .orderBy(intervalSql);
 
     // Transform the data into a format suitable for charts
-    const formattedData = registrations.map(item => ({
-      date: new Date(item.date as string).toISOString().split('T')[0], // YYYY-MM-DD format
+    const formattedData = registrations.map((item) => ({
+      date: new Date(item.date as string).toISOString().split("T")[0], // YYYY-MM-DD format
       count: Number(item.count),
     }));
 
@@ -206,4 +189,4 @@ export class AdminDashboardService {
       data: formattedData,
     };
   }
-} 
+}
