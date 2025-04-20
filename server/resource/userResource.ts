@@ -10,6 +10,7 @@ export type UserResourceType = {
   emailVerified: Date | null;
   roleId: number;
   isAdmin: boolean;
+  is_active: boolean;
 };
 
 class UserResource {
@@ -42,7 +43,8 @@ class UserResource {
       avatar: this.getAvatarUrl(),
       emailVerified: this.user.emailVerified ? new Date(this.user.emailVerified) : null,
       roleId: this.user.roleId,
-      isAdmin: this.user.roleId === 1
+      isAdmin: this.user.roleId === 1,
+      is_active: this.user.is_active
     };
   }
 }
