@@ -52,12 +52,19 @@ export class AdminDashboardService {
       .where(gt(usersTable.createdAt, today));
     const newUsersToday = newUsersTodayResult?.count || 0;
 
-    // Paying users
+    // Paying users (only those who have paid, not including unlimited access)
     const [payingUsersResult] = await db
       .select({ count: count() })
       .from(usersTable)
       .where(eq(usersTable.hasPaidForAgents, true));
     const payingUsers = payingUsersResult?.count || 0;
+
+    // Unlimited access users
+    const [unlimitedUsersResult] = await db
+      .select({ count: count() })
+      .from(usersTable)
+      .where(eq(usersTable.has_unlimited_access, true));
+    const unlimitedUsers = unlimitedUsersResult?.count || 0;
 
     return {
       success: true,
@@ -71,6 +78,7 @@ export class AdminDashboardService {
         failedTriggers,
         newUsersToday,
         payingUsers,
+        unlimitedUsers,
         triggerSuccessRate: totalTriggers > 0 ? Math.round((successfulTriggers / totalTriggers) * 100) : 0,
         userConversionRate: totalUsers > 0 ? Math.round((payingUsers / totalUsers) * 100) : 0,
         userActivityRate: totalUsers > 0 ? Math.round((activeUsers / totalUsers) * 100) : 0,
@@ -90,6 +98,7 @@ export class AdminDashboardService {
         avatar: usersTable.avatar,
         is_active: usersTable.is_active,
         hasPaidForAgents: usersTable.hasPaidForAgents,
+        has_unlimited_access: usersTable.has_unlimited_access,
         createdAt: usersTable.createdAt,
         customer_id: usersTable.customer_id,
       })
