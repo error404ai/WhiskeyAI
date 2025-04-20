@@ -1,6 +1,5 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -218,13 +217,8 @@ const AdminDashboardPage = () => {
             : recentUsersData?.data?.map((user) => (
                 <div key={user.id} className="flex items-center justify-between border-b pb-3">
                   <div className="flex items-center space-x-4">
-                    <Avatar>
-                      <AvatarImage src={user.avatar || undefined} />
-                      <AvatarFallback>{user.name ? user.name.charAt(0).toUpperCase() : user.email ? user.email.charAt(0).toUpperCase() : "U"}</AvatarFallback>
-                    </Avatar>
                     <div>
-                      <p className="text-sm font-medium">{user.name || "Anonymous"}</p>
-                      <p className="text-muted-foreground text-xs">{user.email || "No email"}</p>
+                      <p className="text-sm font-medium">{user.publicKey || "Anonymous"}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
