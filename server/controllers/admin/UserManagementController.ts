@@ -26,6 +26,26 @@ export const unblockUser = async (userId: number) => {
   }
 };
 
+export const enableUnlimitedAccess = async (userId: number) => {
+  try {
+    await UserService.toggleUnlimitedAccess(userId, true);
+    return { success: true, message: "Unlimited access enabled successfully" };
+  } catch (error) {
+    console.error("Error enabling unlimited access:", error);
+    return { success: false, message: "Failed to enable unlimited access" };
+  }
+};
+
+export const disableUnlimitedAccess = async (userId: number) => {
+  try {
+    await UserService.toggleUnlimitedAccess(userId, false);
+    return { success: true, message: "Unlimited access disabled successfully" };
+  } catch (error) {
+    console.error("Error disabling unlimited access:", error);
+    return { success: false, message: "Failed to disable unlimited access" };
+  }
+};
+
 export const deleteUser = async (userId: number) => {
   try {
     await UserService.deleteUser(userId);

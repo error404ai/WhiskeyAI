@@ -116,6 +116,20 @@ class UserService {
     }
   }
 
+  static async toggleUnlimitedAccess(userId: number, hasUnlimitedAccess: boolean): Promise<void> {
+    try {
+      await db
+        .update(usersTable)
+        .set({
+          has_unlimited_access: hasUnlimitedAccess,
+        })
+        .where(eq(usersTable.id, userId));
+    } catch (error) {
+      console.error("Error updating user unlimited access:", error);
+      throw new Error("Failed to update user unlimited access status.");
+    }
+  }
+
   static async deleteUser(userId: number): Promise<void> {
     try {
       await db.delete(usersTable).where(eq(usersTable.id, userId));
