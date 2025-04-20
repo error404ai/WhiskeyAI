@@ -90,9 +90,14 @@ const UserManagementPage = () => {
       enableSorting: false,
     },
     {
+      accessorKey: "users.publicKey",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Public Key" />,
+      enableSorting: false,
+    },
+    {
       accessorKey: "roles.name",
       header: ({ column }) => <DataTableColumnHeader column={column} title="User Type" />,
-      enableSorting: true,
+      enableSorting: false,
       cell: ({ row }) => {
         const roleName = row.original.roles?.name?.toLowerCase() || "default";
         const roleStyles: {
@@ -180,7 +185,7 @@ const UserManagementPage = () => {
         <p className="text-muted-foreground mt-1">Manage user accounts, permissions and status.</p>
       </div>
 
-      <DataTable ref={tableRef} columns={columns} serverAction={UserManagementController.getAllUsers as any} queryKey="adminUsersList" searchAble={false} />
+      <DataTable ref={tableRef} columns={columns} serverAction={UserManagementController.getAllUsers as any} queryKey="adminUsersList" searchAble={true} />
 
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>

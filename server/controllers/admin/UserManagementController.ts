@@ -2,16 +2,10 @@
 
 import UserService from "@/server/services/userService";
 
-/**
- * Get all users for admin panel
- */
-export const getAllUsers = async ({ perPage = 10, page = 1, sortColumn = "id", sortOrder = "desc" }: PaginatedProps) => {
-  return UserService.getAllUsersForAdmin({ perPage, page, sortColumn, sortOrder });
+export const getAllUsers = async ({ perPage = 10, page = 1, sortColumn = "id", sortOrder = "desc", search = "" }: PaginatedProps) => {
+  return UserService.getAllUsersForAdmin({ perPage, page, sortColumn, sortOrder, search });
 };
 
-/**
- * Block a user
- */
 export const blockUser = async (userId: number) => {
   try {
     await UserService.updateUserStatus(userId, false);
@@ -22,9 +16,6 @@ export const blockUser = async (userId: number) => {
   }
 };
 
-/**
- * Unblock a user
- */
 export const unblockUser = async (userId: number) => {
   try {
     await UserService.updateUserStatus(userId, true);
@@ -35,9 +26,6 @@ export const unblockUser = async (userId: number) => {
   }
 };
 
-/**
- * Delete a user permanently
- */
 export const deleteUser = async (userId: number) => {
   try {
     await UserService.deleteUser(userId);
@@ -46,4 +34,4 @@ export const deleteUser = async (userId: number) => {
     console.error("Error deleting user:", error);
     return { success: false, message: "Failed to delete user" };
   }
-}; 
+};
