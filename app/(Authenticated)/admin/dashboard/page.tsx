@@ -47,6 +47,8 @@ const AdminDashboardPage = () => {
     queryFn: () => DashboardController.getUserRegistrationsOverTime("week"),
   });
 
+  console.log("recentLogsData", recentLogsData);
+
   const stats =
     statsData?.success && "stats" in statsData
       ? statsData.stats
@@ -226,7 +228,7 @@ const AdminDashboardPage = () => {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Badge variant={(user.hasPaidForAgents || user.has_unlimited_access) ? "success" : "outline"} className="ml-2">
+                    <Badge variant={user.hasPaidForAgents || user.has_unlimited_access ? "success" : "outline"} className="ml-2">
                       {user.has_unlimited_access ? "Unlimited" : user.hasPaidForAgents ? "Paid" : "Free"}
                     </Badge>
                     {user.is_active ? <ActiveBadge /> : <BlockedBadge />}
@@ -376,7 +378,7 @@ const AdminDashboardPage = () => {
                           <div className={`rounded-full p-2 ${log.status === "success" ? "bg-green-100 text-green-600" : log.status === "error" ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-600"}`}>{log.status === "success" ? <UserCheck className="h-4 w-4" /> : log.status === "error" ? <AlertCircle className="h-4 w-4" /> : <Clock className="h-4 w-4" />}</div>
                           <div>
                             <p className="text-sm">
-                              <span className="font-medium">{log.userName || "Unknown user"}</span> <span className="text-muted-foreground">{log.status === "success" ? "successfully ran" : log.status === "error" ? "failed to run" : "triggered"}</span> <span className="font-medium">{log.functionName}</span>
+                              <span className="font-medium">{log.publicKey || "Unknown user"}</span> <span className="text-muted-foreground">{log.status === "success" ? "successfully ran" : log.status === "error" ? "failed to run" : "triggered"}</span> <span className="font-medium">{log.functionName}</span>
                             </p>
                             <p className="text-muted-foreground text-xs">
                               <DateTime date={log.createdAt} />
