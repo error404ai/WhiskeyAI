@@ -84,6 +84,7 @@ export class AdminDashboardService {
         has_unlimited_access: usersTable.has_unlimited_access,
         createdAt: usersTable.createdAt,
         customer_id: usersTable.customer_id,
+        publicKey: usersTable.publicKey,
       })
       .from(usersTable)
       .orderBy(desc(usersTable.createdAt))
