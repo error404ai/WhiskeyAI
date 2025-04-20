@@ -235,12 +235,16 @@ export class AgentService {
     if (!user) throw new Error("User not authenticated");
 
     const result = await db
-      .select({ hasPaidForAgents: usersTable.hasPaidForAgents })
+      .select({ 
+        hasPaidForAgents: usersTable.hasPaidForAgents,
+        hasUnlimitedAccess: usersTable.has_unlimited_access 
+      })
       .from(usersTable)
       .where(eq(usersTable.id, Number(user.id)))
       .limit(1);
 
-    return result.length > 0 && result[0].hasPaidForAgents;
+    // Return true if user has paid or has unlimited access
+    return result.length > 0 && (result[0].hasPaidForAgents || result[0].hasUnlimitedAccess);
   }
 
   static async markUserAsPaid(txSignature: string, amount: string): Promise<boolean | { error: string }> {

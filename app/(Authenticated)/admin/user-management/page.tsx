@@ -7,27 +7,17 @@ import { Button } from "@/components/ui/button";
 import { DateTime } from "@/components/ui/datetime";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ActiveBadge, BlockedBadge } from "@/components/ui/status-badge";
-import { Role } from "@/db/schema";
+import { Role, UserType } from "@/db/schema";
 import * as UserManagementController from "@/server/controllers/admin/UserManagementController";
 import { ColumnDef } from "@tanstack/react-table";
-import { ShieldIcon, Trash2, UserCheck, UserIcon, UserX } from "lucide-react";
+import { KeyIcon, ShieldIcon, Star, Trash2, UserCheck, UserIcon, UserX } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
-type User = {
-  id: number;
-  customer_id: string;
-  name: string | null;
-  email: string | null;
-  avatar: string | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-};
 
 const UserManagementPage = () => {
   const tableRef = useRef<DataTableRef>(null);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const refreshTable = () => {
@@ -56,6 +46,26 @@ const UserManagementPage = () => {
     }
   };
 
+  const handleEnableUnlimitedAccess = async (userId: number) => {
+    const result = await UserManagementController.enableUnlimitedAccess(userId);
+    if (result.success) {
+      toast.success(result.message);
+      refreshTable();
+    } else {
+      toast.error(result.message);
+    }
+  };
+
+  const handleDisableUnlimitedAccess = async (userId: number) => {
+    const result = await UserManagementController.disableUnlimitedAccess(userId);
+    if (result.success) {
+      toast.success(result.message);
+      refreshTable();
+    } else {
+      toast.error(result.message);
+    }
+  };
+
   const handleDeleteUser = async () => {
     if (!selectedUser) return;
 
@@ -70,13 +80,13 @@ const UserManagementPage = () => {
     }
   };
 
-  const confirmDelete = (user: User) => {
+  const confirmDelete = (user: UserType) => {
     setSelectedUser(user);
     setShowDeleteDialog(true);
   };
 
   const columns: ColumnDef<{
-    users: User;
+    users: UserType;
     roles: Role;
   }>[] = [
     {
@@ -90,9 +100,14 @@ const UserManagementPage = () => {
       enableSorting: false,
     },
     {
+      accessorKey: "users.publicKey",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Public Key" />,
+      enableSorting: false,
+    },
+    {
       accessorKey: "roles.name",
       header: ({ column }) => <DataTableColumnHeader column={column} title="User Type" />,
-      enableSorting: true,
+      enableSorting: false,
       cell: ({ row }) => {
         const roleName = row.original.roles?.name?.toLowerCase() || "default";
         const roleStyles: {
@@ -139,11 +154,34 @@ const UserManagementPage = () => {
       enableSorting: false,
     },
     {
+      accessorKey: "users.has_unlimited_access",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Access Type" />,
+      cell: ({ row }) => {
+        const hasUnlimitedAccess = row.original.users.has_unlimited_access === true;
+        return (
+          <div className="flex items-center">
+            {hasUnlimitedAccess ? (
+              <div className="flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-amber-800">
+                <Star className="h-4 w-4" />
+                <span className="text-sm font-medium">Unlimited</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-gray-800">
+                <KeyIcon className="h-4 w-4" />
+                <span className="text-sm font-medium">Standard</span>
+              </div>
+            )}
+          </div>
+        );
+      },
+      enableSorting: false,
+    },
+    {
       accessorKey: "users.created_at",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Registered On" />,
       cell: ({ row }) => {
-        const date = row.original.users.created_at;
-        <DateTime date={date} />;
+        const date = row.original.users.createdAt;
+        return <DateTime date={date} />;
       },
       enableSorting: false,
     },
@@ -152,6 +190,7 @@ const UserManagementPage = () => {
       cell: ({ row }) => {
         const original = row.original;
         const isActive = original.users.is_active !== false; // Default to true if undefined
+        const hasUnlimitedAccess = original.users.has_unlimited_access === true;
 
         const actions: ActionItem[] = [
           {
@@ -159,6 +198,12 @@ const UserManagementPage = () => {
             onClick: () => (isActive ? handleBlockUser(original.users.id) : handleUnblockUser(original.users.id)),
             icon: isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />,
             variant: isActive ? "destructive" : "default",
+          },
+          {
+            label: hasUnlimitedAccess ? "Disable Unlimited Access" : "Enable Unlimited Access",
+            onClick: () => (hasUnlimitedAccess ? handleDisableUnlimitedAccess(original.users.id) : handleEnableUnlimitedAccess(original.users.id)),
+            icon: <Star className="h-4 w-4" />,
+            variant: hasUnlimitedAccess ? "default" : "secondary",
           },
           {
             label: "Delete Permanently",
@@ -180,7 +225,7 @@ const UserManagementPage = () => {
         <p className="text-muted-foreground mt-1">Manage user accounts, permissions and status.</p>
       </div>
 
-      <DataTable ref={tableRef} columns={columns} serverAction={UserManagementController.getAllUsers as any} queryKey="adminUsersList" searchAble={false} />
+      <DataTable ref={tableRef} columns={columns} serverAction={UserManagementController.getAllUsers as any} queryKey="adminUsersList" searchAble={true} />
 
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
