@@ -1,6 +1,6 @@
-import { db } from "@/db/db";
-import { agentPlatformsTable, agentTriggersTable } from "@/db/schema";
-import { AgentTrigger } from "@/db/schema/agentTriggersTable";
+import { db } from "@/server/db/db";
+import { agentPlatformsTable, agentTriggersTable } from "@/server/db/schema";
+import { AgentTrigger } from "@/server/db/schema/agentTriggersTable";
 import { agentTriggerCreateSchema } from "@/server/zodSchema/agentTriggerCreateSchema";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
