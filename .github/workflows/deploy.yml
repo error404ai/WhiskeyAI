@@ -100,7 +100,7 @@ jobs:
              docker pull ghcr.io/${{ github.repository_owner }}/whiskeyai/whiskey:latest && \
              cd /var/www/WhiskeyAI && \
              git pull origin production && \
-             docker-compose down && \
+             docker-compose down --remove-orphans && \
              TAG=latest docker-compose -f docker-compose-prod.yml up -d && \
              docker system prune -a --volumes=false --force && \
              rm -f /root/.docker/config.json"
