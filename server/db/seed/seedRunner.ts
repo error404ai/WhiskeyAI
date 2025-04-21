@@ -1,11 +1,9 @@
-import { freshDb } from "./freshDb";
 import { Seeder } from "./SeederInterface";
 import { FunctionsSeeder } from "./seeders/functionSeeder";
 import { RoleSeeder } from "./seeders/roleSeeder";
 import { UserSeeder } from "./seeders/userSeeder";
 
 const args = process.argv.slice(2);
-const isFresh = args.includes("--fresh");
 
 const seedersMap: Record<string, new () => Seeder> = {
   roles: RoleSeeder,
@@ -35,11 +33,6 @@ if (specifiedSeeders.length > 0) {
 async function runSeeders() {
   if (!process.env.DATABASE_URL) {
     throw new Error("DATABASE_URL is not set");
-  }
-
-  if (isFresh) {
-    console.log("Refreshing database...");
-    await freshDb();
   }
 
   console.log(`Running ${seedersToRun.length} seeder(s)...`);
