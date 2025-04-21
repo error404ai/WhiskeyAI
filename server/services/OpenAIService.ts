@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Agent } from "@/db/schema";
-import { AgentTrigger } from "@/db/schema/agentTriggersTable";
+import { Agent } from "@/server/db/schema";
+import { AgentTrigger } from "@/server/db/schema/agentTriggersTable";
 import { OpenAI } from "openai";
 import { TriggerLogService } from "./agent/TriggerLogService";
 import { FunctionCallService } from "./FunctionCallService";

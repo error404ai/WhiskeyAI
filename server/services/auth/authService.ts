@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
-import { db } from "@/db/db";
-import { usersTable, UserType } from "@/db/schema/usersTable";
+import { db } from "@/server/db/db";
+import { usersTable, UserType } from "@/server/db/schema/usersTable";
 import { eq } from "drizzle-orm";
 import { JwtPayload, sign, verify } from "jsonwebtoken";
 import { headers } from "next/headers";
