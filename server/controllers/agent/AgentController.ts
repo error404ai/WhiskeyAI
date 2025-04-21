@@ -1,6 +1,6 @@
 "use server";
 
-import { AgentPlatformList } from "@/db/schema";
+import { AgentPlatformList } from "@/server/db/schema";
 import { AgentService, ValidationResult } from "@/server/services/agent/AgentService";
 import { agentCreateSchema } from "@/server/zodSchema/agentCreateSchema";
 import { agentInformationSchema } from "@/server/zodSchema/agentInformationSchema";
