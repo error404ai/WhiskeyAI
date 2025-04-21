@@ -4,13 +4,13 @@ import { z } from "zod";
 
 export const settingsTable = pgTable("settings", {
   id: varchar("id", { length: 255 }).primaryKey(),
-  solPaymentAmount: decimal("sol_payment_amount", { precision: 10, scale: 5 }).notNull().default("0.1"),
-  telegramSessionString: text("telegram_session_string"),
-  telegramBotToken: text("telegram_bot_token"),
-  telegramApiId: varchar("telegram_api_id", { length: 255 }),
-  telegramApiHash: varchar("telegram_api_hash", { length: 255 }),
-  telegramPhoneNumber: varchar("telegram_phone_number", { length: 50 }),
-  isTelegramAuthenticated: boolean("is_telegram_authenticated").default(false),
+  solPaymentAmount: decimal({ precision: 10, scale: 5 }).notNull().default("0.1"),
+  telegramSessionString: text(),
+  telegramBotToken: text(),
+  telegramApiId: varchar({ length: 255 }),
+  telegramApiHash: varchar({ length: 255 }),
+  telegramPhoneNumber: varchar({ length: 50 }),
+  isTelegramAuthenticated: boolean().default(false),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
