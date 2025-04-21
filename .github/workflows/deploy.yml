@@ -84,24 +84,16 @@ jobs:
           ssh -v -o StrictHostKeyChecking=no root@45.90.220.95 exit
 
       # Step 10: Deploy to VPS
+      # Step 10: Deploy to VPS
       - name: Deploy to VPS
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ssh -o StrictHostKeyChecking=no root@45.90.220.95 << 'EOF'
-            set -e
-            # Log in to GitHub Container Registry
-           echo "$GITHUB_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            # Pull the latest Docker image (use the semver tag)
-            docker pull ghcr.io/${{ github.repository }}/ext-web:${{ github.ref_name }}
-            # Navigate to project directory
-            cd /var/www/WhiskeyAI
-            # Pull the latest docker-compose file
-            git pull origin production
-            # Stop and remove existing containers
-            docker-compose down
-            # Start services with the new image
-            docker-compose -f docker-compose-prod.yml up -d
-            # Clean up unused images and containers
-            docker system prune -a --volumes=false --force
-          EOF
+          ssh -T -o StrictHostKeyChecking=no root@45.90.220.95 \
+            "echo '$GITHUB_TOKEN' | docker login ghcr.io -u ${{ github.actor }} --password-stdin && \
+             docker pull ghcr.io/${{ github.repository }}/thewhiskey:${{ github.ref_name }} && \
+             cd /var/www/WhiskeyAI && \
+             git pull origin production && \
+             docker-compose down && \
+             TAG=${{ github.ref_name }} docker-compose -f docker-compose-prod.yml up -d && \
+             docker system prune -a --volumes=false --force"
