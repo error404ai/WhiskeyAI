@@ -1,4 +1,4 @@
-import { AgentPlatform } from "@/db/schema";
+import { AgentPlatform } from "@/server/db/schema";
 import { TwitterApi } from "twitter-api-v2";
 import { AgentPlatformService } from "./agent/AgentPlatformService";
 import { AgentService } from "./agent/AgentService";

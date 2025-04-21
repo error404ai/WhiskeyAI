@@ -1,5 +1,5 @@
-import { db } from "@/db/db";
-import { AgentPlatform, agentPlatformsTable, Credentials } from "@/db/schema";
+import { db } from "@/server/db/db";
+import { AgentPlatform, agentPlatformsTable, Credentials } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import AuthService from "../auth/authService";
 import { AgentService } from "./AgentService";

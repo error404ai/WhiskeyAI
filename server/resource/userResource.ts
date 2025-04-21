@@ -1,4 +1,4 @@
-import { UserType } from "@/db/schema/usersTable";
+import { UserType } from "@/server/db/schema/usersTable";
 import { UploadService } from "../services/uploadService";
 
 export type UserResourceType = {
@@ -44,7 +44,7 @@ class UserResource {
       emailVerified: this.user.emailVerified ? new Date(this.user.emailVerified) : null,
       roleId: this.user.roleId,
       isAdmin: this.user.roleId === 1,
-      is_active: this.user.is_active
+      is_active: this.user.is_active,
     };
   }
 }

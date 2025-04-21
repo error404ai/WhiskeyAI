@@ -1,5 +1,5 @@
-import { db } from "@/db/db";
-import { rolesTable, usersTable } from "@/db/schema";
+import { db } from "@/server/db/db";
+import { rolesTable, usersTable } from "@/server/db/schema";
 import { profileBasicInfoSchema } from "@/server/zodSchema/profileUpdateSchema";
 import { DrizzlePaginator } from "@skmirajbn/drizzle-paginator";
 import { eq, like, or } from "drizzle-orm";
