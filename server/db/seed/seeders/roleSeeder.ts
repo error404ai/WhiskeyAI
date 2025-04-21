@@ -1,4 +1,4 @@
-import { db } from "@/db/db";
+import { db } from "@/server/db/db";
 import { rolesTable } from "../../schema/rolesTable";
 import { Seeder } from "../SeederInterface";
 

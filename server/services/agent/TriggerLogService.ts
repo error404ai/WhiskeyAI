@@ -1,6 +1,6 @@
-import { db } from "@/db/db";
-import { agentsTable } from "@/db/schema";
-import { NewTriggerLog, TriggerLog, triggerLogsTable } from "@/db/schema/triggerLogsTable";
+import { db } from "@/server/db/db";
+import { agentsTable } from "@/server/db/schema";
+import { NewTriggerLog, TriggerLog, triggerLogsTable } from "@/server/db/schema/triggerLogsTable";
 import { DrizzlePaginator, PaginationResult } from "@skmirajbn/drizzle-paginator";
 import { desc, eq } from "drizzle-orm";
 import AuthService from "../auth/authService";
