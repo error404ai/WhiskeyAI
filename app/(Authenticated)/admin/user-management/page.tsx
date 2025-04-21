@@ -7,13 +7,12 @@ import { Button } from "@/components/ui/button";
 import { DateTime } from "@/components/ui/datetime";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ActiveBadge, BlockedBadge } from "@/components/ui/status-badge";
-import { Role, UserType } from "@/db/schema";
 import * as UserManagementController from "@/server/controllers/admin/UserManagementController";
+import { Role, UserType } from "@/server/db/schema";
 import { ColumnDef } from "@tanstack/react-table";
 import { KeyIcon, ShieldIcon, Star, Trash2, UserCheck, UserIcon, UserX } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-
 
 const UserManagementPage = () => {
   const tableRef = useRef<DataTableRef>(null);
