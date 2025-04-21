@@ -1,5 +1,5 @@
-import { db } from "@/db/db";
-import { NewScheduledTweet, ScheduledTweet, agentPlatformsTable, agentsTable, scheduledTweetsTable } from "@/db/schema";
+import { db } from "@/server/db/db";
+import { NewScheduledTweet, ScheduledTweet, agentPlatformsTable, agentsTable, scheduledTweetsTable } from "@/server/db/schema";
 import { DrizzlePaginator, PaginationResult } from "@skmirajbn/drizzle-paginator";
 import { and, desc, eq, lte, sql } from "drizzle-orm";
 import { PaginatedProps } from "../controllers/ScheduledTweetController";

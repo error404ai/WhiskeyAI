@@ -1,5 +1,5 @@
-import { db } from "@/db/db";
-import { Function, functionsTable } from "@/db/schema/functionsTable";
+import { db } from "@/server/db/db";
+import { Function, functionsTable } from "@/server/db/schema/functionsTable";
 import { functionEnum } from "@/server/enum/functionEnum";
 import { Seeder } from "../SeederInterface";
 

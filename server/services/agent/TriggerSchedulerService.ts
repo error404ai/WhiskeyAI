@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { db } from "@/db/db";
-import { Agent, type Function, agentPlatformsTable, agentTriggersTable, functionsTable } from "@/db/schema";
-import { AgentTrigger } from "@/db/schema/agentTriggersTable";
+import { db } from "@/server/db/db";
+import { Agent, type Function, agentPlatformsTable, agentTriggersTable, functionsTable } from "@/server/db/schema";
+import { AgentTrigger } from "@/server/db/schema/agentTriggersTable";
 import TwitterService from "@/server/services/TwitterService";
 import { and, eq, lte, ne } from "drizzle-orm";
 import { OpenAIService } from "../OpenAIService";
