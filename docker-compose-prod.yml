@@ -1,6 +1,6 @@
 services:
   whiskey:
-    container_name: whiskey-next
+    container_name: whiskey
     image: ghcr.io/error404ai/whiskeyai/whiskey:${TAG}
     env_file:
       - .env
