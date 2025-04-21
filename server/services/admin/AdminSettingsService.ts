@@ -1,6 +1,6 @@
 import { db } from "@/server/db/db";
-import { appSettingsTable } from "@/server/db/schema";
-import { InsertAppSettings } from "@/server/db/schema/settings";
+import { settingsTable } from "@/server/db/schema";
+import { InsertSettings } from "@/server/db/schema/settings";
 import { eq } from "drizzle-orm";
 
 const SETTINGS_ID = "default";
@@ -22,7 +22,7 @@ export class AdminSettingsService {
    */
   static async getSettings() {
     try {
-      const settings = await db.select().from(appSettingsTable).where(eq(appSettingsTable.id, SETTINGS_ID)).limit(1);
+      const settings = await db.select().from(settingsTable).where(eq(settingsTable.id, SETTINGS_ID)).limit(1);
 
       // If settings don't exist, create default settings
       if (settings.length === 0) {
@@ -32,7 +32,7 @@ export class AdminSettingsService {
           isTelegramAuthenticated: false,
         };
 
-        await db.insert(appSettingsTable).values(defaultSettings);
+        await db.insert(settingsTable).values(defaultSettings);
         return { success: true, settings: defaultSettings };
       }
 
@@ -53,12 +53,12 @@ export class AdminSettingsService {
       }
 
       await db
-        .update(appSettingsTable)
+        .update(settingsTable)
         .set({
           solPaymentAmount: amount.toString(), // Convert to string for db storage
           updatedAt: new Date(),
         })
-        .where(eq(appSettingsTable.id, SETTINGS_ID));
+        .where(eq(settingsTable.id, SETTINGS_ID));
 
       return { success: true };
     } catch (error) {
@@ -70,7 +70,7 @@ export class AdminSettingsService {
   /**
    * Update Telegram settings
    */
-  static async updateTelegramSettings(telegramSettings: Partial<InsertAppSettings>) {
+  static async updateTelegramSettings(telegramSettings: Partial<InsertSettings>) {
     try {
       // Extract only the Telegram-related properties to avoid type conflicts
       const { telegramApiId, telegramApiHash, telegramPhoneNumber, telegramBotToken, telegramSessionString, isTelegramAuthenticated } = telegramSettings;
@@ -81,16 +81,16 @@ export class AdminSettingsService {
       };
 
       // Only add properties that are defined
-      if (telegramApiId !== undefined) validSettings.telegramApiId = telegramApiId;
-      if (telegramApiHash !== undefined) validSettings.telegramApiHash = telegramApiHash;
-      if (telegramPhoneNumber !== undefined) validSettings.telegramPhoneNumber = telegramPhoneNumber;
-      if (telegramBotToken !== undefined) validSettings.telegramBotToken = telegramBotToken;
-      if (telegramSessionString !== undefined) validSettings.telegramSessionString = telegramSessionString;
-      if (isTelegramAuthenticated !== undefined && isTelegramAuthenticated !== null) {
+      if (telegramApiId) validSettings.telegramApiId = telegramApiId;
+      if (telegramApiHash) validSettings.telegramApiHash = telegramApiHash;
+      if (telegramPhoneNumber) validSettings.telegramPhoneNumber = telegramPhoneNumber;
+      if (telegramBotToken) validSettings.telegramBotToken = telegramBotToken;
+      if (telegramSessionString) validSettings.telegramSessionString = telegramSessionString;
+      if (isTelegramAuthenticated && isTelegramAuthenticated !== null) {
         validSettings.isTelegramAuthenticated = isTelegramAuthenticated;
       }
 
-      await db.update(appSettingsTable).set(validSettings).where(eq(appSettingsTable.id, SETTINGS_ID));
+      await db.update(settingsTable).set(validSettings).where(eq(settingsTable.id, SETTINGS_ID));
 
       return { success: true };
     } catch (error) {
@@ -117,7 +117,7 @@ export class AdminSettingsService {
         updateData.telegramSessionString = sessionString;
       }
 
-      await db.update(appSettingsTable).set(updateData).where(eq(appSettingsTable.id, SETTINGS_ID));
+      await db.update(settingsTable).set(updateData).where(eq(settingsTable.id, SETTINGS_ID));
 
       return { success: true };
     } catch (error) {
