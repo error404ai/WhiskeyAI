@@ -2,8 +2,8 @@ name: Docker CI & CD
 
 on:
   push:
-    tags:
-      - "*"
+    branches:
+      - production
 
 permissions:
   packages: write
