@@ -95,7 +95,7 @@ jobs:
         run: |
           ssh -T -o StrictHostKeyChecking=no root@45.90.220.95 \
             "echo '$GITHUB_TOKEN' | docker login ghcr.io -u ${{ github.actor }} --password-stdin && \
-             docker pull ghcr.io/error404ai/whiskeyai/whiskey:latest && \
+             docker pull ghcr.io/error404ai/whiskeyai/whiskey:sha-ebf4991 && \
              cd /var/www/WhiskeyAI && \
              git pull origin production && \
              docker-compose down && \
