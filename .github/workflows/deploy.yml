@@ -59,7 +59,12 @@ jobs:
             type=semver,pattern={{major}}
             type=sha
 
-      # Step 7: Build and push Docker image
+      # Step 7: Debug tags
+      - name: Debug generated tags
+        run: |
+          echo "Generated tags: ${{ steps.meta.outputs.tags }}"
+
+      # Step 8: Build and push Docker image
       - name: Build and Push
         uses: docker/build-push-action@v3
         with:
@@ -72,29 +77,28 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
 
-      # Step 8: Set up SSH
+      # Step 9: Set up SSH
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: ${{ secrets.VPS_DEPLOY_KEY }}
 
-      # Step 9: Test SSH Connection
+      # Step 10: Test SSH Connection
       - name: Test SSH Connection
         run: |
           ssh -T -o StrictHostKeyChecking=no root@45.90.220.95 whoami
 
-      # Step 10: Deploy to VPS
+      # Step 11: Deploy to VPS
       - name: Deploy to VPS
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          IMAGE_TAG: ${{ github.ref_name }}
         run: |
           ssh -T -o StrictHostKeyChecking=no root@45.90.220.95 \
             "echo '$GITHUB_TOKEN' | docker login ghcr.io -u ${{ github.actor }} --password-stdin && \
-             docker pull ghcr.io/${{ github.repository_owner }}/whiskeyai/whiskey:${IMAGE_TAG#v} && \
+             docker pull ghcr.io/${{ github.repository_owner }}/whiskeyai/whiskey:latest && \
              cd /var/www/WhiskeyAI && \
              git pull origin production && \
              docker-compose down && \
-             TAG=${IMAGE_TAG#v} docker-compose -f docker-compose-prod.yml up -d && \
+             TAG=latest docker-compose -f docker-compose-prod.yml up -d && \
              docker system prune -a --volumes=false --force && \
              rm -f /root/.docker/config.json"
