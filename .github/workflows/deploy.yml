@@ -87,13 +87,14 @@ jobs:
       - name: Deploy to VPS
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE_TAG: ${{ github.ref_name }}
         run: |
           ssh -T -o StrictHostKeyChecking=no root@45.90.220.95 \
             "echo '$GITHUB_TOKEN' | docker login ghcr.io -u ${{ github.actor }} --password-stdin && \
-             docker pull ghcr.io/${{ github.repository_owner }}/whiskeyai/whiskey:${{ github.ref_name }} && \
+             docker pull ghcr.io/${{ github.repository_owner }}/whiskeyai/whiskey:${IMAGE_TAG#v} && \
              cd /var/www/WhiskeyAI && \
              git pull origin production && \
              docker-compose down && \
-             TAG=${{ github.ref_name }} docker-compose -f docker-compose-prod.yml up -d && \
+             TAG=${IMAGE_TAG#v} docker-compose -f docker-compose-prod.yml up -d && \
              docker system prune -a --volumes=false --force && \
              rm -f /root/.docker/config.json"
