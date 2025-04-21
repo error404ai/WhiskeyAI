@@ -2,7 +2,7 @@ import { boolean, decimal, pgTable, text, timestamp, varchar } from "drizzle-orm
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const appSettingsTable = pgTable("app_settings", {
+export const settingsTable = pgTable("settings", {
   id: varchar("id", { length: 255 }).primaryKey(),
   solPaymentAmount: decimal("sol_payment_amount", { precision: 10, scale: 5 }).notNull().default("0.1"),
   telegramSessionString: text("telegram_session_string"),
@@ -15,7 +15,7 @@ export const appSettingsTable = pgTable("app_settings", {
 });
 
 // Zod schemas for validation
-export const insertAppSettingsSchema = createInsertSchema(appSettingsTable, {
+export const insertSettingsSchema = createInsertSchema(settingsTable, {
   solPaymentAmount: z.number().min(0.001).max(10),
   telegramApiId: z.string().optional(),
   telegramApiHash: z.string().optional(),
@@ -24,7 +24,7 @@ export const insertAppSettingsSchema = createInsertSchema(appSettingsTable, {
   telegramSessionString: z.string().optional(),
 });
 
-export const selectAppSettingsSchema = createSelectSchema(appSettingsTable);
+export const selectSettingsSchema = createSelectSchema(settingsTable);
 
-export type AppSettings = z.infer<typeof selectAppSettingsSchema>;
-export type InsertAppSettings = z.infer<typeof insertAppSettingsSchema>; 
+export type settings = z.infer<typeof selectSettingsSchema>;
+export type InsertSettings = z.infer<typeof selectSettingsSchema>;

@@ -7,7 +7,7 @@ export class UserSeeder implements Seeder {
   async seed(): Promise<void> {
     await db.insert(usersTable).values({
       customer_id: UserService.generateCustomerId(),
-      publicKey: "publicKey",
+      publicKey: "admin",
       roleId: 1,
     });
   }

@@ -2,9 +2,12 @@ import { relations } from "drizzle-orm";
 import { integer, pgTable, varchar } from "drizzle-orm/pg-core";
 import { usersTable } from "./usersTable";
 
-export const adminCredentialsTable = pgTable("admin_credentials", {
+export const adminCredentialsTable = pgTable("adminCredentials", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  userId: integer().notNull().references(() => usersTable.id).unique(),
+  userId: integer()
+    .notNull()
+    .references(() => usersTable.id)
+    .unique(),
   username: varchar({ length: 255 }).notNull().unique(),
   password: varchar({ length: 255 }).notNull(),
   created_at: varchar({ length: 255 }).notNull().default("CURRENT_TIMESTAMP"),
@@ -18,4 +21,4 @@ export const adminCredentialsRelations = relations(adminCredentialsTable, ({ one
     fields: [adminCredentialsTable.userId],
     references: [usersTable.id],
   }),
-})); 
+}));
