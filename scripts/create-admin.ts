@@ -1,8 +1,7 @@
-import { db } from "@/db/db";
+import { db } from "@/server/db/db";
 import AdminService from "@/server/services/adminService";
 
 import readline from "readline";
-
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -21,7 +20,7 @@ async function createAdmin() {
   try {
     console.log("Creating admin user...");
     const result = await AdminService.createAdmin(username, password, name, email);
-    
+
     if (result) {
       console.log("Admin user created successfully!");
     } else {
@@ -31,13 +30,13 @@ async function createAdmin() {
     console.error("Error creating admin user:", error);
   } finally {
     rl.close();
-    
+
     // Close the database connection
     // Check if $client exists (which is how db client is typically exposed in Drizzle)
-    if (db.$client && typeof db.$client.end === 'function') {
+    if (db.$client && typeof db.$client.end === "function") {
       await db.$client.end();
     }
-    
+
     // Exit process after closing connections
     process.exit(0);
   }
@@ -51,4 +50,4 @@ function promptQuestion(question: string): Promise<string> {
   });
 }
 
-createAdmin().catch(console.error); 
+createAdmin().catch(console.error);

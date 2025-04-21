@@ -3,8 +3,8 @@
 import { DataTable, DataTableRef } from "@/components/Datatable/Datatable";
 import { DataTableColumnHeader } from "@/components/Datatable/DatatableColumnHeader";
 import { Badge } from "@/components/ui/badge";
-import { Agent, TriggerLog } from "@/db/schema";
 import * as TriggerLogController from "@/server/controllers/triggerLogController";
+import { Agent, TriggerLog } from "@/server/db/schema";
 import { ColumnDef } from "@tanstack/react-table";
 import { formatDistanceToNow } from "date-fns";
 import { useRef } from "react";
