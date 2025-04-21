@@ -1,6 +1,6 @@
 "use server";
 
-import { NewScheduledTweet } from "@/db/schema";
+import { NewScheduledTweet } from "@/server/db/schema";
 import { ScheduledTweetService } from "@/server/services/ScheduledTweetService";
 import { scheduledTweetSchema } from "@/server/zodSchema/scheduledTweetSchema";
 import { z } from "zod";
@@ -56,9 +56,9 @@ export const getScheduledTweets = async (params: PaginatedProps = { page: 1, per
 export const deleteScheduledTweet = async (tweetId: number): Promise<{ success: boolean; message?: string }> => {
   try {
     const result = await ScheduledTweetService.deleteScheduledTweet(tweetId);
-    return { 
+    return {
       success: result,
-      message: "Tweet cancelled successfully" 
+      message: "Tweet cancelled successfully",
     };
   } catch (error) {
     if (error instanceof Error) {
@@ -71,10 +71,10 @@ export const deleteScheduledTweet = async (tweetId: number): Promise<{ success: 
 export const cancelBatchTweets = async (batchId: string): Promise<{ success: boolean; message?: string; count?: number }> => {
   try {
     const result = await ScheduledTweetService.cancelBatchTweets(batchId);
-    return { 
+    return {
       success: true,
       count: result,
-      message: result > 0 ? `Successfully cancelled ${result} tweets` : "No pending tweets found to cancel" 
+      message: result > 0 ? `Successfully cancelled ${result} tweets` : "No pending tweets found to cancel",
     };
   } catch (error) {
     if (error instanceof Error) {
@@ -87,9 +87,9 @@ export const cancelBatchTweets = async (batchId: string): Promise<{ success: boo
 export const permanentlyDeleteTweet = async (tweetId: number): Promise<{ success: boolean; message?: string }> => {
   try {
     const result = await ScheduledTweetService.deleteTweet(tweetId);
-    return { 
+    return {
       success: result,
-      message: "Tweet deleted permanently" 
+      message: "Tweet deleted permanently",
     };
   } catch (error) {
     if (error instanceof Error) {
@@ -102,10 +102,10 @@ export const permanentlyDeleteTweet = async (tweetId: number): Promise<{ success
 export const deleteBatchTweets = async (batchId: string): Promise<{ success: boolean; message?: string; count?: number }> => {
   try {
     const result = await ScheduledTweetService.deleteBatchTweets(batchId);
-    return { 
+    return {
       success: true,
       count: result,
-      message: result > 0 ? `Successfully deleted ${result} tweets` : "No tweets found to delete" 
+      message: result > 0 ? `Successfully deleted ${result} tweets` : "No tweets found to delete",
     };
   } catch (error) {
     if (error instanceof Error) {
