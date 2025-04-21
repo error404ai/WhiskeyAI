@@ -1,5 +1,5 @@
-import { db } from "@/db/db";
-import { Function, functionsTable } from "@/db/schema";
+import { db } from "@/server/db/db";
+import { Function, functionsTable } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 
 export class FunctionService {

@@ -1,5 +1,5 @@
-import { db } from "@/db/db";
-import { agentsTable, scheduledTweetsTable, triggerLogsTable, usersTable } from "@/db/schema";
+import { db } from "@/server/db/db";
+import { agentsTable, scheduledTweetsTable, triggerLogsTable, usersTable } from "@/server/db/schema";
 import { startOfDay, subMonths, subWeeks, subYears } from "date-fns";
 import { SQL, count, desc, eq, gt, sql } from "drizzle-orm";
 

@@ -1,5 +1,5 @@
-import { db } from "@/db/db";
-import { adminCredentialsTable, usersTable } from "@/db/schema";
+import { db } from "@/server/db/db";
+import { adminCredentialsTable, usersTable } from "@/server/db/schema";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import UserResource, { UserResourceType } from "../resource/userResource";

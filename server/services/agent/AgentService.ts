@@ -1,7 +1,7 @@
-import { db } from "@/db/db";
-import { agentsTable, agentTriggersTable } from "@/db/schema";
-import { Agent, AgentPlatformList } from "@/db/schema/agentsTable";
-import { usersTable } from "@/db/schema/usersTable";
+import { db } from "@/server/db/db";
+import { agentsTable, agentTriggersTable } from "@/server/db/schema";
+import { Agent, AgentPlatformList } from "@/server/db/schema/agentsTable";
+import { usersTable } from "@/server/db/schema/usersTable";
 import { agentCreateSchema } from "@/server/zodSchema/agentCreateSchema";
 import { agentInformationSchema } from "@/server/zodSchema/agentInformationSchema";
 import { count, eq } from "drizzle-orm";
@@ -235,9 +235,9 @@ export class AgentService {
     if (!user) throw new Error("User not authenticated");
 
     const result = await db
-      .select({ 
+      .select({
         hasPaidForAgents: usersTable.hasPaidForAgents,
-        hasUnlimitedAccess: usersTable.has_unlimited_access 
+        hasUnlimitedAccess: usersTable.has_unlimited_access,
       })
       .from(usersTable)
       .where(eq(usersTable.id, Number(user.id)))
