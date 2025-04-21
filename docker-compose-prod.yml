@@ -1,7 +1,7 @@
 services:
   ext-web:
     container_name: thewhiskey
-    image: ghcr.io/${{ github.repository }}/thewhiskey:latest
+    image: ghcr.io/error404ai/whiskeyai/whiskey:${TAG}
     env_file:
       - .env
     volumes:
