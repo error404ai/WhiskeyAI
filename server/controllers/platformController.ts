@@ -1,5 +1,5 @@
 "use server";
-import { db } from "@/db/db";
+import { db } from "@/server/db/db";
 import { eq } from "drizzle-orm";
 import { AgentPlatformService } from "../services/agent/AgentPlatformService";
 import SocialiteService from "../services/oAuthService/SocialiteService";
