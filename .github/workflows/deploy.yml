@@ -6,38 +6,98 @@ on:
       - production
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       # Step 1: Checkout the code
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v3
 
-      # Step 2: Set up SSH
+      # Step 2: Set up QEMU for multi-platform builds
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      # Step 3: Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Step 4: Log in to GitHub Container Registry
+      - name: Docker Login
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 5: Cache Docker layers
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      # Step 6: Docker metadata for tagging
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ghcr.io/${{ github.repository }}/whiskey
+          flavor: |
+            latest=auto
+            prefix=
+            suffix=
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
+
+      # Step 7: Build and push Docker image
+      - name: Build and Push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: Dockerfile.prod
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+
+      # Step 8: Set up SSH
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: ${{ secrets.VPS_DEPLOY_KEY }}
 
+      # Step 9: Test SSH Connection
       - name: Test SSH Connection
         run: |
           ssh -v -o StrictHostKeyChecking=no root@45.90.220.95 exit
 
-      # Step 3: Deploy to VPS
+      # Step 10: Deploy to VPS
       - name: Deploy to VPS
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ssh -o StrictHostKeyChecking=no root@45.90.220.95 << 'EOF'
             set -e
-            docker system prune -a --volumes=false --force
-            docker stop portainer || true
-            docker rm portainer || true
-            docker network rm whiskeyai_default || true
+            # Log in to GitHub Container Registry
+           echo "$GITHUB_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            # Pull the latest Docker image (use the semver tag)
+            docker pull ghcr.io/${{ github.repository }}/ext-web:${{ github.ref_name }}
+            # Navigate to project directory
             cd /var/www/WhiskeyAI
+            # Pull the latest docker-compose file
             git pull origin production
-            cd /var/www/WhiskeyAI
+            # Stop and remove existing containers
             docker-compose down
-            # docker-compose -f docker-compose-prod.yml build --no-cache
-            docker builder prune -f
-            docker-compose -f docker-compose-prod.yml up --build -d
+            # Start services with the new image
+            docker-compose -f docker-compose-prod.yml up -d
+            # Clean up unused images and containers
+            docker system prune -a --volumes=false --force
           EOF

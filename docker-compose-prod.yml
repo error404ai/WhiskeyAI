@@ -1,10 +1,7 @@
 services:
   ext-web:
-    container_name: ext-web-next
-    build:
-      context: .
-      dockerfile: Dockerfile.prod
-
+    container_name: thewhiskey
+    image: ghcr.io/${{ github.repository }}/thewhiskey:latest
     env_file:
       - .env
     volumes:
@@ -33,6 +30,7 @@ services:
       - "8080:8080"
     networks:
       - default
+
   portainer:
     image: portainer/portainer-ce
     container_name: portainer

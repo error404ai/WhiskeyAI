@@ -1,6 +1,6 @@
 "use server";
 
-import { Function } from "@/db/schema";
+import { Function } from "@/server/db/schema";
 import { FunctionService } from "@/server/services/agent/FunctionService";
 
 export const getFunctions = async (type: "agent" | "trigger"): Promise<Function[]> => {

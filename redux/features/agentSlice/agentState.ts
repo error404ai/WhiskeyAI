@@ -1,4 +1,4 @@
-import { AgentPlatform, AgentTrigger, Information } from "@/db/schema";
+import { AgentPlatform, AgentTrigger, Information } from "@/server/db/schema";
 import { createSlice } from "@reduxjs/toolkit";
 export interface AgentForm {
   information: Information;
