@@ -1,5 +1,5 @@
-import { db } from "@/db/db";
-import { usersTable } from "@/db/schema/usersTable";
+import { db } from "@/server/db/db";
+import { usersTable } from "@/server/db/schema/usersTable";
 import UserService from "@/server/services/userService";
 import { Seeder } from "../SeederInterface";
 
