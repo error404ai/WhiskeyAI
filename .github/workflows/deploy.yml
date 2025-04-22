@@ -58,11 +58,13 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             type=sha
+            type=raw,value=latest
 
-      # Step 7: Debug tags
+      # Step 7: Debug generated tags
       - name: Debug generated tags
         run: |
           echo "Generated tags: ${{ steps.meta.outputs.tags }}"
+          echo "GitHub ref_name: ${{ github.ref_name }}"
 
       # Step 8: Build and push Docker image
       - name: Build and Push
@@ -95,10 +97,10 @@ jobs:
         run: |
           ssh -T -o StrictHostKeyChecking=no root@45.90.220.95 \
             "echo '$GITHUB_TOKEN' | docker login ghcr.io -u ${{ github.actor }} --password-stdin && \
-             docker pull ghcr.io/error404ai/whiskeyai/whiskey:sha-ebf4991 && \
+             docker pull ghcr.io/${{ github.repository_owner }}/whiskeyai/whiskey:latest && \
              cd /var/www/WhiskeyAI && \
              git pull origin production && \
-             docker-compose down && \
+             docker-compose down --remove-orphans && \
              TAG=latest docker-compose -f docker-compose-prod.yml up -d && \
              docker system prune -a --volumes=false --force && \
              rm -f /root/.docker/config.json"

@@ -1,6 +1,6 @@
 services:
   ext-web:
-    container_name: ext-web-next
+    container_name: whiskey
     build:
       context: .
       dockerfile: Dockerfile
