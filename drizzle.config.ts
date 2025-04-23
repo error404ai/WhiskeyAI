@@ -8,7 +8,6 @@ export default defineConfig({
     url: process.env.DATABASE_URL!,
   },
   tablesFilter: ["!migrations"],
-
   migrations: {
     table: "migrations",
     schema: "public",
