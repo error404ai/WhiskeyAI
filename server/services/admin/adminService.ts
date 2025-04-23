@@ -2,8 +2,8 @@ import { db } from "@/server/db/db";
 import { adminCredentialsTable, usersTable } from "@/server/db/schema";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
-import UserResource, { UserResourceType } from "../resource/userResource";
-import UserService from "./userService";
+import UserResource, { UserResourceType } from "../../resource/userResource";
+import UserService from "../userService";
 
 class AdminService {
   static async findAdminByUsername(username: string) {
@@ -53,10 +53,10 @@ class AdminService {
           .insert(usersTable)
           .values({
             customer_id: UserService.generateCustomerId(),
-            publicKey: `admin_${username}`, // Special prefix for admin users
+            publicKey: `admin_${username}`,
             name: name,
             email: email,
-            roleId: 1, // Assuming 1 is for admin role
+            roleId: 1,
           })
           .returning();
 
