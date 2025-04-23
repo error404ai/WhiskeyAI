@@ -1,5 +1,5 @@
 import { db } from "@/server/db/db";
-import AdminService from "@/server/services/adminService";
+import AdminService from "@/server/services/admin/adminService";
 
 import readline from "readline";
 
