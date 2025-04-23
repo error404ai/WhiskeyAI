@@ -29,13 +29,13 @@ export const GET = async () => {
   const filePath = path.join("/tmp", "dump.sql");
   try {
     // Use environment variables for credentials
-    const PGPASSWORD = process.env.POSTGRES_PASSWORD || "postgres";
-    const PGUSER = process.env.POSTGRES_USER || "postgres";
-    const PGHOST = process.env.POSTGRES_HOST || "db";
-    const PGDATABASE = process.env.POSTGRES_DB || "postgres";
+    const DB_PASSWORD = process.env.DB_PASSWORD;
+    const DB_USER = process.env.DB_USER;
+    const DB_HOST = "db";
+    const DB_NAME = process.env.DB_NAME;
 
     // Set password as an environment variable for pg_dump
-    const command = `PGPASSWORD="${PGPASSWORD}" pg_dump -h ${PGHOST} -U ${PGUSER} ${PGDATABASE} > ${filePath}`;
+    const command = `PGPASSWORD="${DB_PASSWORD}" pg_dump -h ${DB_HOST} -U ${DB_USER} ${DB_NAME} > ${filePath}`;
 
     // Execute pg_dump command
     await execPromise(command);
