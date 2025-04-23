@@ -26,6 +26,7 @@ const InformationStep = () => {
   } = useQuery({
     queryKey: ["getAgentByUuid"],
     queryFn: () => AgentController.getAgentByUuid(agentUuid),
+    refetchOnWindowFocus: false,
   });
 
   const methods = useForm<z.infer<typeof agentInformationSchema>>({
