@@ -7,8 +7,8 @@ RUN apk add --no-cache \
     make \
     g++ \
     libusb-dev \
-    supervisor
-
+    supervisor \
+    postgresql-client
 COPY package.json package-lock.json ./
 COPY . .
 
