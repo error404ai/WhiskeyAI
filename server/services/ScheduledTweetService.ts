@@ -97,7 +97,8 @@ export class ScheduledTweetService {
 
       const twitterService = new TwitterService(agentPlatform);
 
-      await twitterService.postTweet(tweet.content);
+      // Post the tweet, passing the mediaUrl if it exists (convert null to undefined)
+      await twitterService.postTweet(tweet.content, tweet.mediaUrl || undefined);
 
       await db
         .update(scheduledTweetsTable)
