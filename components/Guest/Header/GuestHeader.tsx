@@ -24,9 +24,9 @@ export function GuestHeader() {
             <NavigationMenu>
               <NavigationMenuList>
                 <NavigationMenuItem>
-                  <Link href="/agent" legacyBehavior passHref>
-                    <NavigationMenuLink className={navigationMenuTriggerStyle}>Agent</NavigationMenuLink>
-                  </Link>
+                  <NavigationMenuLink href="/agent" className={navigationMenuTriggerStyle}>
+                    Agent
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
                 {/* <NavigationMenuItem>
                   <Link href="/services" legacyBehavior passHref>
@@ -34,16 +34,14 @@ export function GuestHeader() {
                   </Link>
                 </NavigationMenuItem> */}
                 <NavigationMenuItem>
-                  <Link href="/faq" legacyBehavior passHref>
-                    <NavigationMenuLink className={navigationMenuTriggerStyle}>FAQ</NavigationMenuLink>
-                  </Link>
+                  <NavigationMenuLink href="/faq" className={navigationMenuTriggerStyle}>
+                    FAQ
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                  <Link href="https://whiskey-ai.gitbook.io/whiskey-ai" legacyBehavior passHref>
-                    <NavigationMenuLink target="_blank" rel="noopener noreferrer" className={navigationMenuTriggerStyle}>
-                      DOCS
-                    </NavigationMenuLink>
-                  </Link>
+                  <NavigationMenuLink href="https://whiskey-ai.gitbook.io/whiskey-ai" target="_blank" rel="noopener noreferrer" className={navigationMenuTriggerStyle}>
+                    DOCS
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>

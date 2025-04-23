@@ -5,11 +5,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Trash2 } from "lucide-react"
+import { Image, Trash2, Upload, X } from "lucide-react"
 import { UseFormReturn } from "react-hook-form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Agent, FormValues } from "./types"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 interface PostItemProps {
     index: number
@@ -36,10 +36,13 @@ export default function PostItem({
     const { setValue, formState: { errors }, watch } = methods
     const [currentAgentId, setCurrentAgentId] = useState<string>("")
     const [content, setContent] = useState<string>("")
+    const [mediaPreview, setMediaPreview] = useState<string | null>(null)
+    const fileInputRef = useRef<HTMLInputElement>(null)
     
     // Watch for changes to this post's content and agent ID
     const postContent = watch(`schedulePosts.${index}.content`)
     const postAgentId = watch(`schedulePosts.${index}.agentId`)
+    const postMedia = watch(`schedulePosts.${index}.mediaFile`)
     
     // Update local state when form values change (e.g., after Excel import)
     useEffect(() => {
@@ -74,6 +77,31 @@ export default function PostItem({
     const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setContent(e.target.value)
         setValue(`schedulePosts.${index}.content`, e.target.value)
+    }
+
+    // Handler for media file changes
+    const handleMediaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            // Set the file in the form
+            setValue(`schedulePosts.${index}.mediaFile`, file)
+            
+            // Create preview URL
+            const previewUrl = URL.createObjectURL(file)
+            setMediaPreview(previewUrl)
+        }
+    }
+
+    // Handle removing media
+    const handleRemoveMedia = () => {
+        if (mediaPreview) {
+            URL.revokeObjectURL(mediaPreview)
+            setMediaPreview(null)
+        }
+        setValue(`schedulePosts.${index}.mediaFile`, null)
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ""
+        }
     }
 
     return (
@@ -117,6 +145,66 @@ export default function PostItem({
                             placeholder="Enter your post content here..."
                             className="min-h-[120px] resize-none text-sm border-blue-200 focus:border-blue-400"
                         />
+
+                        {/* Media Upload Section */}
+                        <div className="mt-3">
+                            <div className="flex items-center gap-2">
+                                <Label htmlFor={`media-${index}`} className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                                    <Image className="h-4 w-4 text-blue-600" />
+                                    Media (Image/Video)
+                                </Label>
+                                <Input
+                                    id={`media-${index}`}
+                                    type="file"
+                                    accept="image/*,video/*"
+                                    className="hidden"
+                                    ref={fileInputRef}
+                                    onChange={handleMediaChange}
+                                />
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="h-8 border-blue-200 text-xs hover:border-blue-400 hover:bg-blue-50"
+                                >
+                                    <Upload className="mr-1 h-3 w-3" />
+                                    Upload Media
+                                </Button>
+                                {mediaPreview && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleRemoveMedia}
+                                        className="h-8 border-red-200 text-xs text-red-600 hover:border-red-400 hover:bg-red-50"
+                                    >
+                                        <X className="mr-1 h-3 w-3" />
+                                        Remove
+                                    </Button>
+                                )}
+                            </div>
+
+                            {/* Media Preview */}
+                            {mediaPreview && (
+                                <div className="mt-2 relative border border-blue-200 rounded-md overflow-hidden" style={{ maxWidth: '300px' }}>
+                                    {postMedia && postMedia.type.startsWith('image/') && (
+                                        <img 
+                                            src={mediaPreview} 
+                                            alt="Preview" 
+                                            className="max-h-[200px] w-auto object-contain"
+                                        />
+                                    )}
+                                    {postMedia && postMedia.type.startsWith('video/') && (
+                                        <video 
+                                            src={mediaPreview} 
+                                            controls 
+                                            className="max-h-[200px] w-auto"
+                                        />
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Right column for date/time and agent -  Takes 4 columns */}

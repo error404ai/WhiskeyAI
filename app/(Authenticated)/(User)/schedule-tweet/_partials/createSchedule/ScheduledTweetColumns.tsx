@@ -196,8 +196,57 @@ export const getScheduledTweetColumns = (queryKey: string, onCancel?: (id: numbe
     {
       accessorKey: "scheduledTweets.content",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Content" />,
-      size: 60,
+      size: 300,
       enableSorting: false,
+      cell: ({ row }) => {
+        const content = row.original.scheduledTweets?.content;
+        return <div className="max-w-md break-words text-sm">{content || "-"}</div>;
+      },
+    },
+    {
+      accessorKey: "scheduledTweets.mediaUrl",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Media" />,
+      size: 100,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const mediaUrl = row.original.scheduledTweets?.mediaUrl;
+        
+        if (!mediaUrl) {
+          return <div className="text-center text-muted-foreground text-xs">No media</div>;
+        }
+        
+        // Determine if it's an image or video based on file extension
+        const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(mediaUrl);
+        const isVideo = /\.(mp4|webm|mov|avi)$/i.test(mediaUrl);
+        
+        return (
+          <div className="flex justify-center">
+            {isImage && (
+              <a href={mediaUrl} target="_blank" rel="noopener noreferrer">
+                <img 
+                  src={mediaUrl} 
+                  alt="Media" 
+                  className="h-16 w-auto object-cover rounded-md cursor-pointer hover:opacity-80 transition-opacity"
+                />
+              </a>
+            )}
+            {isVideo && (
+              <a href={mediaUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center">
+                <div className="relative h-16 w-24 bg-black/10 rounded-md flex items-center justify-center hover:opacity-80 transition-opacity">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
+                    <polygon points="5 3 19 12 5 21 5 3" />
+                  </svg>
+                </div>
+              </a>
+            )}
+            {!isImage && !isVideo && (
+              <a href={mediaUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-xs">
+                View File
+              </a>
+            )}
+          </div>
+        );
+      },
     },
     {
       accessorKey: "scheduledTweets.scheduledAt",
