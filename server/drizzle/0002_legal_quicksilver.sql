@@ -1,0 +1,1 @@
+ALTER TABLE "scheduledTweets" ADD COLUMN "mediaUrl" text;
