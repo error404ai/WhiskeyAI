@@ -4,8 +4,8 @@ import NextAuth, { DefaultSession } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import * as nacl from "tweetnacl";
 import { UserResourceType } from "./server/resource/userResource";
+import AdminService from "./server/services/admin/adminService";
 import UserService from "./server/services/userService";
-import AdminService from "./server/services/adminService";
 
 declare module "next-auth" {
   interface Session {

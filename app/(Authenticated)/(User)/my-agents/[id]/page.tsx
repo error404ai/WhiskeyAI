@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import NoSsr from "@/components/NoSsr/NoSsr";
@@ -19,14 +18,10 @@ export default function AgentConfigPage() {
   const params = useParams();
   const agentUuid = params.id as string;
 
-  const {
-    isPending,
-    isRefetching,
-    data: agent,
-    refetch,
-  } = useQuery({
+  const { data: agent } = useQuery({
     queryKey: ["getAgentByUuid"],
     queryFn: () => AgentController.getAgentByUuid(agentUuid),
+    refetchOnWindowFocus: false,
   });
 
   const configSteps = [
