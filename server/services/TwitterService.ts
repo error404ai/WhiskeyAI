@@ -26,8 +26,29 @@ class TwitterService {
     });
   }
 
-  async postTweet(text: string) {
+  async postTweet(text: string, mediaUrl?: string) {
     await this.refreshTokenIfNeeded();
+    
+    if (mediaUrl) {
+      try {
+        // For tweets with media
+        // If your Twitter API supports attaching media, you would implement that here
+        // This could involve downloading the media from mediaUrl if needed
+        // Depending on the Twitter API version, the implementation may vary
+        
+        // Example for Twitter API v2 with media_ids (implementation depends on Twitter API capabilities)
+        // For demonstration purposes - actual implementation depends on Twitter API
+        return await this.twitterApi.v2.tweet(text, {
+          media: { media_ids: [mediaUrl] }
+        });
+      } catch (error) {
+        console.error("Error posting tweet with media:", error);
+        // Fallback to posting without media if there's an error
+        return await this.twitterApi.v2.tweet(text);
+      }
+    }
+    
+    // Regular tweet without media
     return await this.twitterApi.v2.tweet(text);
   }
 
