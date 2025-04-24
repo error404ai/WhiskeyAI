@@ -5,8 +5,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, Settings } from "lucide-react";
+import { AlertCircle, Settings, Users } from "lucide-react";
 import { SolPaymentPanel } from "@/components/admin/settings/SolPaymentPanel";
+import { MaxAgentsPanel } from "@/components/admin/settings/MaxAgentsPanel";
 import { TelegramAuthenticationPanel } from "@/components/admin/settings/TelegramAuthenticationPanel";
 import * as SettingsController from "@/server/controllers/admin/SettingsController";
 
@@ -31,6 +32,7 @@ export default function AdminSettingsPage() {
   const processedSettings = React.useMemo(() => {
     const defaultSettings = {
       solPaymentAmount: 0.1,
+      default_max_agents_per_user: 5,
       telegramApiId: "",
       telegramApiHash: "",
       telegramPhoneNumber: "",
@@ -46,6 +48,7 @@ export default function AdminSettingsPage() {
     // Get all properties from the server and convert types as needed
     const rawSettings = settingsData.settings as {
       solPaymentAmount?: string | number;
+      default_max_agents_per_user?: number;
       telegramApiId?: string | null;
       telegramApiHash?: string | null;
       telegramPhoneNumber?: string | null;
@@ -55,6 +58,7 @@ export default function AdminSettingsPage() {
     };
     return {
       solPaymentAmount: parseFloat(String(rawSettings.solPaymentAmount || "0.1")),
+      default_max_agents_per_user: Number(rawSettings.default_max_agents_per_user || 5),
       telegramApiId: String(rawSettings.telegramApiId || ""),
       telegramApiHash: String(rawSettings.telegramApiHash || ""),
       telegramPhoneNumber: String(rawSettings.telegramPhoneNumber || ""),
@@ -87,6 +91,10 @@ export default function AdminSettingsPage() {
               <Settings className="h-4 w-4 mr-2" />
               General Settings
             </TabsTrigger>
+            <TabsTrigger value="agents">
+              <Users className="h-4 w-4 mr-2" />
+              Agent Settings
+            </TabsTrigger>
             <TabsTrigger value="integrations">
               <Settings className="h-4 w-4 mr-2" />
               Integrations
@@ -102,6 +110,21 @@ export default function AdminSettingsPage() {
               </Card>
             ) : (
               <SolPaymentPanel 
+                settings={processedSettings} 
+                onUpdate={handleSettingsUpdated} 
+              />
+            )}
+          </TabsContent>
+
+          <TabsContent value="agents" className="space-y-4">
+            {isLoading ? (
+              <Card>
+                <CardContent className="pt-6">
+                  <Skeleton className="h-[200px] w-full" />
+                </CardContent>
+              </Card>
+            ) : (
+              <MaxAgentsPanel 
                 settings={processedSettings} 
                 onUpdate={handleSettingsUpdated} 
               />

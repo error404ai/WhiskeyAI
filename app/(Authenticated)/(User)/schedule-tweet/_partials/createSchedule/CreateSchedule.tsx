@@ -5,6 +5,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import * as AgentController from "@/server/controllers/agent/AgentController";
 import * as ScheduledTweetController from "@/server/controllers/ScheduledTweetController";
+import * as UploadController from "@/server/controllers/UploadController";
 import { useQuery } from "@tanstack/react-query";
 import { addHours, addMinutes, addSeconds, format } from "date-fns";
 import { Loader2 } from "lucide-react";
@@ -271,16 +272,40 @@ export default function CreateSchedule() {
 
       toast.loading("Scheduling tweets...");
 
-      const scheduledTweets = data.schedulePosts.map((post) => {
+      // Process each post and upload media if available
+      const scheduledTweetPromises = data.schedulePosts.map(async (post, index) => {
         const agent = agents.find((a) => a.uuid === post.agentId);
+        let mediaUrl = undefined;
+
+        // Upload media file if exists
+        if (post.mediaFile) {
+          try {
+            // Use appropriate upload method based on file type
+            const isImage = post.mediaFile.type.startsWith('image/');
+            let uploadResult;
+            
+            if (isImage) {
+              uploadResult = await UploadController.uploadImage(post.mediaFile);
+            } else {
+              uploadResult = await UploadController.uploadFile(post.mediaFile);
+            }
+            
+            mediaUrl = uploadResult.url;
+          } catch (error) {
+            console.error('Error uploading media:', error);
+            toast.error(`Error uploading media for post #${index + 1}`);
+          }
+        }
 
         return {
           agentId: agent ? Number(agent.id) : 0,
           content: post.content,
           scheduledAt: new Date(post.scheduledTime),
+          mediaUrl: mediaUrl
         };
       });
 
+      const scheduledTweets = await Promise.all(scheduledTweetPromises);
       const response = await ScheduledTweetController.bulkCreateScheduledTweets(scheduledTweets);
 
       toast.dismiss();

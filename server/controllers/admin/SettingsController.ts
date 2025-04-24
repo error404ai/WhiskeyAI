@@ -1,6 +1,7 @@
-'use server'
+"use server";
 import { AdminSettingsService } from "@/server/services/admin/AdminSettingsService";
 import AuthService from "@/server/services/auth/authService";
+import { maxAgentsSchema } from "@/server/zodSchema/maxAgentsSchema";
 import { z } from "zod";
 
 // Validation schema for SOL payment update
@@ -12,7 +13,7 @@ const solPaymentSchema = z.object({
     },
     {
       message: "Amount must be a number between 0.001 and 10 SOL",
-    }
+    },
   ),
 });
 
@@ -43,11 +44,11 @@ export async function updateSolPayment(amountStr: string) {
   try {
     // Verify admin access
     await checkAdminAccess();
-    
+
     // Validate input
     const { amount } = solPaymentSchema.parse({ amount: amountStr });
     const numAmount = parseFloat(amount);
-    
+
     // Update the setting
     return await AdminSettingsService.updateSolPayment(numAmount);
   } catch (error) {
@@ -58,14 +59,42 @@ export async function updateSolPayment(amountStr: string) {
   }
 }
 
+export async function getDefaultMaxAgentsPerUser() {
+  try {
+    await checkAdminAccess();
+    const maxAgents = await AdminSettingsService.getDefaultMaxAgentsPerUser();
+    return { success: true, maxAgents };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Failed to get max agents setting" };
+  }
+}
+
+export async function updateDefaultMaxAgentsPerUser(valueStr: string) {
+  try {
+    await checkAdminAccess();
+
+    try {
+      maxAgentsSchema.parse({ value: valueStr });
+    } catch (zodError) {
+      if (zodError instanceof z.ZodError) {
+        return { success: false, error: zodError.errors[0].message };
+      }
+      throw zodError;
+    }
+    return await AdminSettingsService.updateDefaultMaxAgentsPerUser(Number(valueStr));
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Invalid max agents value" };
+  }
+}
+
 export async function updateTelegramSettings(settings: Record<string, string>) {
   try {
     // Verify admin access
     await checkAdminAccess();
-    
+
     // Validate input
     const validatedSettings = telegramSettingsSchema.parse(settings);
-    
+
     // Update settings
     return await AdminSettingsService.updateTelegramSettings(validatedSettings);
   } catch (error) {
@@ -80,9 +109,9 @@ export async function setTelegramAuthenticated(isAuthenticated: boolean, session
   try {
     // Verify admin access
     await checkAdminAccess();
-    
+
     return await AdminSettingsService.setTelegramAuthenticated(isAuthenticated, sessionString);
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : "Authentication update failed" };
   }
-} 
+}
