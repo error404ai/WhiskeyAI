@@ -1,12 +1,12 @@
-CREATE TABLE "admin_credentials" (
-	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "admin_credentials_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
+CREATE TABLE "adminCredentials" (
+	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "adminCredentials_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"userId" integer NOT NULL,
 	"username" varchar(255) NOT NULL,
 	"password" varchar(255) NOT NULL,
 	"created_at" varchar(255) DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
 	"updated_at" varchar(255) DEFAULT 'CURRENT_TIMESTAMP' NOT NULL,
-	CONSTRAINT "admin_credentials_userId_unique" UNIQUE("userId"),
-	CONSTRAINT "admin_credentials_username_unique" UNIQUE("username")
+	CONSTRAINT "adminCredentials_userId_unique" UNIQUE("userId"),
+	CONSTRAINT "adminCredentials_username_unique" UNIQUE("username")
 );
 --> statement-breakpoint
 CREATE TABLE "agentPlatforms" (
@@ -108,6 +108,7 @@ CREATE TABLE "scheduledTweets" (
 	"agentId" integer NOT NULL,
 	"batchId" varchar(50) NOT NULL,
 	"content" text NOT NULL,
+	"mediaUrl" text,
 	"scheduledAt" timestamp with time zone NOT NULL,
 	"status" varchar(50) DEFAULT 'pending',
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
@@ -115,19 +116,19 @@ CREATE TABLE "scheduledTweets" (
 	"errorMessage" text
 );
 --> statement-breakpoint
-CREATE TABLE "app_settings" (
+CREATE TABLE "settings" (
 	"id" varchar(255) PRIMARY KEY NOT NULL,
-	"sol_payment_amount" numeric(10, 5) DEFAULT '0.1' NOT NULL,
-	"telegram_session_string" text,
-	"telegram_bot_token" text,
-	"telegram_api_id" varchar(255),
-	"telegram_api_hash" varchar(255),
-	"telegram_phone_number" varchar(50),
-	"is_telegram_authenticated" boolean DEFAULT false,
+	"solPaymentAmount" numeric(10, 5) DEFAULT '0.1' NOT NULL,
+	"telegramSessionString" text,
+	"telegramBotToken" text,
+	"telegramApiId" varchar(255),
+	"telegramApiHash" varchar(255),
+	"telegramPhoneNumber" varchar(50),
+	"isTelegramAuthenticated" boolean DEFAULT false,
 	"updated_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
-ALTER TABLE "admin_credentials" ADD CONSTRAINT "admin_credentials_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "adminCredentials" ADD CONSTRAINT "adminCredentials_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "agentPlatforms" ADD CONSTRAINT "agentPlatforms_agentId_agents_id_fk" FOREIGN KEY ("agentId") REFERENCES "public"."agents"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "agentTriggers" ADD CONSTRAINT "agentTriggers_agentId_agents_id_fk" FOREIGN KEY ("agentId") REFERENCES "public"."agents"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "agents" ADD CONSTRAINT "agents_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

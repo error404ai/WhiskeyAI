@@ -1,11 +1,11 @@
 {
-  "id": "93ddab37-e133-40b7-87fc-a5911bc792eb",
+  "id": "0406bbee-35be-4f98-bb6e-9b9f6f265101",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.admin_credentials": {
-      "name": "admin_credentials",
+    "public.adminCredentials": {
+      "name": "adminCredentials",
       "schema": "",
       "columns": {
         "id": {
@@ -15,7 +15,7 @@
           "notNull": true,
           "identity": {
             "type": "always",
-            "name": "admin_credentials_id_seq",
+            "name": "adminCredentials_id_seq",
             "schema": "public",
             "increment": "1",
             "startWith": "1",
@@ -60,9 +60,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "admin_credentials_userId_users_id_fk": {
-          "name": "admin_credentials_userId_users_id_fk",
-          "tableFrom": "admin_credentials",
+        "adminCredentials_userId_users_id_fk": {
+          "name": "adminCredentials_userId_users_id_fk",
+          "tableFrom": "adminCredentials",
           "tableTo": "users",
           "columnsFrom": [
             "userId"
@@ -76,15 +76,15 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "admin_credentials_userId_unique": {
-          "name": "admin_credentials_userId_unique",
+        "adminCredentials_userId_unique": {
+          "name": "adminCredentials_userId_unique",
           "nullsNotDistinct": false,
           "columns": [
             "userId"
           ]
         },
-        "admin_credentials_username_unique": {
-          "name": "admin_credentials_username_unique",
+        "adminCredentials_username_unique": {
+          "name": "adminCredentials_username_unique",
           "nullsNotDistinct": false,
           "columns": [
             "username"
@@ -855,6 +855,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "mediaUrl": {
+          "name": "mediaUrl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "scheduledAt": {
           "name": "scheduledAt",
           "type": "timestamp with time zone",
@@ -910,8 +916,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.app_settings": {
-      "name": "app_settings",
+    "public.settings": {
+      "name": "settings",
       "schema": "",
       "columns": {
         "id": {
@@ -920,45 +926,45 @@
           "primaryKey": true,
           "notNull": true
         },
-        "sol_payment_amount": {
-          "name": "sol_payment_amount",
+        "solPaymentAmount": {
+          "name": "solPaymentAmount",
           "type": "numeric(10, 5)",
           "primaryKey": false,
           "notNull": true,
           "default": "'0.1'"
         },
-        "telegram_session_string": {
-          "name": "telegram_session_string",
+        "telegramSessionString": {
+          "name": "telegramSessionString",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "telegram_bot_token": {
-          "name": "telegram_bot_token",
+        "telegramBotToken": {
+          "name": "telegramBotToken",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "telegram_api_id": {
-          "name": "telegram_api_id",
+        "telegramApiId": {
+          "name": "telegramApiId",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
-        "telegram_api_hash": {
-          "name": "telegram_api_hash",
+        "telegramApiHash": {
+          "name": "telegramApiHash",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
-        "telegram_phone_number": {
-          "name": "telegram_phone_number",
+        "telegramPhoneNumber": {
+          "name": "telegramPhoneNumber",
           "type": "varchar(50)",
           "primaryKey": false,
           "notNull": false
         },
-        "is_telegram_authenticated": {
-          "name": "is_telegram_authenticated",
+        "isTelegramAuthenticated": {
+          "name": "isTelegramAuthenticated",
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
