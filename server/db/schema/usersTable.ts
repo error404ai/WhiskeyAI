@@ -17,6 +17,7 @@ export const usersTable = pgTable("users", {
   hasPaidForAgents: boolean().default(false).notNull(),
   has_unlimited_access: boolean().default(false).notNull(),
   is_active: boolean().default(true).notNull(),
+  max_agents: integer("max_agents").default(50).notNull(),
   createdAt: timestamp("createdAt", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updatedAt", { withTimezone: true }).notNull().defaultNow(),
 });

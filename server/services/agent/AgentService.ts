@@ -7,6 +7,7 @@ import { agentInformationSchema } from "@/server/zodSchema/agentInformationSchem
 import { count, eq } from "drizzle-orm";
 import { z } from "zod";
 import AuthService from "../auth/authService";
+import UserService from "../userService";
 
 export interface ValidationResult {
   isValid: boolean;
@@ -32,12 +33,14 @@ export class AgentService {
     const userId = (await AuthService.getAuthUser())?.id;
     if (!userId) throw new Error("User not authenticated");
 
-    // Check agent limit
-    const maxAgents = Number(process.env.NEXT_PUBLIC_MAX_AGENTS_PER_USER);
+    // Get user's max agents limit
+    const userMaxAgents = await UserService.getUserMaxAgents(Number(userId));
+    
+    // Check agent limit against user's max_agents
     const currentAgentCount = await this.countUserAgents();
 
-    if (currentAgentCount >= maxAgents) {
-      throw new Error(`You have reached the maximum limit of ${maxAgents} agents. Please upgrade your plan to create more agents.`);
+    if (currentAgentCount >= userMaxAgents) {
+      throw new Error(`You have reached the maximum limit of ${userMaxAgents} agents. Please upgrade your plan to create more agents.`);
     }
 
     const res = await db.insert(agentsTable).values({
@@ -314,5 +317,13 @@ export class AgentService {
     const result = await db.update(agentsTable).set({ tokenAddress }).where(eq(agentsTable.uuid, agentUuid));
 
     return !!result;
+  }
+  
+  // Get user's max agents limit
+  static async getUserMaxAgents(): Promise<number> {
+    const user = await AuthService.getAuthUser();
+    if (!user) throw new Error("User not authenticated");
+    
+    return await UserService.getUserMaxAgents(Number(user.id));
   }
 }

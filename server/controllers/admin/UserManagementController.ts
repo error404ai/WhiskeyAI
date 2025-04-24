@@ -2,6 +2,8 @@
 
 import AuthService from "@/server/services/auth/authService";
 import UserService from "@/server/services/userService";
+import { maxAgentsSchema } from "@/server/zodSchema/maxAgentsSchema";
+import { z } from "zod";
 
 // Utility function to check if user is admin
 async function checkAdminAccess() {
@@ -91,5 +93,32 @@ export const deleteUser = async (userId: number) => {
   } catch (error) {
     console.error("Error deleting user:", error);
     return { success: false, message: error instanceof Error ? error.message : "Failed to delete user" };
+  }
+};
+
+export const updateUserMaxAgents = async (userId: number, maxAgents: number) => {
+  try {
+    // Verify admin access
+    await checkAdminAccess();
+    
+    // Validate max agents value using schema
+    try {
+      maxAgentsSchema.parse({ value: maxAgents });
+    } catch (zodError) {
+      if (zodError instanceof z.ZodError) {
+        return { success: false, message: zodError.errors[0].message };
+      }
+      throw zodError;
+    }
+    
+    const result = await UserService.updateUserMaxAgents(userId, maxAgents);
+    if (result) {
+      return { success: true, message: "User's max agents limit updated successfully" };
+    } else {
+      return { success: false, message: "Failed to update user's max agents limit" };
+    }
+  } catch (error) {
+    console.error("Error updating user's max agents:", error);
+    return { success: false, message: error instanceof Error ? error.message : "Failed to update user's max agents limit" };
   }
 };
