@@ -21,7 +21,7 @@ const UserManagementPage = () => {
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showMaxAgentsDialog, setShowMaxAgentsDialog] = useState(false);
-  const [maxAgentsValue, setMaxAgentsValue] = useState<number>(5);
+  const [maxAgentsValue, setMaxAgentsValue] = useState<string>("5");
 
   const refreshTable = () => {
     if (tableRef.current) {
@@ -90,17 +90,12 @@ const UserManagementPage = () => {
 
   const openMaxAgentsDialog = (user: UserType) => {
     setSelectedUser(user);
-    setMaxAgentsValue(user.max_agents || 5);
+    setMaxAgentsValue(String(user.max_agents) || "5");
     setShowMaxAgentsDialog(true);
   };
 
   const handleUpdateMaxAgents = async () => {
     if (!selectedUser) return;
-    
-    if (maxAgentsValue < 1 || maxAgentsValue > 100) {
-      toast.error("Max agents must be between 1 and 100");
-      return;
-    }
 
     const result = await UserManagementController.updateUserMaxAgents(selectedUser.id, maxAgentsValue);
     setShowMaxAgentsDialog(false);
@@ -210,10 +205,10 @@ const UserManagementPage = () => {
       cell: ({ row }) => {
         const maxAgents = row.original.users.max_agents || 5;
         const hasUnlimitedAccess = row.original.users.has_unlimited_access === true;
-        
+
         return (
           <div className="flex items-center">
-            <div className={`flex items-center gap-2 rounded-full px-3 py-1 ${hasUnlimitedAccess ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700'}`}>
+            <div className={`flex items-center gap-2 rounded-full px-3 py-1 ${hasUnlimitedAccess ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"}`}>
               <span className="font-medium">{hasUnlimitedAccess ? "∞" : maxAgents}</span>
             </div>
           </div>
@@ -299,35 +294,22 @@ const UserManagementPage = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Set Maximum Agents</DialogTitle>
-            <DialogDescription>
-              Set the maximum number of agents this user can create. This will override the default system limit.
-            </DialogDescription>
+            <DialogDescription>Set the maximum number of agents this user can create. This will override the default system limit.</DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="maxAgents">Maximum Agents</Label>
-              <Input
-                id="maxAgents"
-                type="number"
-                min="1"
-                max="100"
-                value={maxAgentsValue}
-                onChange={(e) => setMaxAgentsValue(parseInt(e.target.value, 10))}
-              />
-              <p className="text-muted-foreground text-sm">
-                Value must be between 1 and 100. User with unlimited access can always create more agents regardless of this setting.
-              </p>
+              <Input id="maxAgents" type="number" value={maxAgentsValue} onChange={(e) => setMaxAgentsValue(e.target.value)} />
+              <p className="text-muted-foreground text-sm">Value must be 0 or a positive number.</p>
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowMaxAgentsDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleUpdateMaxAgents}>
-              Save Changes
-            </Button>
+            <Button onClick={handleUpdateMaxAgents}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
