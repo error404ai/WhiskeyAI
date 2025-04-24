@@ -73,6 +73,10 @@ export const countUserAgents = async (): Promise<number> => {
   return await AgentService.countUserAgents();
 };
 
+export const getUserMaxAgents = async (): Promise<number> => {
+  return await AgentService.getUserMaxAgents();
+};
+
 export const markUserAsPaid = async (txSignature: string, amount: string): Promise<boolean | { error: string }> => {
   return await AgentService.markUserAsPaid(txSignature, amount);
 };
