@@ -24,6 +24,12 @@ const AgentCreate: React.FC<AgentCreateProps> = ({ refetch }) => {
     queryFn: AgentController.countUserAgents,
   });
 
+  // Get user's max agents from the server
+  const { data: maxAgents = 0 } = useQuery({
+    queryKey: ["getUserMaxAgents"],
+    queryFn: AgentController.getUserMaxAgents,
+  });
+
   const methods = useForm<z.infer<typeof agentCreateSchema>>({
     mode: "onTouched",
     resolver: zodResolver(agentCreateSchema),
@@ -57,7 +63,6 @@ const AgentCreate: React.FC<AgentCreateProps> = ({ refetch }) => {
   };
 
   // Check if user has reached the agent limit
-  const maxAgents = Number(process.env.NEXT_PUBLIC_MAX_AGENTS_PER_USER);
   const hasReachedAgentLimit = agentCount !== undefined && agentCount >= maxAgents;
 
   return (

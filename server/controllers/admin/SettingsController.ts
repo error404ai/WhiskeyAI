@@ -1,6 +1,7 @@
 'use server'
 import { AdminSettingsService } from "@/server/services/admin/AdminSettingsService";
 import AuthService from "@/server/services/auth/authService";
+import { maxAgentsSchema } from "@/server/zodSchema/maxAgentsSchema";
 import { z } from "zod";
 
 // Validation schema for SOL payment update
@@ -55,6 +56,47 @@ export async function updateSolPayment(amountStr: string) {
       return { success: false, error: error.errors[0].message };
     }
     return { success: false, error: error instanceof Error ? error.message : "Invalid payment amount" };
+  }
+}
+
+export async function getDefaultMaxAgentsPerUser() {
+  try {
+    // Verify admin access
+    await checkAdminAccess();
+    
+    // Get the setting
+    const maxAgents = await AdminSettingsService.getDefaultMaxAgentsPerUser();
+    return { success: true, maxAgents };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Failed to get max agents setting" };
+  }
+}
+
+export async function updateDefaultMaxAgentsPerUser(valueStr: string) {
+  try {
+    // Verify admin access
+    await checkAdminAccess();
+    
+    // Convert string to number first
+    const numValue = parseInt(valueStr, 10);
+    if (isNaN(numValue)) {
+      return { success: false, error: "Value must be a valid number" };
+    }
+    
+    // Validate using the schema
+    try {
+      maxAgentsSchema.parse({ value: numValue });
+    } catch (zodError) {
+      if (zodError instanceof z.ZodError) {
+        return { success: false, error: zodError.errors[0].message };
+      }
+      throw zodError;
+    }
+    
+    // Update the setting
+    return await AdminSettingsService.updateDefaultMaxAgentsPerUser(numValue);
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Invalid max agents value" };
   }
 }
 

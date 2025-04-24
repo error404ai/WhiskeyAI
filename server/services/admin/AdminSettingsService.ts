@@ -29,6 +29,7 @@ export class AdminSettingsService {
         const defaultSettings = {
           id: SETTINGS_ID,
           solPaymentAmount: "0.1", // Use string for decimal type
+          default_max_agents_per_user: 50,
           isTelegramAuthenticated: false,
         };
 
@@ -40,6 +41,50 @@ export class AdminSettingsService {
     } catch (error) {
       console.error("Error getting settings:", error);
       return { success: false, error: "Failed to get settings" };
+    }
+  }
+
+  /**
+   * Get default max agents per user setting
+   */
+  static async getDefaultMaxAgentsPerUser(): Promise<number> {
+    try {
+      const settings = await db.select({ default_max_agents_per_user: settingsTable.default_max_agents_per_user }).from(settingsTable).where(eq(settingsTable.id, SETTINGS_ID)).limit(1);
+
+      if (settings.length === 0) {
+        // If no settings found, create default settings and return default value
+        await this.getSettings();
+        return 50; // Default value
+      }
+
+      return settings[0].default_max_agents_per_user;
+    } catch (error) {
+      console.error("Error getting max agents setting:", error);
+      return 50; // Return default in case of error
+    }
+  }
+
+  /**
+   * Update default max agents per user setting
+   */
+  static async updateDefaultMaxAgentsPerUser(value: number) {
+    try {
+      if (value < 1 || value > 100) {
+        return { success: false, error: "Invalid value. Must be between 1 and 100" };
+      }
+
+      await db
+        .update(settingsTable)
+        .set({
+          default_max_agents_per_user: value,
+          updatedAt: new Date(),
+        })
+        .where(eq(settingsTable.id, SETTINGS_ID));
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error updating max agents setting:", error);
+      return { success: false, error: "Failed to update max agents setting" };
     }
   }
 
