@@ -5,7 +5,6 @@ import UserService from "@/server/services/userService";
 import { maxAgentsSchema } from "@/server/zodSchema/maxAgentsSchema";
 import { z } from "zod";
 
-// Utility function to check if user is admin
 async function checkAdminAccess() {
   const authUser = await AuthService.getAuthUser();
   if (!authUser || !authUser.isAdmin) {
@@ -16,7 +15,6 @@ async function checkAdminAccess() {
 
 export const getAllUsers = async ({ perPage = 10, page = 1, sortColumn = "id", sortOrder = "desc", search = "" }: PaginatedProps) => {
   try {
-    // Verify admin access
     await checkAdminAccess();
 
     return UserService.getAllUsersForAdmin({ perPage, page, sortColumn, sortOrder, search });
@@ -33,7 +31,6 @@ export const getAllUsers = async ({ perPage = 10, page = 1, sortColumn = "id", s
 
 export const blockUser = async (userId: number) => {
   try {
-    // Verify admin access
     await checkAdminAccess();
 
     await UserService.updateUserStatus(userId, false);
@@ -46,7 +43,6 @@ export const blockUser = async (userId: number) => {
 
 export const unblockUser = async (userId: number) => {
   try {
-    // Verify admin access
     await checkAdminAccess();
 
     await UserService.updateUserStatus(userId, true);
@@ -59,7 +55,6 @@ export const unblockUser = async (userId: number) => {
 
 export const enableUnlimitedAccess = async (userId: number) => {
   try {
-    // Verify admin access
     await checkAdminAccess();
 
     await UserService.toggleUnlimitedAccess(userId, true);
@@ -72,7 +67,6 @@ export const enableUnlimitedAccess = async (userId: number) => {
 
 export const disableUnlimitedAccess = async (userId: number) => {
   try {
-    // Verify admin access
     await checkAdminAccess();
 
     await UserService.toggleUnlimitedAccess(userId, false);
@@ -85,7 +79,6 @@ export const disableUnlimitedAccess = async (userId: number) => {
 
 export const deleteUser = async (userId: number) => {
   try {
-    // Verify admin access
     await checkAdminAccess();
 
     await UserService.deleteUser(userId);
@@ -98,10 +91,8 @@ export const deleteUser = async (userId: number) => {
 
 export const updateUserMaxAgents = async (userId: number, maxAgents: string) => {
   try {
-    // Verify admin access
     await checkAdminAccess();
 
-    // Validate max agents value using schema
     try {
       maxAgentsSchema.parse({ value: maxAgents });
     } catch (zodError) {
