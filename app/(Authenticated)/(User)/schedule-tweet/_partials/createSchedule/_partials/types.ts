@@ -16,6 +16,8 @@ export interface SchedulePost {
   content: string;
   scheduledTime: string;
   agentId: string;
+  mediaFile?: File | null;
+  mediaUrl?: string;
 }
 
 export type DelayUnit = "seconds" | "minutes" | "hours";

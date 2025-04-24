@@ -10,7 +10,8 @@ RUN apk add --no-cache \
     eudev-dev \
     supervisor\
     linux-headers \
-    supervisor
+    supervisor \
+    postgresql-client
 
 COPY package.json package-lock.json ./
 RUN npm i -f

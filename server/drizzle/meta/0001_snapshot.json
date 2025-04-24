@@ -1,6 +1,6 @@
 {
-  "id": "2e04cd7e-45bf-4d88-a9fe-faef87aaf5bd",
-  "prevId": "93ddab37-e133-40b7-87fc-a5911bc792eb",
+  "id": "3a0ee08a-14e2-430c-85e3-b5414a2b62dc",
+  "prevId": "0406bbee-35be-4f98-bb6e-9b9f6f265101",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -627,6 +627,13 @@
           "notNull": true,
           "default": true
         },
+        "max_agents": {
+          "name": "max_agents",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 50
+        },
         "createdAt": {
           "name": "createdAt",
           "type": "timestamp with time zone",
@@ -855,6 +862,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "mediaUrl": {
+          "name": "mediaUrl",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "scheduledAt": {
           "name": "scheduledAt",
           "type": "timestamp with time zone",
@@ -926,6 +939,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'0.1'"
+        },
+        "default_max_agents_per_user": {
+          "name": "default_max_agents_per_user",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 50
         },
         "telegramSessionString": {
           "name": "telegramSessionString",

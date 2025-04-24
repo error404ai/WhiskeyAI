@@ -9,6 +9,7 @@ export const scheduledTweetsTable = pgTable("scheduledTweets", {
     .references(() => agentsTable.id, { onDelete: "cascade" }),
   batchId: varchar({ length: 50 }).notNull(),
   content: text().notNull(),
+  mediaUrl: text(),
   scheduledAt: timestamp("scheduledAt", { withTimezone: true }).notNull(),
   status: varchar({ length: 50 }).$type<"pending" | "completed" | "failed" | "cancelled">().default("pending"),
   createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),

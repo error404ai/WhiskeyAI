@@ -6,11 +6,13 @@ import { ActionButtons, ActionItem } from "@/components/ui/action-buttons";
 import { Button } from "@/components/ui/button";
 import { DateTime } from "@/components/ui/datetime";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ActiveBadge, BlockedBadge } from "@/components/ui/status-badge";
 import * as UserManagementController from "@/server/controllers/admin/UserManagementController";
 import { Role, UserType } from "@/server/db/schema";
 import { ColumnDef } from "@tanstack/react-table";
-import { KeyIcon, ShieldIcon, Star, Trash2, UserCheck, UserIcon, UserX } from "lucide-react";
+import { KeyIcon, Settings, ShieldIcon, Star, Trash2, UserCheck, UserIcon, UserX } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -18,6 +20,8 @@ const UserManagementPage = () => {
   const tableRef = useRef<DataTableRef>(null);
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showMaxAgentsDialog, setShowMaxAgentsDialog] = useState(false);
+  const [maxAgentsValue, setMaxAgentsValue] = useState<string>("5");
 
   const refreshTable = () => {
     if (tableRef.current) {
@@ -82,6 +86,26 @@ const UserManagementPage = () => {
   const confirmDelete = (user: UserType) => {
     setSelectedUser(user);
     setShowDeleteDialog(true);
+  };
+
+  const openMaxAgentsDialog = (user: UserType) => {
+    setSelectedUser(user);
+    setMaxAgentsValue(String(user.max_agents) || "5");
+    setShowMaxAgentsDialog(true);
+  };
+
+  const handleUpdateMaxAgents = async () => {
+    if (!selectedUser) return;
+
+    const result = await UserManagementController.updateUserMaxAgents(selectedUser.id, maxAgentsValue);
+    setShowMaxAgentsDialog(false);
+
+    if (result.success) {
+      toast.success(result.message);
+      refreshTable();
+    } else {
+      toast.error(result.message);
+    }
   };
 
   const columns: ColumnDef<{
@@ -176,6 +200,23 @@ const UserManagementPage = () => {
       enableSorting: false,
     },
     {
+      accessorKey: "users.max_agents",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Max Agents" />,
+      cell: ({ row }) => {
+        const maxAgents = row.original.users.max_agents || 5;
+        const hasUnlimitedAccess = row.original.users.has_unlimited_access === true;
+
+        return (
+          <div className="flex items-center">
+            <div className={`flex items-center gap-2 rounded-full px-3 py-1 ${hasUnlimitedAccess ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"}`}>
+              <span className="font-medium">{hasUnlimitedAccess ? "∞" : maxAgents}</span>
+            </div>
+          </div>
+        );
+      },
+      enableSorting: false,
+    },
+    {
       accessorKey: "users.created_at",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Registered On" />,
       cell: ({ row }) => {
@@ -192,6 +233,12 @@ const UserManagementPage = () => {
         const hasUnlimitedAccess = original.users.has_unlimited_access === true;
 
         const actions: ActionItem[] = [
+          {
+            label: "Set Max Agents",
+            onClick: () => openMaxAgentsDialog(original.users),
+            icon: <Settings className="h-4 w-4" />,
+            variant: "outline",
+          },
           {
             label: isActive ? "Block User" : "Unblock User",
             onClick: () => (isActive ? handleBlockUser(original.users.id) : handleUnblockUser(original.users.id)),
@@ -239,6 +286,30 @@ const UserManagementPage = () => {
             <Button variant="destructive" onClick={handleDeleteUser}>
               Delete
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showMaxAgentsDialog} onOpenChange={setShowMaxAgentsDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Set Maximum Agents</DialogTitle>
+            <DialogDescription>Set the maximum number of agents this user can create. This will override the default system limit.</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="maxAgents">Maximum Agents</Label>
+              <Input id="maxAgents" type="number" value={maxAgentsValue} onChange={(e) => setMaxAgentsValue(e.target.value)} />
+              <p className="text-muted-foreground text-sm">Value must be 0 or a positive number.</p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowMaxAgentsDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateMaxAgents}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

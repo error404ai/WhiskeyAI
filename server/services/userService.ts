@@ -5,6 +5,7 @@ import { DrizzlePaginator } from "@skmirajbn/drizzle-paginator";
 import { eq, like, or } from "drizzle-orm";
 import { z, ZodError } from "zod";
 import UserResource, { UserResourceType } from "../resource/userResource";
+import { AdminSettingsService } from "./admin/AdminSettingsService";
 import { UploadService } from "./uploadService";
 
 class UserService {
@@ -27,11 +28,15 @@ class UserService {
   }
 
   static async createUserByPublicKey(publicKey: string): Promise<UserResourceType | null> {
+    // Get default max agents from settings
+    const defaultMaxAgents = await AdminSettingsService.getDefaultMaxAgentsPerUser();
+
     await db.insert(usersTable).values({
       customer_id: this.generateCustomerId(),
       roleId: 2,
       publicKey,
       email: "",
+      max_agents: defaultMaxAgents,
     });
 
     const user = await db.query.usersTable.findFirst({
@@ -88,6 +93,39 @@ class UserService {
     });
 
     return true;
+  }
+
+  // Get user's max agents limit
+  static async getUserMaxAgents(userId: number): Promise<number> {
+    try {
+      const result = await db.select({ max_agents: usersTable.max_agents, has_unlimited_access: usersTable.has_unlimited_access }).from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+
+      if (result.length === 0) {
+        // If user not found, return default
+        return 5;
+      }
+
+      // If user has unlimited access, return a high number
+      if (result[0].has_unlimited_access) {
+        return 999;
+      }
+
+      return result[0].max_agents;
+    } catch (error) {
+      console.error("Error getting user max agents:", error);
+      return 50; // Return default in case of error
+    }
+  }
+
+  // Update user's max agents limit
+  static async updateUserMaxAgents(userId: number, maxAgents: number): Promise<boolean> {
+    try {
+      await db.update(usersTable).set({ max_agents: maxAgents }).where(eq(usersTable.id, userId));
+      return true;
+    } catch (error) {
+      console.error("Error updating user max agents:", error);
+      return false;
+    }
   }
 
   static async getAllUsersForAdmin({ perPage = 10, page = 1, search = "" }: PaginatedProps) {
