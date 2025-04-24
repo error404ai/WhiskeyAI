@@ -120,12 +120,7 @@ class UserService {
   // Update user's max agents limit
   static async updateUserMaxAgents(userId: number, maxAgents: number): Promise<boolean> {
     try {
-      if (maxAgents < 0 || maxAgents > 100) {
-        throw new Error("Invalid max agents value. Must be between 0 and 100.");
-      }
-
       await db.update(usersTable).set({ max_agents: maxAgents }).where(eq(usersTable.id, userId));
-
       return true;
     } catch (error) {
       console.error("Error updating user max agents:", error);
