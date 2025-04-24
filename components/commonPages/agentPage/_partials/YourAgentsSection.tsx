@@ -31,7 +31,7 @@ export default function YourAgentsSection() {
   const totalAgents = agents?.length || 0;
   const runningAgents = agents?.filter((agent) => agent.status === "running").length || 0;
   const pausedAgents = agents?.filter((agent) => agent.status === "paused").length || 0;
-  const maxAgents = process.env.NEXT_PUBLIC_MAX_AGENTS_PER_USER ? parseInt(process.env.NEXT_PUBLIC_MAX_AGENTS_PER_USER) : 50;
+  const maxAgents = parseInt(process.env.NEXT_PUBLIC_MAX_AGENTS_PER_USER || "0", 10);
 
   // Group agents by status
   const groupedAgents = {
