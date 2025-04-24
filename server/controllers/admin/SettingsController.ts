@@ -1,4 +1,4 @@
-'use server'
+"use server";
 import { AdminSettingsService } from "@/server/services/admin/AdminSettingsService";
 import AuthService from "@/server/services/auth/authService";
 import { maxAgentsSchema } from "@/server/zodSchema/maxAgentsSchema";
@@ -13,7 +13,7 @@ const solPaymentSchema = z.object({
     },
     {
       message: "Amount must be a number between 0.001 and 10 SOL",
-    }
+    },
   ),
 });
 
@@ -44,11 +44,11 @@ export async function updateSolPayment(amountStr: string) {
   try {
     // Verify admin access
     await checkAdminAccess();
-    
+
     // Validate input
     const { amount } = solPaymentSchema.parse({ amount: amountStr });
     const numAmount = parseFloat(amount);
-    
+
     // Update the setting
     return await AdminSettingsService.updateSolPayment(numAmount);
   } catch (error) {
@@ -61,10 +61,7 @@ export async function updateSolPayment(amountStr: string) {
 
 export async function getDefaultMaxAgentsPerUser() {
   try {
-    // Verify admin access
     await checkAdminAccess();
-    
-    // Get the setting
     const maxAgents = await AdminSettingsService.getDefaultMaxAgentsPerUser();
     return { success: true, maxAgents };
   } catch (error) {
@@ -74,27 +71,17 @@ export async function getDefaultMaxAgentsPerUser() {
 
 export async function updateDefaultMaxAgentsPerUser(valueStr: string) {
   try {
-    // Verify admin access
     await checkAdminAccess();
-    
-    // Convert string to number first
-    const numValue = parseInt(valueStr, 10);
-    if (isNaN(numValue)) {
-      return { success: false, error: "Value must be a valid number" };
-    }
-    
-    // Validate using the schema
+
     try {
-      maxAgentsSchema.parse({ value: numValue });
+      maxAgentsSchema.parse({ value: valueStr });
     } catch (zodError) {
       if (zodError instanceof z.ZodError) {
         return { success: false, error: zodError.errors[0].message };
       }
       throw zodError;
     }
-    
-    // Update the setting
-    return await AdminSettingsService.updateDefaultMaxAgentsPerUser(numValue);
+    return await AdminSettingsService.updateDefaultMaxAgentsPerUser(Number(valueStr));
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : "Invalid max agents value" };
   }
@@ -104,10 +91,10 @@ export async function updateTelegramSettings(settings: Record<string, string>) {
   try {
     // Verify admin access
     await checkAdminAccess();
-    
+
     // Validate input
     const validatedSettings = telegramSettingsSchema.parse(settings);
-    
+
     // Update settings
     return await AdminSettingsService.updateTelegramSettings(validatedSettings);
   } catch (error) {
@@ -122,9 +109,9 @@ export async function setTelegramAuthenticated(isAuthenticated: boolean, session
   try {
     // Verify admin access
     await checkAdminAccess();
-    
+
     return await AdminSettingsService.setTelegramAuthenticated(isAuthenticated, sessionString);
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : "Authentication update failed" };
   }
-} 
+}
