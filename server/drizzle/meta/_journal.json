@@ -8,6 +8,13 @@
       "when": 1745513973168,
       "tag": "0000_flashy_skin",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1745521913513,
+      "tag": "0001_burly_mathemanic",
+      "breakpoints": true
     }
   ]
 }
