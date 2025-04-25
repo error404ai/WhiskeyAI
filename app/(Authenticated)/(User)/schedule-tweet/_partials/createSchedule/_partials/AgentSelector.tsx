@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Loader2, UserX } from "lucide-react";
 import { Agent } from "./types";
-import { useEffect, useState } from "react";
 
 interface AgentSelectorProps {
   agents: Agent[];
@@ -19,39 +18,6 @@ interface AgentSelectorProps {
 
 export default function AgentSelector({ agents, isAgentsLoading, agentRangeStart, agentRangeEnd, setAgentRangeStart, setAgentRangeEnd, applyAgentRange }: AgentSelectorProps) {
   "use no memo";
-  
-  // Local state for input values
-  const [startInputValue, setStartInputValue] = useState(agentRangeStart.toString());
-  const [endInputValue, setEndInputValue] = useState(agentRangeEnd.toString());
-  
-  // Update local state when props change
-  useEffect(() => {
-    setStartInputValue(agentRangeStart.toString());
-    setEndInputValue(agentRangeEnd.toString());
-  }, [agentRangeStart, agentRangeEnd]);
-  
-  // Handle submitting the range changes
-  const handleApplyRange = () => {
-    // Convert and validate start value
-    const start = parseInt(startInputValue);
-    const validStart = !isNaN(start) ? Math.max(1, Math.min(agents.length, start)) : 1;
-    
-    // Convert and validate end value
-    const end = parseInt(endInputValue);
-    const validEnd = !isNaN(end) ? Math.max(validStart, Math.min(agents.length, end)) : agents.length;
-    
-    // Set the validated values in parent state
-    setAgentRangeStart(validStart);
-    setAgentRangeEnd(validEnd);
-    
-    // Update local state to match
-    setStartInputValue(validStart.toString());
-    setEndInputValue(validEnd.toString());
-    
-    // Apply the range in parent component
-    applyAgentRange();
-  };
-  
   return (
     <Card className="h-full border-[1px] border-blue-100 shadow-md transition-all hover:border-blue-200">
       <CardHeader className="bg-gradient-to-r from-blue-600/10 to-indigo-600/10 pb-2">
@@ -74,24 +40,10 @@ export default function AgentSelector({ agents, isAgentsLoading, agentRangeStart
             <div className="mb-4">
               <p className="mb-2 text-sm font-medium text-gray-500">Agent Range</p>
               <div className="flex items-center gap-2">
-                <Input 
-                  type="number" 
-                  min={1} 
-                  max={agents.length} 
-                  value={startInputValue}
-                  onChange={(e) => setStartInputValue(e.target.value)}
-                  className="h-8 w-16 border-blue-200 text-center focus:border-blue-400" 
-                />
+                <Input type="number" min={1} max={agents.length} value={agentRangeStart} onChange={(e) => setAgentRangeStart(Number(e.target.value) || 1)} className="h-8 w-16 border-blue-200 text-center focus:border-blue-400" />
                 <span className="text-muted-foreground">to</span>
-                <Input 
-                  type="number" 
-                  min={1} 
-                  max={agents.length}
-                  value={endInputValue}
-                  onChange={(e) => setEndInputValue(e.target.value)}
-                  className="h-8 w-16 border-blue-200 text-center focus:border-blue-400" 
-                />
-                <Button type="button" size="sm" className="ml-1 bg-blue-600 hover:bg-blue-700" onClick={handleApplyRange}>
+                <Input type="number" min={agentRangeStart} max={agents.length} value={agentRangeEnd} onChange={(e) => setAgentRangeEnd(Number(e.target.value) || agentRangeStart)} className="h-8 w-16 border-blue-200 text-center focus:border-blue-400" />
+                <Button type="button" size="sm" className="ml-1 bg-blue-600 hover:bg-blue-700" onClick={applyAgentRange}>
                   Apply
                 </Button>
               </div>
