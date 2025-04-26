@@ -6,7 +6,7 @@ import SocialiteService from "./oAuthService/SocialiteService";
 import { UploadService } from "./uploadService";
 
 // Define the specific media types accepted by Twitter
-type TwitterMediaType = 'image/jpeg' | 'image/png' | 'image/gif' | 'video/mp4';
+type TwitterMediaType = "image/jpeg" | "image/png" | "image/gif" | "video/mp4";
 
 class TwitterService {
   private twitterApi: TwitterApi;
@@ -32,43 +32,45 @@ class TwitterService {
 
   async postTweet(text: string, mediaUrl?: string) {
     await this.refreshTokenIfNeeded();
-    
+
+    console.log(mediaUrl ? `Posting tweet with media:: media URL is :: ${mediaUrl}` : `Posting tweet without media:: ${text}`);
+
     if (mediaUrl) {
       try {
         const uploadService = new UploadService();
         console.log(`Retrieving media content directly for: ${mediaUrl}`);
-        
+
         const mediaBuffer = await uploadService.getFileContent(mediaUrl);
-        
+
         if (!mediaBuffer) {
           console.error(`Could not retrieve media content for ${mediaUrl}`);
           return await this.twitterApi.v2.tweet(text);
         }
-        
+
         console.log(`Successfully retrieved media file, size: ${mediaBuffer.length} bytes`);
-        
-        let mediaType: TwitterMediaType = 'image/jpeg'; // Default
-        if (mediaUrl.endsWith('.png')) {
-          mediaType = 'image/png';
-        } else if (mediaUrl.endsWith('.jpg') || mediaUrl.endsWith('.jpeg')) {
-          mediaType = 'image/jpeg';
-        } else if (mediaUrl.endsWith('.gif')) {
-          mediaType = 'image/gif';
-        } else if (mediaUrl.endsWith('.mp4')) {
-          mediaType = 'video/mp4';
+
+        let mediaType: TwitterMediaType = "image/jpeg"; // Default
+        if (mediaUrl.endsWith(".png")) {
+          mediaType = "image/png";
+        } else if (mediaUrl.endsWith(".jpg") || mediaUrl.endsWith(".jpeg")) {
+          mediaType = "image/jpeg";
+        } else if (mediaUrl.endsWith(".gif")) {
+          mediaType = "image/gif";
+        } else if (mediaUrl.endsWith(".mp4")) {
+          mediaType = "video/mp4";
         }
-        
+
         console.log(`Uploading media to Twitter with type: ${mediaType}`);
-        
-        const mediaId = await this.twitterApi.v2.uploadMedia(mediaBuffer, { 
-          media_type: mediaType
+
+        const mediaId = await this.twitterApi.v2.uploadMedia(mediaBuffer, {
+          media_type: mediaType,
         });
-        
+
         console.log(`Media uploaded to Twitter with ID: ${mediaId}`);
-        
+
         // Tweet with media
         return await this.twitterApi.v2.tweet(text, {
-          media: { media_ids: [mediaId] }
+          media: { media_ids: [mediaId] },
         });
       } catch (error) {
         console.error("Error posting tweet with media:", error);
@@ -76,7 +78,7 @@ class TwitterService {
         return await this.twitterApi.v2.tweet(text);
       }
     }
-    
+
     // Regular tweet without media
     return await this.twitterApi.v2.tweet(text);
   }
