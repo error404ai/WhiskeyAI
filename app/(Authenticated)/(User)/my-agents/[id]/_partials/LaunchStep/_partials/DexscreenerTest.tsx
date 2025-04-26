@@ -69,7 +69,6 @@ export default function DexscreenerTest() {
       } else {
         setResult({ action: actionName, data: response });
         setSuccess(`${actionName} completed successfully!`);
-        console.log(`${actionName} response:`, response);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";

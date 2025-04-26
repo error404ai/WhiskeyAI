@@ -30,7 +30,7 @@ const ProfileBasicInfo = () => {
     queryKey: ["getAuthUser"],
     queryFn: ProfileController.getAuthUser,
   });
-  const { update, data: session } = useSession();
+  const { update } = useSession();
   const { data } = useGetCountryQuery({});
   const [status, setStatus] = useState<StatusType>("initial");
   const countryItem = data?.map((country: any) => ({
@@ -73,9 +73,6 @@ const ProfileBasicInfo = () => {
     methods.setValue("avatar", user?.avatar ?? "");
     methods.setValue("email", user?.email ?? "");
   }, [user, methods]);
-
-  console.log("user is", user);
-  console.log("jwt user", session);
 
   return (
     <Card className="h-fit w-full">

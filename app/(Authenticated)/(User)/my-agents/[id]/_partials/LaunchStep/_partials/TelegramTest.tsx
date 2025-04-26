@@ -42,7 +42,6 @@ export default function TelegramTest() {
     } else {
       setResult({ action: actionName, data: response.data });
       setSuccess(`${actionName} completed successfully!`);
-      console.log(`${actionName} response:`, response.data);
     }
   };
 
