@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { addHours, addMinutes, addSeconds, format } from "date-fns";
-import { Clock, FileSpreadsheet, Loader2, X } from "lucide-react";
+import { Clock, FileImage, FileSpreadsheet, Loader2, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { FieldArrayWithId, UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
@@ -36,15 +36,19 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+
+  const mediaInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [selectedMediaFiles, setSelectedMediaFiles] = useState<File[]>([]);
+  const [mediaUploadSuccess, setMediaUploadSuccess] = useState<{ count: number } | null>(null);
+
   const [tempDelayValue, setTempDelayValue] = useState(methods.getValues("delayValue"));
   const [tempDelayUnit, setTempDelayUnit] = useState(methods.getValues("delayUnit"));
   const [tempStartDate, setTempStartDate] = useState(format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"));
   const [isApplyingDelay, setIsApplyingDelay] = useState(false);
   const [isApplyingStartDate, setIsApplyingStartDate] = useState(false);
 
-  // Handle file selection
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    // Prevent event bubbling to avoid unwanted form validation
     event.stopPropagation();
 
     const file = event.target.files?.[0];
@@ -55,7 +59,6 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
     }
   };
 
-  // Calculate next scheduled time based on delay unit and value
   const calculateNextTime = (baseTime: Date, delayValue: number, delayUnit: DelayUnit, multiplier: number): Date => {
     const totalDelay = delayValue * multiplier;
 
@@ -64,28 +67,24 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
     } else if (delayUnit === "hours") {
       return addHours(baseTime, totalDelay);
     } else {
-      // Default to minutes
       return addMinutes(baseTime, totalDelay);
     }
   };
 
-  // Helper function to get max value based on unit
   const getMaxValueForUnit = (unit: DelayUnit): number => {
     switch (unit) {
       case "seconds":
-        return 3600; // 1 hour in seconds
+        return 3600;
       case "minutes":
-        return 1440; // 24 hours in minutes
+        return 1440;
       case "hours":
-        return 168; // 7 days in hours
+        return 168;
       default:
         return 1440;
     }
   };
 
-  // Apply delay changes
   const applyDelayChanges = () => {
-    // Validate the delay value based on the unit
     const maxValue = getMaxValueForUnit(tempDelayUnit);
     if (tempDelayValue > maxValue) {
       toast.error(`Maximum delay for ${tempDelayUnit} is ${maxValue}`);
@@ -95,14 +94,12 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
     setIsApplyingDelay(true);
 
     try {
-      // Use setTimeout to simulate processing and allow the UI to update with loading state
       setTimeout(() => {
         methods.setValue("delayValue", tempDelayValue);
         methods.setValue("delayUnit", tempDelayUnit);
         currentDelayRef.current = tempDelayValue;
         currentDelayUnitRef.current = tempDelayUnit;
 
-        // Update schedules based on new values
         if (fields.length > 0) {
           methods.setValue("schedulePosts.0.scheduledTime", format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"));
 
@@ -113,11 +110,9 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
           }
         }
 
-        // Set loading state to false immediately before showing the toast
         setIsApplyingDelay(false);
-        // Show success toast
         toast.success(`Applied delay: ${tempDelayValue} ${tempDelayUnit}`);
-      }, 100); 
+      }, 100);
     } catch (error) {
       console.error("Error applying delay:", error);
       toast.error("Error applying delay. Please try again.");
@@ -125,7 +120,6 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
     }
   };
 
-  // Apply start date changes
   const applyStartDateChanges = () => {
     if (!tempStartDate) {
       toast.error("Invalid date format");
@@ -135,9 +129,7 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
     setIsApplyingStartDate(true);
 
     try {
-      // Use setTimeout to simulate processing and allow the UI to update with loading state
       setTimeout(() => {
-        // Create a synthetic event to pass to the handler
         const syntheticEvent = {
           target: { value: tempStartDate },
           preventDefault: () => {},
@@ -145,12 +137,10 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
         } as React.ChangeEvent<HTMLInputElement>;
 
         handleStartDateChange(syntheticEvent);
-        
-        // Set loading state to false immediately before showing the toast
+
         setIsApplyingStartDate(false);
-        // Show success toast
         toast.success("Applied new start date and time");
-      }, 100); 
+      }, 100);
     } catch (error) {
       console.error("Error applying start date:", error);
       toast.error("Error applying start date. Please try again.");
@@ -158,18 +148,15 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
     }
   };
 
-  // Handle temp delay unit change
   const handleTempDelayUnitChange = (newUnit: DelayUnit) => {
     setTempDelayUnit(newUnit);
-    
-    // Validate the current temp delay value based on the new unit
+
     const maxValue = getMaxValueForUnit(newUnit);
     if (tempDelayValue > maxValue) {
       setTempDelayValue(maxValue);
     }
   };
 
-  // Handle file upload
   const handleFileUpload = () => {
     const file = fileInputRef.current?.files?.[0];
     if (!file) {
@@ -186,11 +173,9 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
         const workbook = XLSX.read(data, { type: "array" });
 
-        // Get the first sheet
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
 
-        // Convert to JSON with proper typing
         const jsonData: ExcelData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
         if (!jsonData || jsonData.length === 0) {
@@ -199,10 +184,8 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
           return;
         }
 
-        // Extract tweet content (skip header row if it exists)
         let startRow = 0;
 
-        // Check if the first row contains headers
         if (jsonData[0] && jsonData[0].length > 0) {
           const firstCell = jsonData[0][0];
           if (typeof firstCell === "string" && (firstCell.toLowerCase() === "tweets" || firstCell.toLowerCase() === "tweet" || firstCell.toLowerCase().includes("content"))) {
@@ -210,7 +193,6 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
           }
         }
 
-        // Process the tweets with proper typing
         const tweets: string[] = [];
 
         for (let i = startRow; i < jsonData.length; i++) {
@@ -229,11 +211,9 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
           return;
         }
 
-        // Create schedule posts from tweets
         const currentDelay = currentDelayRef.current;
         const currentDelayUnit = currentDelayUnitRef.current;
 
-        // Use active agents for assignment
         const agentsToUse = activeAgents;
 
         if (agentsToUse.length === 0) {
@@ -242,14 +222,10 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
           return;
         }
 
-        // First, clear any existing state to avoid UI sync issues
         setHasImportedPosts(false);
         setUploadSuccess(null);
 
-        // Create the new posts with proper scheduling and agent assignment
         const newPosts: SchedulePost[] = tweets.map((content, index) => {
-          // For the first post (index 0), use exactly scheduleStartDate
-          // For subsequent posts, add accumulated delay based on position
           const postTime = index === 0 ? scheduleStartDate : calculateNextTime(scheduleStartDate, currentDelay, currentDelayUnit, index);
 
           const agentIndex = index % agentsToUse.length;
@@ -264,37 +240,27 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
         console.log(`Importing ${tweets.length} posts from Excel`);
 
         try {
-          // We need to replace the posts without triggering immediate validation
-          // that could show errors while we're still processing
           replace(newPosts);
 
-          // Wait a short tick for the UI to update before validating
           setTimeout(() => {
-            // Update state immediately after replacement
             setHasImportedPosts(true);
             setUploadSuccess({ count: tweets.length });
 
-            // Notify parent component about successful import
             if (onImportSuccess) {
               onImportSuccess(tweets.length);
             }
 
-            // Now perform validation after everything is set up
             methods.trigger("schedulePosts").then(() => {
               console.log(`Validation complete after import: ${tweets.length} posts should be visible`);
-              
-              // Set loading state to false before showing toast
+
               setIsUploading(false);
-              // Reset the file input
               if (fileInputRef.current) {
                 fileInputRef.current.value = "";
                 setSelectedFileName(null);
               }
-              
-              // Show success toast
+
               toast.success(`Successfully imported ${tweets.length} posts from the file`);
 
-              // Log completion for debugging
               console.log(`Excel import complete: ${newPosts.length} posts added to form`);
             });
           }, 100);
@@ -318,14 +284,12 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
     reader.readAsArrayBuffer(file);
   };
 
-  // Clear imported posts
   const clearImportedPosts = (e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
 
-    // Reset to a single empty post without triggering immediate validation
     const emptyPost = {
       content: "",
       scheduledTime: format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"),
@@ -334,26 +298,130 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
 
     replace([emptyPost]);
 
-    // Clear success message and reset state
     setUploadSuccess(null);
     setHasImportedPosts(false);
 
-    // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
       setSelectedFileName(null);
     }
 
-    // Give UI time to update before showing success message
     setTimeout(() => {
       toast.success("Imported posts cleared. All imported posts have been removed.");
     }, 100);
   };
 
+  const handleMediaSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.stopPropagation();
+
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      const mediaFiles: File[] = Array.from(files);
+      setSelectedMediaFiles(mediaFiles);
+    } else {
+      setSelectedMediaFiles([]);
+    }
+  };
+
+  const handleMediaUpload = () => {
+    if (selectedMediaFiles.length === 0) {
+      toast.error("No media files selected. Please select files to upload.");
+      return;
+    }
+
+    setIsUploadingMedia(true);
+    setMediaUploadSuccess(null);
+
+    try {
+      const currentPosts = [...methods.getValues("schedulePosts")];
+      let newPostsCreated = false;
+
+      if (currentPosts.length === 0) {
+        currentPosts.push({
+          content: "",
+          scheduledTime: format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"),
+          agentId: activeAgents.length > 0 ? activeAgents[0].uuid : "",
+        });
+        newPostsCreated = true;
+      }
+
+      const updatedPosts = [...currentPosts];
+      const mediaCount = selectedMediaFiles.length;
+
+      if (mediaCount > currentPosts.length) {
+        const postsToCreate = mediaCount - currentPosts.length;
+        const delayValue = currentDelayRef.current;
+        const delayUnit = currentDelayUnitRef.current;
+
+        for (let i = 0; i < postsToCreate; i++) {
+          const postIndex = currentPosts.length + i;
+          const postTime = calculateNextTime(scheduleStartDate, delayValue, delayUnit, postIndex);
+          const agentIndex = postIndex % activeAgents.length;
+
+          updatedPosts.push({
+            content: "",
+            scheduledTime: format(postTime, "yyyy-MM-dd'T'HH:mm"),
+            agentId: activeAgents[agentIndex].uuid,
+          });
+        }
+
+        newPostsCreated = true;
+      }
+
+      // Distribute media files across posts
+      for (let i = 0; i < mediaCount; i++) {
+        if (i < updatedPosts.length) {
+          updatedPosts[i] = {
+            ...updatedPosts[i],
+            mediaFile: selectedMediaFiles[i],
+          };
+        }
+      }
+
+      // Replace posts in form
+      replace(updatedPosts);
+
+      // Show success message
+      setMediaUploadSuccess({ count: selectedMediaFiles.length });
+
+      setTimeout(() => {
+        // Reset file input
+        if (mediaInputRef.current) {
+          mediaInputRef.current.value = "";
+        }
+
+        toast.success(`Successfully distributed ${selectedMediaFiles.length} media files to posts.${newPostsCreated ? " New posts were created as needed." : ""}`);
+        setIsUploadingMedia(false);
+      }, 100);
+    } catch (error) {
+      console.error("Error distributing media files:", error);
+      toast.error("Error distributing media files. Please try again.");
+      setIsUploadingMedia(false);
+    }
+  };
+
+  // Clear selected media files
+  const clearMediaFiles = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    setSelectedMediaFiles([]);
+    setMediaUploadSuccess(null);
+
+    // Reset file input
+    if (mediaInputRef.current) {
+      mediaInputRef.current.value = "";
+    }
+
+    toast.success("Selected media files cleared.");
+  };
+
   return (
     <Card className="border-[1px] border-blue-100 shadow-md transition-all hover:border-blue-200">
       <CardContent className="p-4">
-        <div className="relative grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="relative grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-4">
           <div className="flex flex-col gap-2 rounded-md bg-blue-50/50 p-2">
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4 text-blue-600" />
@@ -389,13 +457,7 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
                     </SelectGroup>
                   </SelectContent>
                 </Select>
-                <Button 
-                  onClick={applyDelayChanges}
-                  size="sm"
-                  className="h-8 bg-blue-600 hover:bg-blue-700 text-white"
-                  type="button"
-                  disabled={isApplyingDelay}
-                >
+                <Button onClick={applyDelayChanges} size="sm" className="h-8 bg-blue-600 text-white hover:bg-blue-700" type="button" disabled={isApplyingDelay}>
                   {isApplyingDelay ? (
                     <>
                       <Loader2 className="mr-1 h-3 w-3 animate-spin" />
@@ -406,7 +468,6 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
                   )}
                 </Button>
               </div>
-             
             </div>
           </div>
 
@@ -419,21 +480,8 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
               </Label>
             </div>
             <div className="flex gap-2">
-              <Input 
-                type="datetime-local" 
-                id="scheduleStartDate" 
-                value={tempStartDate} 
-                onChange={(e) => setTempStartDate(e.target.value)} 
-                className="h-8 border-blue-200 focus:border-blue-400" 
-                min={format(new Date(), "yyyy-MM-dd'T'HH:mm")} 
-              />
-              <Button 
-                onClick={applyStartDateChanges}
-                size="sm"
-                className="h-8 bg-blue-600 hover:bg-blue-700 text-white"
-                type="button"
-                disabled={isApplyingStartDate}
-              >
+              <Input type="datetime-local" id="scheduleStartDate" value={tempStartDate} onChange={(e) => setTempStartDate(e.target.value)} className="h-8 border-blue-200 focus:border-blue-400" min={format(new Date(), "yyyy-MM-dd'T'HH:mm")} />
+              <Button onClick={applyStartDateChanges} size="sm" className="h-8 bg-blue-600 text-white hover:bg-blue-700" type="button" disabled={isApplyingStartDate}>
                 {isApplyingStartDate ? (
                   <>
                     <Loader2 className="mr-1 h-3 w-3 animate-spin" />
@@ -483,14 +531,14 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
               <Input id="excelUpload" type="file" accept=".xlsx, .xls" className="hidden" ref={fileInputRef} onChange={handleFileSelect} onClick={(e) => e.stopPropagation()} />
               <Button
                 onClick={(e) => {
-                  e.preventDefault(); // Prevent form submission
-                  e.stopPropagation(); // Stop propagation to prevent unwanted validation
+                  e.preventDefault();
+                  e.stopPropagation();
                   fileInputRef.current?.click();
                 }}
                 variant="outline"
                 size="sm"
                 className="h-8 border-blue-200 px-2 text-xs hover:border-blue-400 hover:bg-blue-50"
-                type="button" // Explicitly set as button type to avoid form submission
+                type="button"
               >
                 Choose File
               </Button>
@@ -504,12 +552,98 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
                 size="sm"
                 disabled={isUploading || !selectedFileName}
                 className={`h-8 border-blue-200 px-2 text-xs hover:border-blue-400 hover:bg-blue-50 ${selectedFileName ? "border-blue-400" : ""}`}
-                type="button" // Explicitly set as button type to avoid form submission
+                type="button"
               >
                 {isUploading ? "Uploading..." : "Upload"}
               </Button>
               {selectedFileName && <span className="truncate">{selectedFileName}</span>}
             </div>
+          </div>
+
+          {/* Media Files Upload */}
+          <div className="flex flex-col gap-2 rounded-md bg-blue-50/50 p-2">
+            <div className="flex items-center gap-1">
+              <FileImage className="h-4 w-4 text-blue-600" />
+              <Label htmlFor="mediaUpload" className="font-medium">
+                Import Media Files:
+              </Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-5">
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 16v-4" />
+                      <path d="M12 8h.01" />
+                    </svg>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs p-2">
+                    <p className="text-sm font-medium">Media Upload</p>
+                    <ul className="list-inside list-disc space-y-1 text-xs">
+                      <li>Upload multiple images or videos at once</li>
+                      <li>Each file will be assigned to a post</li>
+                      <li>New posts will be created if needed</li>
+                      <li>Supported formats: JPG, PNG, GIF, MP4</li>
+                    </ul>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <Input id="mediaUpload" type="file" accept="image/*,video/*" multiple className="hidden" ref={mediaInputRef} onChange={handleMediaSelect} onClick={(e) => e.stopPropagation()} />
+              <Button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  mediaInputRef.current?.click();
+                }}
+                variant="outline"
+                size="sm"
+                className="h-8 border-blue-200 px-2 text-xs hover:border-blue-400 hover:bg-blue-50"
+                type="button"
+              >
+                Select Media
+              </Button>
+              <Button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleMediaUpload();
+                }}
+                variant="outline"
+                size="sm"
+                disabled={isUploadingMedia || selectedMediaFiles.length === 0}
+                className={`h-8 border-blue-200 px-2 text-xs hover:border-blue-400 hover:bg-blue-50 ${selectedMediaFiles.length > 0 ? "border-blue-400" : ""}`}
+                type="button"
+              >
+                {isUploadingMedia ? "Processing..." : "Add to Posts"}
+              </Button>
+              {selectedMediaFiles.length > 0 && (
+                <span className="truncate">
+                  {selectedMediaFiles.length} file{selectedMediaFiles.length !== 1 ? "s" : ""} selected
+                </span>
+              )}
+              {selectedMediaFiles.length > 0 && (
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    clearMediaFiles();
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-1 text-xs text-red-500 hover:bg-red-50"
+                  type="button"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+            {/* Success message for media upload */}
+            {mediaUploadSuccess && (
+              <div className="mt-1 text-xs text-green-600">
+                Successfully added {mediaUploadSuccess.count} media file{mediaUploadSuccess.count !== 1 ? "s" : ""} to {mediaUploadSuccess.count <= 1 ? "post" : "posts"}!
+              </div>
+            )}
           </div>
 
           {/* Status messages and controls */}
