@@ -93,4 +93,14 @@ export class UploadService {
   getUrl(filePath: string, disk?: "public" | "storage" | "s3"): string {
     return this.getDisk(disk).url(filePath);
   }
+
+  async getFileContent(filePath: string, disk?: string): Promise<Buffer | null> {
+    try {
+      const diskInstance = this.getDisk(disk);
+      return await diskInstance.getFileContent(filePath);
+    } catch (error) {
+      console.error(`Error retrieving file content for ${filePath}:`, error);
+      return null;
+    }
+  }
 }

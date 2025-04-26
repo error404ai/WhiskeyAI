@@ -47,10 +47,10 @@ const handleTwitterError = (error: unknown): TwitterResponse => {
   };
 };
 
-export const postTweet = async (agentUuid: string, text: string): Promise<TwitterResponse> => {
+export const postTweet = async (agentUuid: string, text: string, mediaUrl?: string): Promise<TwitterResponse> => {
   try {
     const twitterService = await getTwitterServiceForAgent(agentUuid);
-    const result = await twitterService.postTweet(text);
+    const result = await twitterService.postTweet(text, mediaUrl);
     return {
       status: "success",
       data: result,

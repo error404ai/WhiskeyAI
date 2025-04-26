@@ -18,6 +18,7 @@ export const TwitterApiResponseSchema = z.object({
 // Form validation schemas
 export const tweetSchema = z.object({
   tweetText: z.string().min(1, "Tweet text is required").max(280, "Tweet cannot exceed 280 characters"),
+  mediaUrl: z.string().optional(),
 });
 
 export const replySchema = z.object({
