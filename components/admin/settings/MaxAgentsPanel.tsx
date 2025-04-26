@@ -14,7 +14,7 @@ import { AlertCircle, CheckCircle, Users } from "lucide-react";
 
 type MaxAgentsPanelProps = {
   settings: {
-    default_max_agents_per_user: string;
+    default_max_agents_per_user: number;
   };
   onUpdate: () => void;
 };
@@ -28,7 +28,7 @@ export function MaxAgentsPanel({ settings, onUpdate }: MaxAgentsPanelProps) {
   const methods = useForm<MaxAgentsInput>({
     resolver: zodResolver(maxAgentsSchema),
     defaultValues: {
-      value: settings.default_max_agents_per_user,
+      value: String(settings.default_max_agents_per_user),
     },
   });
 
@@ -39,7 +39,7 @@ export function MaxAgentsPanel({ settings, onUpdate }: MaxAgentsPanelProps) {
     setSuccess(null);
 
     try {
-      const response = await SettingsController.updateDefaultMaxAgentsPerUser(data.value.toString());
+      const response = await SettingsController.updateDefaultMaxAgentsPerUser(data.value);
 
       if (response.success) {
         setSuccess("Default max agents per user updated successfully.");
