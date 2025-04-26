@@ -37,7 +37,7 @@ export const connectTwitter = async (state: { agentUuid: string; url: string }) 
   });
 
   return socialite.driver("twitter").redirect({
-    scopes: ["tweet.read", "tweet.write", "users.read", "like.write", "tweet.moderate.write", "offline.access"],
+    scopes: ["tweet.read", "tweet.write", "users.read", "like.write","media.write", "tweet.moderate.write", "offline.access"],
     state: base64StateString,
   });
 };

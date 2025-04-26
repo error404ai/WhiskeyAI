@@ -140,6 +140,10 @@ export default function CreateSchedule() {
       isUpdatingRef.current = true;
 
       if (fields.length > 0) {
+        // Get current post data
+        const currentPosts = methods.getValues("schedulePosts");
+        
+        // Update first post time
         methods.setValue("schedulePosts.0.scheduledTime", format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"), {
           shouldDirty: true,
           shouldTouch: true,
@@ -151,9 +155,16 @@ export default function CreateSchedule() {
         const delayUnit = methods.getValues("delayUnit");
         const baseTime = scheduleStartDate;
 
+        // Update all other posts' times while preserving their content and media
         for (let i = 1; i < fields.length; i++) {
           const nextTime = calculateNextTime(baseTime, delayValue, delayUnit, i);
-          methods.setValue(`schedulePosts.${i}.scheduledTime`, format(nextTime, "yyyy-MM-dd'T'HH:mm"), {
+          const currentPost = currentPosts[i];
+          
+          // Preserve all post data, only update the time
+          methods.setValue(`schedulePosts.${i}`, {
+            ...currentPost,
+            scheduledTime: format(nextTime, "yyyy-MM-dd'T'HH:mm")
+          }, {
             shouldDirty: true,
             shouldTouch: true,
             shouldValidate: false,
@@ -185,7 +196,14 @@ export default function CreateSchedule() {
         isUpdatingRef.current = true;
 
         if (fields.length > 0) {
-          methods.setValue("schedulePosts.0.scheduledTime", format(newDateTime, "yyyy-MM-dd'T'HH:mm"), {
+          // Get current post data to preserve all fields
+          const currentPosts = methods.getValues("schedulePosts");
+          
+          // Update first post time
+          methods.setValue("schedulePosts.0", {
+            ...currentPosts[0],
+            scheduledTime: format(newDateTime, "yyyy-MM-dd'T'HH:mm")
+          }, {
             shouldDirty: true,
             shouldTouch: true,
             shouldValidate: false,
@@ -195,9 +213,13 @@ export default function CreateSchedule() {
           const delayUnit = methods.getValues("delayUnit");
           const baseTime = newDateTime;
 
+          // Update all other posts while preserving their data
           for (let i = 1; i < fields.length; i++) {
             const nextTime = calculateNextTime(baseTime, delayValue, delayUnit, i);
-            methods.setValue(`schedulePosts.${i}.scheduledTime`, format(nextTime, "yyyy-MM-dd'T'HH:mm"), {
+            methods.setValue(`schedulePosts.${i}`, {
+              ...currentPosts[i],
+              scheduledTime: format(nextTime, "yyyy-MM-dd'T'HH:mm")
+            }, {
               shouldDirty: true,
               shouldTouch: true,
               shouldValidate: false,
@@ -363,7 +385,7 @@ export default function CreateSchedule() {
 
             <div className="lg:col-span-9">
               {/* Schedule Posts */}
-              <PostList key={`posts-list-${forceRerender}-${fields.length}-${scheduleStartDate.getTime()}`} methods={methods} agents={agents} agentRangeStart={agentRangeStart} agentRangeEnd={agentRangeEnd} />
+              <PostList key={`posts-list-${forceRerender}-${fields.length}`} methods={methods} agents={agents} agentRangeStart={agentRangeStart} agentRangeEnd={agentRangeEnd} />
               {/* Submit Button */}
               <div className="mt-4 flex justify-end">
                 <Button type="submit" size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 font-medium hover:from-blue-700 hover:to-indigo-700" disabled={agents.length === 0 || formStatus === "submitting"}>
