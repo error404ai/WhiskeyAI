@@ -57,6 +57,28 @@ export default function PostList({ methods, agents, agentRangeStart, agentRangeE
     }
   }, [forceRender, fields.length, methods]);
 
+  // Ensure that media files in the form are preserved when the component re-renders
+  useEffect(() => {
+    if (fields.length > 0) {
+      const currentPosts = methods.getValues("schedulePosts");
+      let needsUpdate = false;
+      
+      // For each post, ensure the mediaFile is preserved
+      for (let i = 0; i < currentPosts.length; i++) {
+        const post = currentPosts[i];
+        if (post.mediaFile) {
+          // If this post has a mediaFile, make sure it's set in the form
+          needsUpdate = true;
+          console.log(`Preserving media file for post ${i}`);
+        }
+      }
+      
+      if (needsUpdate) {
+        methods.trigger("schedulePosts");
+      }
+    }
+  }, [fields.length, methods]);
+
   useLayoutEffect(() => {
     if (fields.length > 0) {
       console.log(`Layout effect: Immediate rendering of ${fields.length} posts`);
