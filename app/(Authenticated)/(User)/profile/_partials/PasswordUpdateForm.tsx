@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,6 @@ const PasswordUpdateForm = () => {
   });
 
   const onSubmit = async (data: z.infer<typeof passwordUpdateSchema>) => {
-    console.log(data);
     try {
       const res = true;
       const isError = setFormErrors(res, methods.setError);
@@ -30,7 +30,6 @@ const PasswordUpdateForm = () => {
         setTimeout(() => setStatus("initial"), 2000);
       }
     } catch (error: unknown) {
-      console.log(error);
       setStatus("error");
     }
   };

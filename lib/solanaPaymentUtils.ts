@@ -22,7 +22,6 @@ export const sendAgentPaymentTx = async (publicKey: PublicKey, signTransaction: 
     // Check recipient account balance
     const recipientPubkey = new PublicKey(RECIPIENT_WALLET);
     const recipientBalance = await connection.getBalance(recipientPubkey);
-    console.log("Recipient balance:", recipientBalance / LAMPORTS_PER_SOL, "SOL");
 
     // Calculate the total amount needed including rent-exempt balance
     const totalAmount = AGENT_CREATION_FEE * LAMPORTS_PER_SOL + (recipientBalance < MINIMUM_RENT_EXEMPT_BALANCE * LAMPORTS_PER_SOL ? MINIMUM_RENT_EXEMPT_BALANCE * LAMPORTS_PER_SOL - recipientBalance : 0);
@@ -55,10 +54,6 @@ export const sendAgentPaymentTx = async (publicKey: PublicKey, signTransaction: 
 
     // Check if user has enough balance including fees
     const balance = await connection.getBalance(publicKey);
-    console.log("Wallet balance:", balance / LAMPORTS_PER_SOL, "SOL");
-    console.log("Required amount:", totalAmountWithFees / LAMPORTS_PER_SOL, "SOL");
-    console.log("Transaction fee:", fee.value / LAMPORTS_PER_SOL, "SOL");
-    console.log("Rent-exempt balance needed:", MINIMUM_RENT_EXEMPT_BALANCE, "SOL");
 
     // Add a small buffer for transaction fees
     const minimumRequiredBalance = totalAmountWithFees + TRANSACTION_FEE_BUFFER * LAMPORTS_PER_SOL;

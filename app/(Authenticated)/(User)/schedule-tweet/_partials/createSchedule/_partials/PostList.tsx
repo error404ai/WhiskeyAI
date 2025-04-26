@@ -41,7 +41,6 @@ export default function PostList({ methods, agents, agentRangeStart, agentRangeE
   };
 
   useEffect(() => {
-    console.log(`Fields length changed: ${fields.length}`);
     if (fields.length !== lastFieldCount) {
       setLastFieldCount(fields.length);
       setForceRender((prev) => prev + 1);
@@ -50,10 +49,7 @@ export default function PostList({ methods, agents, agentRangeStart, agentRangeE
 
   useEffect(() => {
     if (fields.length > 0) {
-      console.log(`Forcing validation with ${fields.length} posts`);
-      methods.trigger("schedulePosts").then(() => {
-        console.log("Form validation complete, UI should be updated");
-      });
+      methods.trigger("schedulePosts").then(() => {});
     }
   }, [forceRender, fields.length, methods]);
 
@@ -62,17 +58,16 @@ export default function PostList({ methods, agents, agentRangeStart, agentRangeE
     if (fields.length > 0) {
       const currentPosts = methods.getValues("schedulePosts");
       let needsUpdate = false;
-      
+
       // For each post, ensure the mediaFile is preserved
       for (let i = 0; i < currentPosts.length; i++) {
         const post = currentPosts[i];
         if (post.mediaFile) {
           // If this post has a mediaFile, make sure it's set in the form
           needsUpdate = true;
-          console.log(`Preserving media file for post ${i}`);
         }
       }
-      
+
       if (needsUpdate) {
         methods.trigger("schedulePosts");
       }
@@ -81,7 +76,6 @@ export default function PostList({ methods, agents, agentRangeStart, agentRangeE
 
   useLayoutEffect(() => {
     if (fields.length > 0) {
-      console.log(`Layout effect: Immediate rendering of ${fields.length} posts`);
     }
   }, [fields.length]);
 
@@ -157,11 +151,6 @@ export default function PostList({ methods, agents, agentRangeStart, agentRangeE
     // Current post count (before adding new one)
     const currentPostCount = currentPosts.length;
 
-    console.log("Adding post with:");
-    console.log("- First post time:", firstPostTime);
-    console.log("- Current post count:", currentPostCount);
-    console.log("- Current delay:", currentDelayValue, currentDelayUnit);
-
     // Find the next agent index based on the current pattern
     const lastAgentId = lastPost?.agentId || "";
 
@@ -184,8 +173,6 @@ export default function PostList({ methods, agents, agentRangeStart, agentRangeE
 
     // Create the new post with calculated time using the current delay value and post count
     const newScheduledTime = calculateNextTime(firstPostTime, currentDelayValue, currentDelayUnit, currentPostCount);
-
-    console.log("- New scheduled time:", newScheduledTime);
 
     append({
       content: "",
