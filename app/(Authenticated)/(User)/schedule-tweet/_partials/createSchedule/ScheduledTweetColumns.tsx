@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { DataTableColumnHeader } from "@/components/Datatable/DatatableColumnHeader";
 import { ActionButtons } from "@/components/ui/action-buttons";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -200,7 +201,7 @@ export const getScheduledTweetColumns = (queryKey: string, onCancel?: (id: numbe
       enableSorting: false,
       cell: ({ row }) => {
         const content = row.original.scheduledTweets?.content;
-        return <div className="max-w-md break-words text-sm">{content || "-"}</div>;
+        return <div className="max-w-md text-sm break-words">{content || "-"}</div>;
       },
     },
     {
@@ -210,29 +211,25 @@ export const getScheduledTweetColumns = (queryKey: string, onCancel?: (id: numbe
       enableSorting: false,
       cell: ({ row }) => {
         const mediaUrl = row.original.scheduledTweets?.mediaUrl;
-        
+
         if (!mediaUrl) {
-          return <div className="text-center text-muted-foreground text-xs">No media</div>;
+          return <div className="text-muted-foreground text-center text-xs">No media</div>;
         }
-        
+
         // Determine if it's an image or video based on file extension
         const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(mediaUrl);
         const isVideo = /\.(mp4|webm|mov|avi)$/i.test(mediaUrl);
-        
+
         return (
           <div className="flex justify-center">
             {isImage && (
               <a href={mediaUrl} target="_blank" rel="noopener noreferrer">
-                <img 
-                  src={mediaUrl} 
-                  alt="Media" 
-                  className="h-16 w-auto object-cover rounded-md cursor-pointer hover:opacity-80 transition-opacity"
-                />
+                <img src={mediaUrl} alt="Media" className="h-16 w-auto cursor-pointer rounded-md object-cover transition-opacity hover:opacity-80" />
               </a>
             )}
             {isVideo && (
               <a href={mediaUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center">
-                <div className="relative h-16 w-24 bg-black/10 rounded-md flex items-center justify-center hover:opacity-80 transition-opacity">
+                <div className="relative flex h-16 w-24 items-center justify-center rounded-md bg-black/10 transition-opacity hover:opacity-80">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
                     <polygon points="5 3 19 12 5 21 5 3" />
                   </svg>
@@ -240,7 +237,7 @@ export const getScheduledTweetColumns = (queryKey: string, onCancel?: (id: numbe
               </a>
             )}
             {!isImage && !isVideo && (
-              <a href={mediaUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-xs">
+              <a href={mediaUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">
                 View File
               </a>
             )}
