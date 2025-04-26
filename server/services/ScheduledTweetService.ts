@@ -5,6 +5,7 @@ import { and, desc, eq, lte, sql } from "drizzle-orm";
 import { PaginatedProps } from "../controllers/ScheduledTweetController";
 import TwitterService from "./TwitterService";
 import AuthService from "./auth/authService";
+import { UploadService } from "./uploadService";
 
 export class ScheduledTweetService {
   public static async createScheduledTweet(data: NewScheduledTweet): Promise<number> {
@@ -62,8 +63,23 @@ export class ScheduledTweetService {
 
     const paginator = new DrizzlePaginator<ScheduledTweet>(db, query).page(params.page ?? 10);
 
+    paginator.map((tweet) => {
+      const uploadService = new UploadService();
+      let mediaUrl = tweet.mediaUrl as string;
+      mediaUrl = uploadService.getUrl(mediaUrl);
+      console.log("mediaUrl is", mediaUrl);
+      return {
+        ...tweet,
+        mediaUrl2: "hello",
+      };
+    });
+
+    const data = await paginator.paginate(params.perPage ?? 10);
+
+    console.log("data is", data.data[0]);
+
     // console.log("paginator is", await paginator.paginate(10));
-    return paginator.paginate(params.perPage);
+    return data;
   }
 
   public static async getPendingScheduledTweets(): Promise<(ScheduledTweet & { agent: { uuid: string } })[]> {
