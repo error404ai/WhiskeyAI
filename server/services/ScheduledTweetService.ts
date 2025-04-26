@@ -221,8 +221,6 @@ export class ScheduledTweetService {
     if (!authUser) {
       throw new Error("User not authenticated");
     }
-
-    // First verify the tweet belongs to the user
     const tweet = await db.query.scheduledTweetsTable.findFirst({
       where: eq(scheduledTweetsTable.id, tweetId),
       with: {
@@ -234,7 +232,18 @@ export class ScheduledTweetService {
       throw new Error("Tweet not found or not owned by user");
     }
 
-    // Delete the tweet
+    const mediaUrl = tweet.mediaUrl;
+    if (mediaUrl) {
+      const uploadService = new UploadService();
+      const fileExists = await uploadService.fileExists(mediaUrl);
+      if (fileExists) {
+        await uploadService.deleteFile(mediaUrl);
+        console.log(`Successfully deleted media file for tweet ID ${tweetId}: ${mediaUrl}`);
+      } else {
+        console.log(`Media file not found or already deleted for tweet ID ${tweetId}: ${mediaUrl}`);
+      }
+    }
+
     await db.delete(scheduledTweetsTable).where(eq(scheduledTweetsTable.id, tweetId));
     return true;
   }
@@ -254,19 +263,45 @@ export class ScheduledTweetService {
     });
 
     // Filter tweets to only include those owned by the user
-    const userTweets = tweets.filter((tweet) => tweet.agent.userId === Number(authUser.id));
+    const userTweets = tweets.filter((tweet) => tweet.agent && tweet.agent.userId === Number(authUser.id));
 
     if (userTweets.length === 0) {
       return 0; // No tweets to delete
     }
 
+    // Process each tweet: delete associated media and then delete the tweet
+    for (const tweet of userTweets) {
+      // Check if tweet has associated media and delete it
+      if (tweet.mediaUrl) {
+        try {
+          const uploadService = new UploadService();
+
+          // Try to clean up the associated media file
+          const mediaUrlParts = tweet.mediaUrl.split("/");
+          const fileName = mediaUrlParts[mediaUrlParts.length - 1];
+
+          if (fileName && fileName.length > 0) {
+            // Check if file exists before attempting to delete
+            const fileExists = await uploadService.fileExists(fileName);
+            if (fileExists) {
+              await uploadService.deleteFile(fileName);
+              console.log(`Successfully deleted media file for tweet ID ${tweet.id} in batch ${batchId}: ${fileName}`);
+            } else {
+              console.log(`Media file not found or already deleted for tweet ID ${tweet.id} in batch ${batchId}: ${fileName}`);
+            }
+          }
+        } catch (error) {
+          // Log the error but continue with tweet deletion
+          console.error(`Error deleting media file for tweet ID ${tweet.id} in batch ${batchId}:`, error);
+        }
+      }
+    }
+
     // Get the IDs of the tweets to delete
     const tweetIds = userTweets.map((tweet) => tweet.id);
 
-    // Delete the tweets one by one instead of using IN clause
-    for (const id of tweetIds) {
-      await db.delete(scheduledTweetsTable).where(and(eq(scheduledTweetsTable.batchId, batchId), eq(scheduledTweetsTable.id, id)));
-    }
+    // Delete the tweets
+    await db.delete(scheduledTweetsTable).where(eq(scheduledTweetsTable.batchId, batchId));
 
     return tweetIds.length;
   }
