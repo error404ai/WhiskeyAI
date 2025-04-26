@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from "@/server/db/db";
 import { NewScheduledTweet, ScheduledTweet, agentPlatformsTable, agentsTable, scheduledTweetsTable } from "@/server/db/schema";
 import { DrizzlePaginator, PaginationResult } from "@skmirajbn/drizzle-paginator";
@@ -65,12 +66,14 @@ export class ScheduledTweetService {
 
     paginator.map((tweet) => {
       const uploadService = new UploadService();
-      let mediaUrl = tweet.mediaUrl as string;
+      let mediaUrl = (tweet as any).scheduledTweets?.mediaUrl as string;
       mediaUrl = uploadService.getUrl(mediaUrl);
-      console.log("mediaUrl is", mediaUrl);
       return {
         ...tweet,
-        mediaUrl2: "hello",
+        scheduledTweets: {
+          ...(tweet?.scheduledTweets as ScheduledTweet),
+          mediaUrl: mediaUrl,
+        },
       };
     });
 
