@@ -46,8 +46,6 @@ const AdminDashboardPage = () => {
     queryFn: () => DashboardController.getUserRegistrationsOverTime("week"),
   });
 
-  console.log("recentLogsData", recentLogsData);
-
   const stats =
     statsData?.success && "stats" in statsData
       ? statsData.stats

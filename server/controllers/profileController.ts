@@ -17,7 +17,7 @@ export const updateProfileBasicInfo = async (formData: FormData): Promise<boolea
 
 export const getAuthUser = async (): Promise<UserResourceType | null> => {
   const authUser = await AuthService.getAuthUser();
-  console.log("action user", authUser);
+
   if (!authUser) {
     return null;
   }

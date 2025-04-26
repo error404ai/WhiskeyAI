@@ -7,7 +7,7 @@ type Props = {
 };
 const AdminRoute: React.FC<Props> = async ({ children }) => {
   const session = await auth();
-  console.log("session in AdminRoute", session);
+
   const intended = (await headers()).get("request_url");
   if (!session || session.user.isAdmin === false) {
     const url = new URL(process.env.AUTH_URL + "/");

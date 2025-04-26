@@ -15,7 +15,7 @@ import { uploadFile, uploadImage } from "@/server/controllers/UploadController";
 import { likeSchema, quoteSchema, replySchema, retweetSchema, tweetSchema } from "@/server/zodSchema/twitterSchema";
 import { TwitterApiError, TwitterResponse } from "@/types/twitter.d";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, CheckCircle, Clock, Image as ImageIcon, Trash2, Twitter, X } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, Image as ImageIcon, Twitter, X } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useRef, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -69,7 +69,6 @@ export default function TwitterAgentTest() {
     } else {
       setResult({ action: actionName, data: response.data });
       setSuccess(`${actionName} completed successfully!`);
-      console.log(`${actionName} response:`, response.data);
     }
   };
 
@@ -133,7 +132,7 @@ export default function TwitterAgentTest() {
 
     try {
       let mediaUrl = "";
-      
+
       // If we have a media file, upload it first
       if (mediaFile) {
         setUploadingMedia(true);
@@ -176,7 +175,7 @@ export default function TwitterAgentTest() {
     } finally {
       setLoading(false);
     }
-    
+
     tweetForm.reset();
     handleRemoveMedia();
   };
@@ -273,64 +272,33 @@ export default function TwitterAgentTest() {
                 <CardContent className="space-y-4">
                   <Textarea name="tweetText" label="Tweet Text" placeholder="What's happening?" required />
                   <div className="-mt-2 text-xs text-gray-500">{tweetForm.watch("tweetText")?.length || 0}/280 characters</div>
-                  
+
                   {/* Media Upload Section */}
                   <div className="mt-3 space-y-2">
                     <div className="flex items-center gap-2">
-                      <Input
-                        id="media-upload"
-                        type="file"
-                        accept="image/*,video/*"
-                        className="hidden"
-                        ref={fileInputRef}
-                        onChange={handleMediaChange}
-                      />
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={loading}
-                        className="text-sm flex items-center gap-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50"
-                      >
+                      <Input id="media-upload" type="file" accept="image/*,video/*" className="hidden" ref={fileInputRef} onChange={handleMediaChange} />
+                      <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={loading} className="flex items-center gap-2 border-blue-200 text-sm hover:border-blue-400 hover:bg-blue-50">
                         <ImageIcon className="h-4 w-4" />
                         Attach Media
                       </Button>
-                      
+
                       {mediaPreview && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={handleRemoveMedia}
-                          disabled={loading}
-                          className="text-sm flex items-center gap-2 border-red-200 text-red-600 hover:border-red-400 hover:bg-red-50"
-                        >
+                        <Button type="button" variant="outline" onClick={handleRemoveMedia} disabled={loading} className="flex items-center gap-2 border-red-200 text-sm text-red-600 hover:border-red-400 hover:bg-red-50">
                           <X className="h-4 w-4" />
                           Remove Media
                         </Button>
                       )}
                     </div>
-                    
+
                     {/* Media Preview */}
                     {mediaPreview && (
-                      <div className="mt-2 relative border border-blue-200 rounded-md overflow-hidden" style={{ maxWidth: '300px' }}>
-                        {mediaFile?.type.startsWith('image/') && (
-                          <img 
-                            src={mediaPreview} 
-                            alt="Preview" 
-                            className="max-h-[200px] w-auto object-contain"
-                          />
-                        )}
-                        {mediaFile?.type.startsWith('video/') && (
-                          <video 
-                            src={mediaPreview} 
-                            controls 
-                            className="max-h-[200px] w-auto"
-                          />
-                        )}
+                      <div className="relative mt-2 overflow-hidden rounded-md border border-blue-200" style={{ maxWidth: "300px" }}>
+                        {mediaFile?.type.startsWith("image/") && <img src={mediaPreview} alt="Preview" className="max-h-[200px] w-auto object-contain" />}
+                        {mediaFile?.type.startsWith("video/") && <video src={mediaPreview} controls className="max-h-[200px] w-auto" />}
                       </div>
                     )}
                   </div>
-                  
+
                   <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                     {loading ? (uploadingMedia ? "Uploading media..." : "Posting to Twitter...") : "Post Tweet"}
                   </Button>
