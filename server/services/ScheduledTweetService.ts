@@ -47,6 +47,19 @@ export class ScheduledTweetService {
       .where(and(eq(agentsTable.userId, Number(authUser.id)), eq(scheduledTweetsTable.batchId, batchId)));
 
     const paginator = new DrizzlePaginator<ScheduledTweet>(db, query).page(params.page || 1).allowColumns(["batchId", "content", "scheduledAt", "status", "processedAt", "errorMessage", "createdAt"]);
+
+    paginator.map((tweet) => {
+      const uploadService = new UploadService();
+      let mediaUrl = (tweet as any).scheduledTweets?.mediaUrl as string;
+      mediaUrl = uploadService.getUrl(mediaUrl);
+      return {
+        ...tweet,
+        scheduledTweets: {
+          ...(tweet?.scheduledTweets as ScheduledTweet),
+          mediaUrl: mediaUrl,
+        },
+      };
+    });
     return paginator.paginate(params.perPage || 10);
   }
 
