@@ -61,10 +61,17 @@ class TwitterService {
         }
 
         console.log(`Uploading media to Twitter with type: ${mediaType}`);
+        let mediaId;
 
-        const mediaId = await this.twitterApi.v2.uploadMedia(mediaBuffer, {
-          media_type: mediaType,
-        });
+        try {
+          mediaId = await this.twitterApi.v2.uploadMedia(mediaBuffer, {
+            media_type: mediaType,
+          });
+        } catch (error) {
+          console.error("Error uploading media to Twitter: error is::", error);
+          // Fallback to posting without media if there's an error
+          return;
+        }
 
         console.log(`Media uploaded to Twitter with ID: ${mediaId}`);
 

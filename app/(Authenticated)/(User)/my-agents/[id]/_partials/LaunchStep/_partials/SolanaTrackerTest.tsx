@@ -114,7 +114,6 @@ export default function SolanaTrackerTest() {
           data: response.data || {},
         });
         setSuccess(`${actionName} completed successfully!`);
-        console.log(`${actionName} response:`, response.data);
       }
     } catch (err) {
       const safeError: SolanaTrackerResponse = {
