@@ -1,4 +1,4 @@
-import { DeleteObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { Disk } from "./Disk";
 
 export class S3Disk extends Disk {
@@ -78,5 +78,42 @@ export class S3Disk extends Disk {
       return `${this.publicUrl}/${this.bucketName}/${filePath}`;
     }
     return `https://${this.bucketName}.s3.${process.env.S3_REGION}.amazonaws.com/${filePath}`;
+  }
+
+  async getFileContent(filePath: string): Promise<Buffer | null> {
+    try {
+      // Check if file exists first
+      const exists = await this.exists(filePath);
+      if (!exists) {
+        console.error(`File not found in S3: ${filePath}`);
+        return null;
+      }
+      
+      // Get the object from S3
+      const response = await this.client.send(
+        new GetObjectCommand({
+          Bucket: this.bucketName,
+          Key: filePath,
+        })
+      );
+      
+      // Convert the response body to a buffer
+      if (response.Body) {
+        try {
+          // AWS SDK v3 approach
+          const bodyContents = await response.Body.transformToByteArray();
+          return Buffer.from(bodyContents);
+        } catch (conversionError) {
+          console.error('Error converting S3 response to buffer:', conversionError);
+          return null;
+        }
+      }
+      
+      console.error('S3 response body was empty');
+      return null;
+    } catch (error) {
+      console.error(`Error retrieving file content from S3: ${filePath}`, error);
+      return null;
+    }
   }
 }

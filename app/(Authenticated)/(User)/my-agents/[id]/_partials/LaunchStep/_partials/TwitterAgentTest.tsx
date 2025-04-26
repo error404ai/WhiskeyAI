@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
@@ -10,22 +11,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { getHomeTimeLine, likeTweet, postTweet, quoteTweet, replyTweet, reTweet } from "@/server/controllers/agent/TwitterAgentController";
+import { uploadFile, uploadImage } from "@/server/controllers/UploadController";
 import { likeSchema, quoteSchema, replySchema, retweetSchema, tweetSchema } from "@/server/zodSchema/twitterSchema";
 import { TwitterApiError, TwitterResponse } from "@/types/twitter.d";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, CheckCircle, Clock, Twitter } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, Image as ImageIcon, Trash2, Twitter, X } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
 export default function TwitterAgentTest() {
   const agentUuid = useParams().id as string;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form handlers for each tab
   const tweetForm = useForm({
     resolver: zodResolver(tweetSchema),
-    defaultValues: { tweetText: "" },
+    defaultValues: { tweetText: "", mediaUrl: "" },
   });
 
   const replyForm = useForm({
@@ -53,6 +56,9 @@ export default function TwitterAgentTest() {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<TwitterApiError | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
 
   // Process the response from the API
   const processResponse = (response: TwitterResponse, actionName: string) => {
@@ -97,9 +103,82 @@ export default function TwitterAgentTest() {
     handleApiCall(() => getHomeTimeLine(agentUuid), "Get Timeline");
   };
 
-  const handlePostTweet = (data: z.infer<typeof tweetSchema>) => {
-    handleApiCall(() => postTweet(agentUuid, data.tweetText), "Post Tweet");
+  const handleMediaChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setMediaFile(file);
+    // Create preview URL
+    const previewUrl = URL.createObjectURL(file);
+    setMediaPreview(previewUrl);
+  };
+
+  const handleRemoveMedia = () => {
+    if (mediaPreview) {
+      URL.revokeObjectURL(mediaPreview);
+      setMediaPreview(null);
+    }
+    setMediaFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    tweetForm.setValue("mediaUrl", "");
+  };
+
+  const handlePostTweet = async (data: z.infer<typeof tweetSchema>) => {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+    setResult(null);
+
+    try {
+      let mediaUrl = "";
+      
+      // If we have a media file, upload it first
+      if (mediaFile) {
+        setUploadingMedia(true);
+        try {
+          if (mediaFile.type.startsWith("image/")) {
+            const result = await uploadImage(mediaFile);
+            mediaUrl = result.url;
+          } else if (mediaFile.type.startsWith("video/")) {
+            const result = await uploadFile(mediaFile);
+            mediaUrl = result.url;
+          }
+          tweetForm.setValue("mediaUrl", mediaUrl);
+          setUploadingMedia(false);
+        } catch (err) {
+          const safeError: TwitterApiError = {
+            status: "error",
+            message: `Failed to upload media: ${(err as Error).message}`,
+            isRateLimit: false,
+            errorDetails: JSON.stringify(err),
+          };
+          setError(safeError);
+          setLoading(false);
+          setUploadingMedia(false);
+          return;
+        }
+      }
+
+      // Post the tweet with media if uploaded
+      setLoading(true);
+      const response = await postTweet(agentUuid, data.tweetText, mediaUrl);
+      processResponse(response, "Post Tweet");
+    } catch (err) {
+      const safeError: TwitterApiError = {
+        status: "error",
+        message: `Unexpected error: ${(err as Error).message}`,
+        isRateLimit: false,
+        errorDetails: JSON.stringify(err),
+      };
+      setError(safeError);
+    } finally {
+      setLoading(false);
+    }
+    
     tweetForm.reset();
+    handleRemoveMedia();
   };
 
   const handleReplyTweet = (data: z.infer<typeof replySchema>) => {
@@ -189,13 +268,71 @@ export default function TwitterAgentTest() {
               <Card>
                 <CardHeader>
                   <CardTitle>Post a Tweet</CardTitle>
-                  <CardDescription>Create a new tweet</CardDescription>
+                  <CardDescription>Create a new tweet with optional media</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Textarea name="tweetText" label="Tweet Text" placeholder="What's happening?" required />
                   <div className="-mt-2 text-xs text-gray-500">{tweetForm.watch("tweetText")?.length || 0}/280 characters</div>
+                  
+                  {/* Media Upload Section */}
+                  <div className="mt-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="media-upload"
+                        type="file"
+                        accept="image/*,video/*"
+                        className="hidden"
+                        ref={fileInputRef}
+                        onChange={handleMediaChange}
+                      />
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={loading}
+                        className="text-sm flex items-center gap-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50"
+                      >
+                        <ImageIcon className="h-4 w-4" />
+                        Attach Media
+                      </Button>
+                      
+                      {mediaPreview && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleRemoveMedia}
+                          disabled={loading}
+                          className="text-sm flex items-center gap-2 border-red-200 text-red-600 hover:border-red-400 hover:bg-red-50"
+                        >
+                          <X className="h-4 w-4" />
+                          Remove Media
+                        </Button>
+                      )}
+                    </div>
+                    
+                    {/* Media Preview */}
+                    {mediaPreview && (
+                      <div className="mt-2 relative border border-blue-200 rounded-md overflow-hidden" style={{ maxWidth: '300px' }}>
+                        {mediaFile?.type.startsWith('image/') && (
+                          <img 
+                            src={mediaPreview} 
+                            alt="Preview" 
+                            className="max-h-[200px] w-auto object-contain"
+                          />
+                        )}
+                        {mediaFile?.type.startsWith('video/') && (
+                          <video 
+                            src={mediaPreview} 
+                            controls 
+                            className="max-h-[200px] w-auto"
+                          />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  
                   <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
-                    {loading ? "Posting..." : "Post Tweet"}
+                    {loading ? (uploadingMedia ? "Uploading media..." : "Posting to Twitter...") : "Post Tweet"}
                   </Button>
                 </CardContent>
               </Card>

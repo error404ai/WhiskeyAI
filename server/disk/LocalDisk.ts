@@ -52,4 +52,24 @@ export class LocalDisk extends Disk {
     // Combine the base URL with the stored path.
     return `${this.baseUrl}${filePath}`;
   }
+
+  async getFileContent(filePath: string): Promise<Buffer | null> {
+    try {
+      const relativePath = filePath.startsWith("/") ? filePath.slice(1) : filePath;
+      const fullPath = path.join(this.root, relativePath);
+      
+      // Check if file exists
+      const exists = await this.exists(filePath);
+      if (!exists) {
+        console.error(`File not found at path: ${fullPath}`);
+        return null;
+      }
+      
+      // Read file content
+      return await fs.readFile(fullPath);
+    } catch (error) {
+      console.error(`Error reading file content from LocalDisk: ${filePath}`, error);
+      return null;
+    }
+  }
 }
