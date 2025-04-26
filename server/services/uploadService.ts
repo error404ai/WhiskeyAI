@@ -90,7 +90,7 @@ export class UploadService {
     const diskInstance = this.getDisk(disk);
     return diskInstance.exists(filePath);
   }
-  getUrl(filePath: string, disk?: string): string {
+  getUrl(filePath: string, disk?: "public" | "storage" | "s3"): string {
     return this.getDisk(disk).url(filePath);
   }
 }

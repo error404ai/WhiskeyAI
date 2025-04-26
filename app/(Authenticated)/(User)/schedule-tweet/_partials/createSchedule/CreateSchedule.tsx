@@ -76,7 +76,7 @@ export default function CreateSchedule() {
     if (agents && agents.length > 0) {
       setAgentRangeEnd(agents.length);
     }
-  }, [agents]);
+  }, [agentsData]);
 
   useEffect(() => {
     if (!agents || agents.length === 0) {
@@ -281,18 +281,18 @@ export default function CreateSchedule() {
         if (post.mediaFile) {
           try {
             // Use appropriate upload method based on file type
-            const isImage = post.mediaFile.type.startsWith('image/');
+            const isImage = post.mediaFile.type.startsWith("image/");
             let uploadResult;
-            
+
             if (isImage) {
               uploadResult = await UploadController.uploadImage(post.mediaFile);
             } else {
               uploadResult = await UploadController.uploadFile(post.mediaFile);
             }
-            
+
             mediaUrl = uploadResult.url;
           } catch (error) {
-            console.error('Error uploading media:', error);
+            console.error("Error uploading media:", error);
             toast.error(`Error uploading media for post #${index + 1}`);
           }
         }
@@ -301,7 +301,7 @@ export default function CreateSchedule() {
           agentId: agent ? Number(agent.id) : 0,
           content: post.content,
           scheduledAt: new Date(post.scheduledTime),
-          mediaUrl: mediaUrl
+          mediaUrl: mediaUrl,
         };
       });
 
