@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "NODE_OPTIONS='--inspect' next dev",
+    "dev": "NODE_OPTIONS='--inspect' next dev --turbo",
     "build": "next build",
     "start": "next start",
     "prod": "docker-compose down && docker-compose -f docker-compose-prod.yml build --no-cache && docker-compose -f docker-compose-prod.yml up -d",
@@ -19,7 +19,7 @@
     "db:seed:one": "tsx server/db/seed/seedRunner.ts",
     "db:seed:create": "tsx server/db/seed/createSeeder.ts",
     "admin:create": "tsx scripts/create-admin.ts",
-    "shell": "docker exec -it ext-web-next sh",
+    "shell": "docker exec -it whiskey sh",
     "permission": "sudo chmod 777 -R .",
     "ngrock": "sh ngRock.sh",
     "start:cron": "tsx server/cron/cron.ts",
