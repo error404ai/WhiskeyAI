@@ -237,8 +237,6 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
           };
         });
 
-        console.log(`Importing ${tweets.length} posts from Excel`);
-
         try {
           replace(newPosts);
 
@@ -251,8 +249,6 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
             }
 
             methods.trigger("schedulePosts").then(() => {
-              console.log(`Validation complete after import: ${tweets.length} posts should be visible`);
-
               setIsUploading(false);
               if (fileInputRef.current) {
                 fileInputRef.current.value = "";
@@ -260,8 +256,6 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
               }
 
               toast.success(`Successfully imported ${tweets.length} posts from the file`);
-
-              console.log(`Excel import complete: ${newPosts.length} posts added to form`);
             });
           }, 100);
         } catch (error) {
