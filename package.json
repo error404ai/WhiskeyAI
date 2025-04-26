@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "NODE_OPTIONS='--inspect' next dev --turbo",
+    "dev": "NODE_OPTIONS='--inspect' next dev",
     "build": "next build",
     "start": "next start",
     "prod": "docker-compose down && docker-compose -f docker-compose-prod.yml build --no-cache && docker-compose -f docker-compose-prod.yml up -d",
