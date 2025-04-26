@@ -53,7 +53,13 @@ export default function PostItem({
         if (postAgentId !== currentAgentId) {
             setCurrentAgentId(postAgentId || "")
         }
-    }, [postContent, postAgentId, content, currentAgentId])
+
+        // Create media preview if mediaFile exists but mediaPreview doesn't
+        if (postMedia && !mediaPreview) {
+            const previewUrl = URL.createObjectURL(postMedia)
+            setMediaPreview(previewUrl)
+        }
+    }, [postContent, postAgentId, content, currentAgentId, postMedia, mediaPreview])
 
     // If no agent is selected and agents are available, select one
     useEffect(() => {
