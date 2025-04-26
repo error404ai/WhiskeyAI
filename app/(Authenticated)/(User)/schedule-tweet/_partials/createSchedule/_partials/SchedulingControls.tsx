@@ -415,7 +415,7 @@ export default function SchedulingControls({ methods, scheduleStartDate, handleS
   return (
     <Card className="border-[1px] border-blue-100 shadow-md transition-all hover:border-blue-200">
       <CardContent className="p-4">
-        <div className="relative grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-4">
+        <div className="relative grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="flex flex-col gap-2 rounded-md bg-blue-50/50 p-2">
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4 text-blue-600" />
