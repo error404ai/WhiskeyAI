@@ -4,23 +4,6 @@ import { NewTriggerLog, TriggerLog, triggerLogsTable } from "@/server/db/schema/
 import { DrizzlePaginator, PaginationResult } from "@skmirajbn/drizzle-paginator";
 import { desc, eq } from "drizzle-orm";
 import AuthService from "../auth/authService";
-// import { DrizzlePaginatorService, PaginationResult } from "../pagination/DrizzlePaginatorService";
-
-/**
- * Interface for filtered log parameters
- */
-// interface FilteredLogsParams {
-//   userId: number;
-//   agentIds?: number[];
-//   status?: string;
-//   functionName?: string;
-//   searchTerm?: string;
-//   fromDate?: Date;
-//   page?: number;
-//   perPage?: number;
-//   sortColumn?: string;
-//   sortOrder?: "asc" | "desc";
-// }
 
 export class TriggerLogService {
   static async getUserTriggerLogs({ perPage = 10, page = 1 }: PaginatedProps): Promise<PaginationResult<TriggerLog>> {
@@ -30,23 +13,13 @@ export class TriggerLogService {
       throw new Error("Authentication required to access trigger logs");
     }
 
-    // Build a filtered query using Drizzle's query builder
-
     const query = db
       .select()
       .from(triggerLogsTable)
       .leftJoin(agentsTable, eq(triggerLogsTable.agentId, agentsTable.id))
       .where(eq(triggerLogsTable.userId, Number(authUser.id)))
       .orderBy(desc(triggerLogsTable.id));
-
-    console.log("data is ==========", await query);
-
-    // Create paginator with the query
     const paginator = new DrizzlePaginator<TriggerLog>(db, query).page(page);
-
-    // Set ordering
-    // paginator.orderBy("id", "desc");
-
     return paginator.paginate(perPage);
   }
 
