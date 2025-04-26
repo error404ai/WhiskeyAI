@@ -3,4 +3,5 @@ export abstract class Disk {
   abstract delete(filePath: string): Promise<boolean>;
   abstract exists(filePath: string): Promise<boolean>;
   abstract url(filePath: string): string;
+  abstract getFileContent(filePath: string): Promise<Buffer | null>;
 }

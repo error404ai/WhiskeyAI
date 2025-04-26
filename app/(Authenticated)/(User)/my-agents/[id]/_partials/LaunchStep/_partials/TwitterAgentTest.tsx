@@ -146,6 +146,7 @@ export default function TwitterAgentTest() {
             mediaUrl = result.url;
           }
           tweetForm.setValue("mediaUrl", mediaUrl);
+          setUploadingMedia(false);
         } catch (err) {
           const safeError: TwitterApiError = {
             status: "error",
@@ -158,10 +159,10 @@ export default function TwitterAgentTest() {
           setUploadingMedia(false);
           return;
         }
-        setUploadingMedia(false);
       }
 
       // Post the tweet with media if uploaded
+      setLoading(true);
       const response = await postTweet(agentUuid, data.tweetText, mediaUrl);
       processResponse(response, "Post Tweet");
     } catch (err) {
@@ -331,7 +332,7 @@ export default function TwitterAgentTest() {
                   </div>
                   
                   <Button parentClass="w-fit" type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
-                    {loading ? (uploadingMedia ? "Uploading Media..." : "Posting...") : "Post Tweet"}
+                    {loading ? (uploadingMedia ? "Uploading media..." : "Posting to Twitter...") : "Post Tweet"}
                   </Button>
                 </CardContent>
               </Card>
