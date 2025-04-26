@@ -1,8 +1,8 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import * as AuthController from "@/server/controllers/auth/authController";
 import bs58 from "bs58";
+import { toast } from "sonner";
 
 const ConnectButton = ({ children, ...props }: React.ComponentProps<typeof Button>) => {
   const handleLogin = async () => {
@@ -32,7 +32,6 @@ const ConnectButton = ({ children, ...props }: React.ComponentProps<typeof Butto
         return;
       }
 
-      console.log("logged in");
       window.location.href = "/my-agents"; // Previously redirected to "/dashboard"
     } catch (error) {
       console.error("Login error:", error);

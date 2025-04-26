@@ -52,7 +52,6 @@ const TriggersStep = () => {
     resolver: zodResolver(agentTriggerCreateSchema),
   });
   const onSubmit = async (data: z.infer<typeof agentTriggerCreateSchema>) => {
-    console.log("data is", data);
     let res;
 
     if (editingTriggerId) {
@@ -120,8 +119,6 @@ const TriggersStep = () => {
       setActiveTab("function");
     }
   }, [methods.formState.errors]);
-
-  console.log("agent triggers are", agentTriggers);
 
   const handleTestTrigger = async (triggerId: number) => {
     try {

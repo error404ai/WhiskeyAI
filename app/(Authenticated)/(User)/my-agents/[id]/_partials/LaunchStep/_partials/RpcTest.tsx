@@ -80,11 +80,9 @@ export default function RpcTest() {
       const response = await apiCall();
       if (response.status === "error") {
         setError(response);
-        console.error(`${actionName} error:`, response.message);
       } else {
         setResult({ action: actionName, data: response.data });
         setSuccess(`${actionName} completed successfully!`);
-        console.log(`${actionName} response:`, response.data);
       }
     } catch (err) {
       // Create a safe serializable error object

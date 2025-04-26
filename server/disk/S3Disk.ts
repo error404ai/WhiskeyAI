@@ -23,9 +23,6 @@ export class S3Disk extends Disk {
   }
   async upload(buffer: Buffer, filename: string, directory: string): Promise<UploadResult> {
     const key = `${directory}/${filename}`;
-    console.log("key is", key);
-    console.log("S3_ACCESS_KEY_ID", process.env.S3_ACCESS_KEY_ID);
-    console.log("S3_ACCESS_KEY_ID", process.env.S3_SECRET_ACCESS_KEY);
 
     await this.client.send(
       new PutObjectCommand({
@@ -35,8 +32,6 @@ export class S3Disk extends Disk {
         ContentType: "application/octet-stream",
       }),
     );
-
-    console.log("filename is", filename);
 
     return {
       filename,
@@ -88,15 +83,15 @@ export class S3Disk extends Disk {
         console.error(`File not found in S3: ${filePath}`);
         return null;
       }
-      
+
       // Get the object from S3
       const response = await this.client.send(
         new GetObjectCommand({
           Bucket: this.bucketName,
           Key: filePath,
-        })
+        }),
       );
-      
+
       // Convert the response body to a buffer
       if (response.Body) {
         try {
@@ -104,12 +99,12 @@ export class S3Disk extends Disk {
           const bodyContents = await response.Body.transformToByteArray();
           return Buffer.from(bodyContents);
         } catch (conversionError) {
-          console.error('Error converting S3 response to buffer:', conversionError);
+          console.error("Error converting S3 response to buffer:", conversionError);
           return null;
         }
       }
-      
-      console.error('S3 response body was empty');
+
+      console.error("S3 response body was empty");
       return null;
     } catch (error) {
       console.error(`Error retrieving file content from S3: ${filePath}`, error);
