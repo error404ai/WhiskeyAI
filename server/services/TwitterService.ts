@@ -3,6 +3,10 @@ import { TwitterApi } from "twitter-api-v2";
 import { AgentPlatformService } from "./agent/AgentPlatformService";
 import { AgentService } from "./agent/AgentService";
 import SocialiteService from "./oAuthService/SocialiteService";
+import { UploadService } from "./uploadService";
+
+// Define the specific media types accepted by Twitter
+type TwitterMediaType = 'image/jpeg' | 'image/png' | 'image/gif' | 'video/mp4';
 
 class TwitterService {
   private twitterApi: TwitterApi;
@@ -31,15 +35,40 @@ class TwitterService {
     
     if (mediaUrl) {
       try {
-        // For tweets with media
-        // If your Twitter API supports attaching media, you would implement that here
-        // This could involve downloading the media from mediaUrl if needed
-        // Depending on the Twitter API version, the implementation may vary
+        const uploadService = new UploadService();
+        console.log(`Retrieving media content directly for: ${mediaUrl}`);
         
-        // Example for Twitter API v2 with media_ids (implementation depends on Twitter API capabilities)
-        // For demonstration purposes - actual implementation depends on Twitter API
+        const mediaBuffer = await uploadService.getFileContent(mediaUrl);
+        
+        if (!mediaBuffer) {
+          console.error(`Could not retrieve media content for ${mediaUrl}`);
+          return await this.twitterApi.v2.tweet(text);
+        }
+        
+        console.log(`Successfully retrieved media file, size: ${mediaBuffer.length} bytes`);
+        
+        let mediaType: TwitterMediaType = 'image/jpeg'; // Default
+        if (mediaUrl.endsWith('.png')) {
+          mediaType = 'image/png';
+        } else if (mediaUrl.endsWith('.jpg') || mediaUrl.endsWith('.jpeg')) {
+          mediaType = 'image/jpeg';
+        } else if (mediaUrl.endsWith('.gif')) {
+          mediaType = 'image/gif';
+        } else if (mediaUrl.endsWith('.mp4')) {
+          mediaType = 'video/mp4';
+        }
+        
+        console.log(`Uploading media to Twitter with type: ${mediaType}`);
+        
+        const mediaId = await this.twitterApi.v2.uploadMedia(mediaBuffer, { 
+          media_type: mediaType
+        });
+        
+        console.log(`Media uploaded to Twitter with ID: ${mediaId}`);
+        
+        // Tweet with media
         return await this.twitterApi.v2.tweet(text, {
-          media: { media_ids: [mediaUrl] }
+          media: { media_ids: [mediaId] }
         });
       } catch (error) {
         console.error("Error posting tweet with media:", error);
