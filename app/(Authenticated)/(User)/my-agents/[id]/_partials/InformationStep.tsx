@@ -2,7 +2,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { RootState } from "@/redux/store/store";
 import * as AgentController from "@/server/controllers/agent/AgentController";
 import { agentInformationSchema } from "@/server/zodSchema/agentInformationSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,13 +10,10 @@ import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import Skeleton from "react-loading-skeleton";
-import { useSelector } from "react-redux";
 import { z } from "zod";
 
 const InformationStep = () => {
   const agentUuid = useParams().id as string;
-  const agentInformation = useSelector((state: RootState) => state.agentState.information);
-
   const {
     isPending,
     isRefetching,
@@ -64,30 +60,20 @@ const InformationStep = () => {
                   <div className="mb-2">
                     <div className="flex justify-between">
                       <label className="text-sm font-medium">Agent Description</label>
-                      {/* <Button variant="link" className="h-auto p-0 text-xs text-blue-500">
-                          Enhance with AI
-                        </Button> */}
                     </div>
                   </div>
                   <p className="text-muted-foreground mb-2 text-xs">Outline your agent&apos;s personality by detailing aspects like tweeting habits, demeanor, and communication style</p>
                   <Textarea name="description" placeholder="Enter agent description" className="h-24" />
-
-                  <p className={`mt-1 text-xs ${typeof agentInformation.description === "undefined" || agentInformation.description.length < 30 ? "text-red-500" : agentInformation.description.length < 100 ? "text-yellow-500" : "text-green-500"}`}>Prompt strength: {typeof agentInformation.description === "undefined" ? "weak" : agentInformation.description.length < 30 ? "weak" : agentInformation.description.length < 100 ? "normal" : "strong"}</p>
                 </div>
 
                 <div className="bg-card text-card-foreground rounded-xl border p-4 shadow-sm">
                   <div className="mb-2">
                     <div className="flex justify-between">
                       <label className="text-sm font-medium">Agent Goal</label>
-                      {/* <Button variant="link" className="h-auto p-0 text-xs text-blue-500">
-                          Enhance with AI
-                        </Button> */}
                     </div>
                   </div>
                   <p className="text-muted-foreground mb-2 text-xs">Specify the primary objective or core function of the agent. This guides the ai planner in task generation.</p>
                   <Textarea name="goal" placeholder="Enter agent goal" className="h-24" />
-
-                  <p className={`mt-1 text-xs ${typeof agentInformation.goal === "undefined" || agentInformation.goal.length < 30 ? "text-red-500" : agentInformation.goal.length < 100 ? "text-yellow-500" : "text-green-500"}`}>Prompt strength: {typeof agentInformation.goal === "undefined" ? "weak" : agentInformation.goal.length < 30 ? "weak" : agentInformation.goal.length < 100 ? "normal" : "strong"}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">

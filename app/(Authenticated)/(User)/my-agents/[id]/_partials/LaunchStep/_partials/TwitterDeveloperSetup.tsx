@@ -125,7 +125,7 @@ export default function TwitterDeveloperSetup() {
             <Input name="clientId" label="Client ID" placeholder="Enter Client ID" autoComplete="off" />
           </div>
           <div className="space-y-2">
-            <Input name="clientSecret" label="Client Secret" type="password" placeholder="Enter Client Secret" autoComplete="off" />
+            <Input name="clientSecret" label="Client Secret" type="text" placeholder="Enter Client Secret" autoComplete="off" />
           </div>
           <div className="flex items-center gap-4">
             <Button type="submit" loading={methods.formState.isSubmitting}>
