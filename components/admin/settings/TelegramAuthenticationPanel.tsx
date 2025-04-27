@@ -195,7 +195,7 @@ export function TelegramAuthenticationPanel({ settings, onUpdate }: TelegramAuth
       const response = await SettingsController.setTelegramAuthenticated(false);
 
       if (response.success) {
-        setSuccess("Telegram authentication has been reset.");
+        setSuccess("Telegram authentication has been reset and session cleared successfully.");
         onUpdate();
       } else {
         setError(`Failed to reset authentication: ${response.error}`);
