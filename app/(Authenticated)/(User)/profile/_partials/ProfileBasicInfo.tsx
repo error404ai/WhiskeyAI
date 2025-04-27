@@ -29,6 +29,7 @@ const ProfileBasicInfo = () => {
   } = useQuery({
     queryKey: ["getAuthUser"],
     queryFn: ProfileController.getAuthUser,
+    refetchOnWindowFocus: false,
   });
   const { update } = useSession();
   const { data } = useGetCountryQuery({});

@@ -25,13 +25,14 @@ export default function YourAgentsSection() {
   } = useQuery({
     queryKey: ["getAgents"],
     queryFn: AgentController.getAgents,
+    refetchOnWindowFocus: false,
   });
 
   // Calculate agent counts
   const totalAgents = agents?.length || 0;
   const runningAgents = agents?.filter((agent) => agent.status === "running").length || 0;
   const pausedAgents = agents?.filter((agent) => agent.status === "paused").length || 0;
-  
+
   // Get user's max agents from the server
   const { data: maxAgents = 0 } = useQuery({
     queryKey: ["getUserMaxAgents"],

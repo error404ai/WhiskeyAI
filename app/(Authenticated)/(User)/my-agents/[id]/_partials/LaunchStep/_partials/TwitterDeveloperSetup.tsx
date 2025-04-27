@@ -12,7 +12,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { Eye, EyeOff, InfoIcon, LinkIcon } from "lucide-react";
 import { useParams } from "next/navigation";
-import {  useState } from "react";
+import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -29,6 +29,7 @@ export default function TwitterDeveloperSetup() {
     queryKey: ["getAgentByUuid", agentUuid],
     queryFn: () => AgentController.getAgentByUuid(agentUuid),
     enabled: !!agentUuid,
+    refetchOnWindowFocus: false,
   });
 
   const methods = useForm<z.infer<typeof twitterCredentialsSchema>>({
@@ -57,9 +58,7 @@ export default function TwitterDeveloperSetup() {
   // Mask sensitive data
   const maskText = (text: string) => {
     if (!text) return "";
-    return text.length > 8 
-      ? `${text.substring(0, 4)}${"•".repeat(text.length - 8)}${text.substring(text.length - 4)}`
-      : "•".repeat(text.length);
+    return text.length > 8 ? `${text.substring(0, 4)}${"•".repeat(text.length - 8)}${text.substring(text.length - 4)}` : "•".repeat(text.length);
   };
 
   // Construct the callback URL with the actual agent UUID
@@ -112,42 +111,26 @@ export default function TwitterDeveloperSetup() {
       {(agent?.twitterClientId || agent?.twitterClientSecret) && (
         <div className="mb-6 rounded-lg border bg-gray-50 p-4 dark:bg-gray-900">
           <h4 className="mb-3 font-medium">Current Credentials</h4>
-          
+
           {agent?.twitterClientId && (
-            <div className="mb-3 flex items-center justify-between rounded-md border bg-white py-1 px-3 dark:bg-gray-800">
+            <div className="mb-3 flex items-center justify-between rounded-md border bg-white px-3 py-1 dark:bg-gray-800">
               <div>
                 <Label className="text-xs text-gray-500">Client ID</Label>
-                <div className="font-mono text-sm">
-                  {showClientId ? agent.twitterClientId : maskText(agent.twitterClientId)}
-                </div>
+                <div className="font-mono text-sm">{showClientId ? agent.twitterClientId : maskText(agent.twitterClientId)}</div>
               </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowClientId(!showClientId)}
-                aria-label={showClientId ? "Hide Client ID" : "Show Client ID"}
-              >
+              <Button type="button" variant="ghost" size="sm" onClick={() => setShowClientId(!showClientId)} aria-label={showClientId ? "Hide Client ID" : "Show Client ID"}>
                 {showClientId ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
             </div>
           )}
-          
+
           {agent?.twitterClientSecret && (
             <div className="flex items-center justify-between rounded-md border bg-white p-3 dark:bg-gray-800">
               <div>
                 <Label className="text-xs text-gray-500">Client Secret</Label>
-                <div className="font-mono text-sm">
-                  {showClientSecret ? agent.twitterClientSecret : maskText(agent.twitterClientSecret)}
-                </div>
+                <div className="font-mono text-sm">{showClientSecret ? agent.twitterClientSecret : maskText(agent.twitterClientSecret)}</div>
               </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowClientSecret(!showClientSecret)}
-                aria-label={showClientSecret ? "Hide Client Secret" : "Show Client Secret"}
-              >
+              <Button type="button" variant="ghost" size="sm" onClick={() => setShowClientSecret(!showClientSecret)} aria-label={showClientSecret ? "Hide Client Secret" : "Show Client Secret"}>
                 {showClientSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
             </div>

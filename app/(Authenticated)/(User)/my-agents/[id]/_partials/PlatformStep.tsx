@@ -23,6 +23,7 @@ const PlatformStep = () => {
   } = useQuery({
     queryKey: ["getAgentByUuid"],
     queryFn: () => AgentController.getAgentByUuid(agentUuid),
+    refetchOnWindowFocus: false,
   });
 
   const [platformOpen, setPlatformOpen] = useState(false);

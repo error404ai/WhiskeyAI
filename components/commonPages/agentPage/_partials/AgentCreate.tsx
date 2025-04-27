@@ -22,12 +22,14 @@ const AgentCreate: React.FC<AgentCreateProps> = ({ refetch }) => {
   const { data: agentCount, refetch: refetchAgentCount } = useQuery({
     queryKey: ["countUserAgents"],
     queryFn: AgentController.countUserAgents,
+    refetchOnWindowFocus: false,
   });
 
   // Get user's max agents from the server
   const { data: maxAgents = 0 } = useQuery({
     queryKey: ["getUserMaxAgents"],
     queryFn: AgentController.getUserMaxAgents,
+    refetchOnWindowFocus: false,
   });
 
   const methods = useForm<z.infer<typeof agentCreateSchema>>({
