@@ -216,7 +216,7 @@ const AdminDashboardPage = () => {
                 <div key={user.id} className="flex items-center justify-between border-b pb-3">
                   <div className="flex items-center space-x-4">
                     <div>
-                      <p className="text-sm font-medium">{user.publicKey || "Anonymous"}</p>
+                      <p className="max-w-[200px] truncate text-sm font-medium">{user.publicKey || "Anonymous"}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -368,9 +368,15 @@ const AdminDashboardPage = () => {
                     : recentLogsData?.data?.map((log) => (
                         <div key={log.id} className="flex items-start space-x-3 border-b pb-3">
                           <div className={`rounded-full p-2 ${log.status === "success" ? "bg-green-100 text-green-600" : log.status === "error" ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-600"}`}>{log.status === "success" ? <UserCheck className="h-4 w-4" /> : log.status === "error" ? <AlertCircle className="h-4 w-4" /> : <Clock className="h-4 w-4" />}</div>
-                          <div>
+                          <div className="min-w-0 flex-1">
                             <p className="text-sm">
-                              <span className="font-medium">{log.publicKey || "Unknown user"}</span> <span className="text-muted-foreground">{log.status === "success" ? "successfully ran" : log.status === "error" ? "failed to run" : "triggered"}</span> <span className="font-medium">{log.functionName}</span>
+                              <span className="inline-block max-w-[80px] truncate align-bottom font-medium" title={log.publicKey || "Unknown user"}>
+                                {log.publicKey || "Unknown user"}
+                              </span>{" "}
+                              <span className="text-muted-foreground">{log.status === "success" ? "successfully ran" : log.status === "error" ? "failed to run" : "triggered"}</span>{" "}
+                              <span className="inline-block max-w-[100px] truncate align-bottom font-medium" title={log.functionName}>
+                                {log.functionName}
+                              </span>
                             </p>
                             <p className="text-muted-foreground text-xs">
                               <DateTime date={log.createdAt} />
