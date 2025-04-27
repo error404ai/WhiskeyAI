@@ -141,8 +141,11 @@ export class AdminSettingsService {
         updatedAt: new Date(),
       };
 
-      if (sessionString) {
+      if (isAuthenticated && sessionString) {
         updateData.telegramSessionString = sessionString;
+      } else if (!isAuthenticated) {
+        // Explicitly clear the session string when resetting authentication
+        updateData.telegramSessionString = "";
       }
 
       await db.update(settingsTable).set(updateData).where(eq(settingsTable.id, SETTINGS_ID));
