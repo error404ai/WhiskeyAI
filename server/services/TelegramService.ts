@@ -33,7 +33,7 @@ class TelegramService {
    * Connect to Telegram
    */
   async connect(): Promise<boolean> {
-    this.initializeClient();
+    await this.initializeClient();
     if (this.isConnected) {
       return true;
     }
@@ -67,7 +67,7 @@ class TelegramService {
     isCodeSent: boolean;
     timeout: number;
   }> {
-    this.initializeClient();
+    await this.initializeClient();
     console.log("Starting sendCode process for phone", phoneNumber);
     // Create a unique ID for this authentication session
     const sessionId = `auth_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
@@ -118,7 +118,7 @@ class TelegramService {
     sessionString: string;
     user: any;
   }> {
-    this.initializeClient();
+    await this.initializeClient();
     console.log("Starting login process for session", sessionId);
 
     // Get the stored auth client
@@ -175,7 +175,7 @@ class TelegramService {
    * Check if the current session is authenticated
    */
   async checkAuth(): Promise<any | null> {
-    this.initializeClient();
+    await this.initializeClient();
     if (!this.isConnected && !(await this.connect())) {
       throw new Error("Failed to connect to Telegram");
     }
@@ -190,7 +190,7 @@ class TelegramService {
   }
 
   async getEntity(username: string | number): Promise<any | null> {
-    this.initializeClient();
+    await this.initializeClient();
     if (!this.isConnected && !(await this.connect())) {
       throw new Error("Failed to connect to Telegram");
     }
@@ -211,7 +211,7 @@ class TelegramService {
   }
 
   async getChannelMessages(channelUsername: string, limit: number = 100): Promise<any[]> {
-    this.initializeClient();
+    await this.initializeClient();
     if (!this.isConnected && !(await this.connect())) {
       throw new Error("Failed to connect to Telegram");
     }
@@ -243,7 +243,7 @@ class TelegramService {
   }
 
   async disconnect(): Promise<void> {
-    this.initializeClient();
+    await this.initializeClient();
     if (this.isConnected) {
       try {
         await (this.client as TelegramClient).disconnect();
