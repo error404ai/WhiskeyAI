@@ -35,6 +35,7 @@ function LaunchStep() {
   } = useQuery({
     queryKey: ["getAgentPlatformsByAgentId"],
     queryFn: () => PlatformController.getAgentPlatformsByAgentUuid(agentUuid),
+    refetchOnWindowFocus: false,
   });
 
   const [connecting, setConnecting] = useState(false);
