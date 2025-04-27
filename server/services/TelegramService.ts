@@ -2,27 +2,30 @@
 import { TelegramClient } from "telegram";
 import { sleep } from "telegram/Helpers";
 import { StringSession } from "telegram/sessions";
+import { AdminSettingsService } from "./admin/AdminSettingsService";
 
 // Store temporary auth clients to maintain session between requests
 const tempAuthClients: Record<string, { client: TelegramClient; phoneCodeHash: string }> = {};
 
 class TelegramService {
-  private apiId: number;
-  private apiHash: string;
-  private stringSession: StringSession;
-  private client: TelegramClient;
   private isConnected: boolean = false;
   private connectionRetries: number = 3;
-  private connectionRetryDelay: number = 1000; // 1 second
+  private connectionRetryDelay: number = 1000;
+  private client: TelegramClient | null = null;
+  private apiId: number = 0;
+  private apiHash: string = "";
+  private sessionId: string = "";
 
-  constructor() {
-    this.apiId = Number(process.env.TELEGRAM_APP_API_ID!);
-    this.apiHash = process.env.TELEGRAM_API_HASH!;
-    this.stringSession = new StringSession(process.env.TELEGRAM_SESSION || ""); // Load existing session
-    this.client = new TelegramClient(this.stringSession, this.apiId, this.apiHash, {
+  async initializeClient(): Promise<void> {
+    const settings = await AdminSettingsService.getSettings();
+    this.apiId = Number(settings.settings?.telegramApiId);
+    this.apiHash = settings.settings?.telegramApiHash ?? "";
+    this.sessionId = settings.settings?.telegramSessionString ?? "";
+    const stringSession = new StringSession(this.sessionId || "");
+    this.client = new TelegramClient(stringSession, this.apiId, this.apiHash, {
       connectionRetries: 5,
-      useWSS: true, // Try using WebSocket Secure connection
-      maxConcurrentDownloads: 1, // Lower concurrent operations
+      useWSS: true,
+      maxConcurrentDownloads: 1,
     });
   }
 
@@ -30,6 +33,7 @@ class TelegramService {
    * Connect to Telegram
    */
   async connect(): Promise<boolean> {
+    this.initializeClient();
     if (this.isConnected) {
       return true;
     }
@@ -37,7 +41,7 @@ class TelegramService {
     // Retry connection multiple times
     for (let attempt = 1; attempt <= this.connectionRetries; attempt++) {
       try {
-        await this.client.connect();
+        await (this.client as TelegramClient).connect();
         this.isConnected = true;
         return true;
       } catch (error) {
@@ -63,6 +67,7 @@ class TelegramService {
     isCodeSent: boolean;
     timeout: number;
   }> {
+    this.initializeClient();
     console.log("Starting sendCode process for phone", phoneNumber);
     // Create a unique ID for this authentication session
     const sessionId = `auth_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
@@ -76,7 +81,7 @@ class TelegramService {
       console.log("Connected to Telegram, sending verification code...");
 
       // Use the correct method signature as per your code
-      const sendCodeResult = await this.client.sendCode(
+      const sendCodeResult = await (this.client as TelegramClient).sendCode(
         {
           apiId: this.apiId,
           apiHash: this.apiHash,
@@ -88,7 +93,7 @@ class TelegramService {
 
       // Store the auth client for later use
       tempAuthClients[sessionId] = {
-        client: this.client,
+        client: this.client as TelegramClient,
         phoneCodeHash: sendCodeResult.phoneCodeHash,
       };
 
@@ -113,6 +118,7 @@ class TelegramService {
     sessionString: string;
     user: any;
   }> {
+    this.initializeClient();
     console.log("Starting login process for session", sessionId);
 
     // Get the stored auth client
@@ -169,12 +175,13 @@ class TelegramService {
    * Check if the current session is authenticated
    */
   async checkAuth(): Promise<any | null> {
+    this.initializeClient();
     if (!this.isConnected && !(await this.connect())) {
       throw new Error("Failed to connect to Telegram");
     }
 
     try {
-      const me = await this.client.getMe();
+      const me = await (this.client as TelegramClient).getMe();
       return me;
     } catch (error) {
       console.error("Authentication check failed:", error);
@@ -183,13 +190,14 @@ class TelegramService {
   }
 
   async getEntity(username: string | number): Promise<any | null> {
+    this.initializeClient();
     if (!this.isConnected && !(await this.connect())) {
       throw new Error("Failed to connect to Telegram");
     }
 
     try {
       // Add a timeout to prevent hanging
-      const entity = await Promise.race([this.client.getEntity(username), new Promise<null>((_, reject) => setTimeout(() => reject(new Error("Operation timed out")), 10000))]);
+      const entity = await Promise.race([(this.client as TelegramClient).getEntity(username), new Promise<null>((_, reject) => setTimeout(() => reject(new Error("Operation timed out")), 10000))]);
 
       if (!entity) {
         throw new Error(`Entity "${username}" not found`);
@@ -203,6 +211,7 @@ class TelegramService {
   }
 
   async getChannelMessages(channelUsername: string, limit: number = 100): Promise<any[]> {
+    this.initializeClient();
     if (!this.isConnected && !(await this.connect())) {
       throw new Error("Failed to connect to Telegram");
     }
@@ -211,7 +220,7 @@ class TelegramService {
       const channel = await this.getEntity(channelUsername);
 
       // Add a timeout to prevent hanging
-      const result = await Promise.race([this.client.getMessages(channel, { limit }), new Promise<[]>((_, reject) => setTimeout(() => reject(new Error("Operation timed out")), 15000))]);
+      const result = await Promise.race([(this.client as TelegramClient).getMessages(channel, { limit }), new Promise<[]>((_, reject) => setTimeout(() => reject(new Error("Operation timed out")), 15000))]);
 
       if (!result || result.length === 0) {
         throw new Error(`No messages found for channel "${channelUsername}"`);
@@ -234,9 +243,10 @@ class TelegramService {
   }
 
   async disconnect(): Promise<void> {
+    this.initializeClient();
     if (this.isConnected) {
       try {
-        await this.client.disconnect();
+        await (this.client as TelegramClient).disconnect();
       } catch (error) {
         console.error("Error disconnecting from Telegram:", error);
       } finally {
