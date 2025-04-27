@@ -47,6 +47,10 @@ class TelegramService {
       connectionRetries: 5,
       useWSS: true,
       maxConcurrentDownloads: 1,
+      autoReconnect: true,
+      useIPV6: false,
+      floodSleepThreshold: 60,
+      baseLogger: undefined,
     });
   }
 
