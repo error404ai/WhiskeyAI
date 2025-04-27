@@ -38,6 +38,7 @@ const TriggersStep = () => {
   } = useQuery({
     queryKey: ["getAgentTriggers"],
     queryFn: () => AgentTriggerController.getAgentTriggers(agentUuid),
+    refetchOnWindowFocus: false,
   });
   const {
     isPending: isFunctionPending,

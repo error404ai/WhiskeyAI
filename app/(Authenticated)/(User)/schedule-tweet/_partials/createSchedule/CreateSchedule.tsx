@@ -49,6 +49,7 @@ export default function CreateSchedule() {
     queryKey: ["getAgents"],
     queryFn: AgentController.getAgents,
     enabled: true,
+    refetchOnWindowFocus: false,
   });
 
   const agents = agentsData?.filter((agent) => agent.agentPlatforms?.some((platform) => platform.type === "twitter")) || [];
@@ -142,7 +143,7 @@ export default function CreateSchedule() {
       if (fields.length > 0) {
         // Get current post data
         const currentPosts = methods.getValues("schedulePosts");
-        
+
         // Update first post time
         methods.setValue("schedulePosts.0.scheduledTime", format(scheduleStartDate, "yyyy-MM-dd'T'HH:mm"), {
           shouldDirty: true,
@@ -159,16 +160,20 @@ export default function CreateSchedule() {
         for (let i = 1; i < fields.length; i++) {
           const nextTime = calculateNextTime(baseTime, delayValue, delayUnit, i);
           const currentPost = currentPosts[i];
-          
+
           // Preserve all post data, only update the time
-          methods.setValue(`schedulePosts.${i}`, {
-            ...currentPost,
-            scheduledTime: format(nextTime, "yyyy-MM-dd'T'HH:mm")
-          }, {
-            shouldDirty: true,
-            shouldTouch: true,
-            shouldValidate: false,
-          });
+          methods.setValue(
+            `schedulePosts.${i}`,
+            {
+              ...currentPost,
+              scheduledTime: format(nextTime, "yyyy-MM-dd'T'HH:mm"),
+            },
+            {
+              shouldDirty: true,
+              shouldTouch: true,
+              shouldValidate: false,
+            },
+          );
         }
 
         // Do one single validation after all updates
@@ -198,16 +203,20 @@ export default function CreateSchedule() {
         if (fields.length > 0) {
           // Get current post data to preserve all fields
           const currentPosts = methods.getValues("schedulePosts");
-          
+
           // Update first post time
-          methods.setValue("schedulePosts.0", {
-            ...currentPosts[0],
-            scheduledTime: format(newDateTime, "yyyy-MM-dd'T'HH:mm")
-          }, {
-            shouldDirty: true,
-            shouldTouch: true,
-            shouldValidate: false,
-          });
+          methods.setValue(
+            "schedulePosts.0",
+            {
+              ...currentPosts[0],
+              scheduledTime: format(newDateTime, "yyyy-MM-dd'T'HH:mm"),
+            },
+            {
+              shouldDirty: true,
+              shouldTouch: true,
+              shouldValidate: false,
+            },
+          );
 
           const delayValue = Number(methods.getValues("delayValue"));
           const delayUnit = methods.getValues("delayUnit");
@@ -216,14 +225,18 @@ export default function CreateSchedule() {
           // Update all other posts while preserving their data
           for (let i = 1; i < fields.length; i++) {
             const nextTime = calculateNextTime(baseTime, delayValue, delayUnit, i);
-            methods.setValue(`schedulePosts.${i}`, {
-              ...currentPosts[i],
-              scheduledTime: format(nextTime, "yyyy-MM-dd'T'HH:mm")
-            }, {
-              shouldDirty: true,
-              shouldTouch: true,
-              shouldValidate: false,
-            });
+            methods.setValue(
+              `schedulePosts.${i}`,
+              {
+                ...currentPosts[i],
+                scheduledTime: format(nextTime, "yyyy-MM-dd'T'HH:mm"),
+              },
+              {
+                shouldDirty: true,
+                shouldTouch: true,
+                shouldValidate: false,
+              },
+            );
           }
 
           // Trigger form validation and force update UI

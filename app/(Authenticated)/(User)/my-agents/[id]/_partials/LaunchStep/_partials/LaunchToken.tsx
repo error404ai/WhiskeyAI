@@ -34,6 +34,7 @@ const LaunchToken: React.FC<Props> = ({ platformLoading }) => {
   const { data: agent, refetch } = useQuery({
     queryKey: ["getAgentByUuid"],
     queryFn: () => AgentController.getAgentByUuid(agentUuid),
+    refetchOnWindowFocus: false,
   });
 
   const { publicKey, signTransaction, connected } = useWallet();

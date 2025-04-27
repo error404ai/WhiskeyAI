@@ -23,27 +23,32 @@ const AdminDashboardPage = () => {
   } = useQuery({
     queryKey: ["adminDashboardStats"],
     queryFn: () => DashboardController.getDashboardStats(),
+    refetchOnWindowFocus: false,
   });
 
   const { data: recentUsersData, isPending: usersLoading } = useQuery({
     queryKey: ["adminRecentUsers"],
     queryFn: () => DashboardController.getRecentUsers(5),
+    refetchOnWindowFocus: false,
   });
 
   // We're fetching this data for future use, even if not using it in the current UI
   useQuery({
     queryKey: ["adminRecentAgents"],
     queryFn: () => DashboardController.getRecentAgents(5),
+    refetchOnWindowFocus: false,
   });
 
   const { data: recentLogsData, isPending: logsLoading } = useQuery({
     queryKey: ["adminRecentLogs"],
     queryFn: () => DashboardController.getRecentTriggerLogs(5),
+    refetchOnWindowFocus: false,
   });
 
   const { data: userRegistrationsData, isPending: registrationsLoading } = useQuery({
     queryKey: ["adminUserRegistrations", "week"],
     queryFn: () => DashboardController.getUserRegistrationsOverTime("week"),
+    refetchOnWindowFocus: false,
   });
 
   const stats =
