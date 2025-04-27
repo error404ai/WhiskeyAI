@@ -26,6 +26,11 @@ export class AdminSettingsService {
           id: SETTINGS_ID,
           solPaymentAmount: "0.1",
           default_max_agents_per_user: 50,
+          telegramSessionString: "",
+          telegramBotToken: "",
+          telegramApiId: "",
+          telegramApiHash: "",
+          telegramPhoneNumber: "",
           isTelegramAuthenticated: false,
         };
 
