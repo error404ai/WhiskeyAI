@@ -10,9 +10,9 @@ import * as AgentController from "@/server/controllers/agent/AgentController";
 import { twitterCredentialsSchema } from "@/server/zodSchema/twitterCredentialsSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
-import { InfoIcon, LinkIcon } from "lucide-react";
+import { Eye, EyeOff, InfoIcon, LinkIcon } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -21,6 +21,8 @@ export default function TwitterDeveloperSetup() {
   "use no memo";
 
   const [tutorialOpen, setTutorialOpen] = useState(false);
+  const [showClientId, setShowClientId] = useState(false);
+  const [showClientSecret, setShowClientSecret] = useState(false);
   const agentUuid = useParams().id as string;
 
   const { data: agent, refetch } = useQuery({
@@ -38,14 +40,6 @@ export default function TwitterDeveloperSetup() {
     },
   });
 
-  useEffect(() => {
-    if (agent) {
-      methods.setValue("clientId", agent.twitterClientId || "");
-      methods.setValue("clientSecret", agent.twitterClientSecret || "");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [agent]);
-
   const onSubmit = async (data: z.infer<typeof twitterCredentialsSchema>) => {
     try {
       await AgentController.updateAgentTwitterCredentials(agentUuid, data);
@@ -58,6 +52,14 @@ export default function TwitterDeveloperSetup() {
       toast.error("Failed to save credentials");
       console.error(error);
     }
+  };
+
+  // Mask sensitive data
+  const maskText = (text: string) => {
+    if (!text) return "";
+    return text.length > 8 
+      ? `${text.substring(0, 4)}${"•".repeat(text.length - 8)}${text.substring(text.length - 4)}`
+      : "•".repeat(text.length);
   };
 
   // Construct the callback URL with the actual agent UUID
@@ -105,6 +107,53 @@ export default function TwitterDeveloperSetup() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Display saved credentials if they exist */}
+      {(agent?.twitterClientId || agent?.twitterClientSecret) && (
+        <div className="mb-6 rounded-lg border bg-gray-50 p-4 dark:bg-gray-900">
+          <h4 className="mb-3 font-medium">Current Credentials</h4>
+          
+          {agent?.twitterClientId && (
+            <div className="mb-3 flex items-center justify-between rounded-md border bg-white py-1 px-3 dark:bg-gray-800">
+              <div>
+                <Label className="text-xs text-gray-500">Client ID</Label>
+                <div className="font-mono text-sm">
+                  {showClientId ? agent.twitterClientId : maskText(agent.twitterClientId)}
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowClientId(!showClientId)}
+                aria-label={showClientId ? "Hide Client ID" : "Show Client ID"}
+              >
+                {showClientId ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+            </div>
+          )}
+          
+          {agent?.twitterClientSecret && (
+            <div className="flex items-center justify-between rounded-md border bg-white p-3 dark:bg-gray-800">
+              <div>
+                <Label className="text-xs text-gray-500">Client Secret</Label>
+                <div className="font-mono text-sm">
+                  {showClientSecret ? agent.twitterClientSecret : maskText(agent.twitterClientSecret)}
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowClientSecret(!showClientSecret)}
+                aria-label={showClientSecret ? "Hide Client Secret" : "Show Client Secret"}
+              >
+                {showClientSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="mb-6 rounded-lg border bg-blue-50 p-4 dark:bg-blue-950">
         <div className="flex items-start gap-3">
