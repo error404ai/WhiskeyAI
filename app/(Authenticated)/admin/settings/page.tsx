@@ -1,26 +1,27 @@
 "use client";
 
-import React from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MaxAgentsPanel } from "@/components/admin/settings/MaxAgentsPanel";
+import { SolPaymentPanel } from "@/components/admin/settings/SolPaymentPanel";
+import { TelegramAuthenticationPanel } from "@/components/admin/settings/TelegramAuthenticationPanel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, Settings, Users } from "lucide-react";
-import { SolPaymentPanel } from "@/components/admin/settings/SolPaymentPanel";
-import { MaxAgentsPanel } from "@/components/admin/settings/MaxAgentsPanel";
-import { TelegramAuthenticationPanel } from "@/components/admin/settings/TelegramAuthenticationPanel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import * as SettingsController from "@/server/controllers/admin/SettingsController";
+import { useQuery } from "@tanstack/react-query";
+import { AlertCircle, Settings, Users } from "lucide-react";
+import React from "react";
 
 export default function AdminSettingsPage() {
   // Fetch settings data
-  const { 
-    data: settingsData, 
-    isPending: isLoading, 
-    error, 
-    refetch 
+  const {
+    data: settingsData,
+    isPending: isLoading,
+    error,
+    refetch,
   } = useQuery({
     queryKey: ["adminSettings"],
     queryFn: () => SettingsController.getSettings(),
+    refetchOnWindowFocus: false,
   });
 
   // Callback to refresh settings after updates
@@ -72,15 +73,13 @@ export default function AdminSettingsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">System Settings</h1>
-        <p className="text-muted-foreground">
-          Configure application-wide settings and integrations
-        </p>
+        <p className="text-muted-foreground">Configure application-wide settings and integrations</p>
       </div>
 
       {error ? (
         <Card className="bg-destructive/10">
           <CardContent className="flex items-center gap-2 py-6">
-            <AlertCircle className="h-5 w-5 text-destructive" />
+            <AlertCircle className="text-destructive h-5 w-5" />
             <p>There was an error loading the settings. Please try again later.</p>
           </CardContent>
         </Card>
@@ -88,15 +87,15 @@ export default function AdminSettingsPage() {
         <Tabs defaultValue="general" className="space-y-4">
           <TabsList>
             <TabsTrigger value="general">
-              <Settings className="h-4 w-4 mr-2" />
+              <Settings className="mr-2 h-4 w-4" />
               General Settings
             </TabsTrigger>
             <TabsTrigger value="agents">
-              <Users className="h-4 w-4 mr-2" />
+              <Users className="mr-2 h-4 w-4" />
               Agent Settings
             </TabsTrigger>
             <TabsTrigger value="integrations">
-              <Settings className="h-4 w-4 mr-2" />
+              <Settings className="mr-2 h-4 w-4" />
               Integrations
             </TabsTrigger>
           </TabsList>
@@ -109,10 +108,7 @@ export default function AdminSettingsPage() {
                 </CardContent>
               </Card>
             ) : (
-              <SolPaymentPanel 
-                settings={processedSettings} 
-                onUpdate={handleSettingsUpdated} 
-              />
+              <SolPaymentPanel settings={processedSettings} onUpdate={handleSettingsUpdated} />
             )}
           </TabsContent>
 
@@ -124,10 +120,7 @@ export default function AdminSettingsPage() {
                 </CardContent>
               </Card>
             ) : (
-              <MaxAgentsPanel 
-                settings={processedSettings} 
-                onUpdate={handleSettingsUpdated} 
-              />
+              <MaxAgentsPanel settings={processedSettings} onUpdate={handleSettingsUpdated} />
             )}
           </TabsContent>
 
@@ -139,10 +132,7 @@ export default function AdminSettingsPage() {
                 </CardContent>
               </Card>
             ) : (
-              <TelegramAuthenticationPanel 
-                settings={processedSettings} 
-                onUpdate={handleSettingsUpdated} 
-              />
+              <TelegramAuthenticationPanel settings={processedSettings} onUpdate={handleSettingsUpdated} />
             )}
           </TabsContent>
         </Tabs>
