@@ -2,9 +2,9 @@ import { Github, Mail, Twitter } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="w-full border-t py-12 md:py-16 lg:py-20">
+    <footer className="w-full py-12 md:py-16 lg:py-20">
       <div className="container px-4 md:px-6">
-        <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-2">
+        {/* <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-2">
           <div className="space-y-4">
             <h4 className="text-lg font-semibold">Product</h4>
             <ul className="text-muted-foreground space-y-2 text-sm">
@@ -24,14 +24,9 @@ export default function Footer() {
                   FAQ
                 </a>
               </li>
-              {/* <li>
-                <a href="#" className="hover:text-primary">
-                  Terms
-                </a>
-              </li> */}
             </ul>
           </div>
-        </div>
+        </div> */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t pt-8 sm:flex-row">
           <p className="text-muted-foreground text-sm">&copy; {new Date().getFullYear()} WhiskeyAI Agent. All rights reserved.</p>
           <div className="flex items-center space-x-4">
