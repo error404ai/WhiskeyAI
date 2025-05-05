@@ -8,15 +8,25 @@ const MotionDiv = dynamic(() => import("framer-motion").then((mod) => mod.motion
 
 export default function CTASection() {
   return (
-    <section className="bg-primary w-full py-12 md:py-24 lg:py-32">
+    <section className="bg-muted/5 w-full py-12 md:py-24 lg:py-32">
       <div className="container px-4 md:px-6">
         <MotionDiv initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-primary-foreground flex flex-col items-center justify-center space-y-4 text-center">
           <div className="space-y-2">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Ready to Transform Your Business?</h2>
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Ready to Transform
+              <span
+                className="bg-gradient-to-r bg-clip-text text-transparent"
+                style={{
+                  backgroundImage: "linear-gradient(to right, #00ffe0, #00ffe055)"
+                }}
+              >
+                &nbsp; Your Business?
+              </span>
+            </h2>
             <p className="max-w-[600px] md:text-xl/relaxed">Start automating your workflows with AI agents today</p>
           </div>
           <div className="flex flex-col gap-4 sm:flex-row">
-            <ConnectButton size="lg" variant="secondary">
+            <ConnectButton size="lg"
+              className="group bg-gradient-to-r from-[#00ffe0] to-[#00ffe055] text-black hover:brightness-110 transition-all">
               Get Started
               <ArrowRight className="ml-2 h-4 w-4" />
             </ConnectButton>
