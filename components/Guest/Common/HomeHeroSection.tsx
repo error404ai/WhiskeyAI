@@ -18,17 +18,14 @@ export default function HomeHeroSection() {
             className="space-y-8"
           >
             <div className="bg-muted/10 inline-flex items-center gap-2 rounded-full px-4 py-1">
-              <Sparkles className="text-white h-4 w-4" />
+              <Sparkles className="text-primary h-4 w-4" />
               <span className="text-sm font-medium">Intelligent Automation</span>
             </div>
 
             <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
               AI Agents
               <span
-                className="bg-gradient-to-r bg-clip-text text-transparent"
-                style={{
-                  backgroundImage: "linear-gradient(to right, #00ffe0, #00ffe055)"
-                }}
+                className="text-4xl font-bold tracking-tight sm:text-6xl"
               >
                 &nbsp;that work for you
               </span>
@@ -37,10 +34,7 @@ export default function HomeHeroSection() {
             <p className="text-muted-foreground text-xl">Deploy autonomous AI agents that handle your tasks with human-like intelligence. Transform your workflow with next-generation AI automation.</p>
 
             <div className="flex flex-col gap-4 sm:flex-row">
-              <ConnectButton
-                size="lg"
-                className="group bg-gradient-to-r from-[#00ffe0] to-[#00ffe055] text-black hover:brightness-110 transition-all"
-              >
+              <ConnectButton size="lg" className="group">
                 Get Started
                 <Bot className="ml-2 h-4 w-4 transition-transform group-hover:rotate-12" />
               </ConnectButton>
