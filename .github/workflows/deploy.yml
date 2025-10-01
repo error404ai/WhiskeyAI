@@ -88,14 +88,14 @@ jobs:
       # Step 10: Test SSH Connection
       - name: Test SSH Connection
         run: |
-          ssh -T -o StrictHostKeyChecking=no root@45.90.220.95 whoami
+          ssh -T -o StrictHostKeyChecking=no root@62.72.26.9 whoami
 
       # Step 11: Deploy to VPS
       - name: Deploy to VPS
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ssh -T -o StrictHostKeyChecking=no root@45.90.220.95 \
+          ssh -T -o StrictHostKeyChecking=no root@62.72.26.9 \
             "echo '$GITHUB_TOKEN' | docker login ghcr.io -u ${{ github.actor }} --password-stdin && \
              docker pull ghcr.io/${{ github.repository_owner }}/whiskeyai/whiskey:latest && \
              cd /var/www/WhiskeyAI && \
