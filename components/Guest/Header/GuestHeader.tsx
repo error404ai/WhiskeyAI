@@ -11,16 +11,11 @@ import ConnectButton from "./_partials/ConnectButton";
 import DisconnectButton from "./_partials/DisconnectButton";
 import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from "./_partials/navigation-menu";
 
-const navigationMenuTriggerStyle = "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background/10 px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50";
-
-// const navigationMenuTriggerStyle =
-//   "group inline-flex h-10 w-max items-center justify-center rounded-md bg-gradient-to-r from-[#00ffe0] to-[#00ffe055] px-4 py-2 text-sm font-medium text-black transition-all hover:brightness-110 focus:outline-none disabled:pointer-events-none disabled:opacity-50";
-
+const navigationMenuTriggerStyle = "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50";
 
 export function GuestHeader() {
   return (
-    <header className={cn("sticky top-0 z-50 w-full transition-all", " bg-transparent border-b border-white/10")}>
-
+    <header className={cn("sticky top-0 z-50 w-full transition-all", "bg-background/80 border-b backdrop-blur-sm")}>
       <nav className="container flex h-16 items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-6 md:gap-8 lg:gap-10">
           <Logo />
@@ -54,20 +49,11 @@ export function GuestHeader() {
         </div>
 
         {/* Desktop Auth Buttons */}
-        {/* <LoggedOut>
+        <LoggedOut>
           <div className="hidden items-center gap-4 md:flex">
             <ConnectButton />
           </div>
-        </LoggedOut> */}
-        <LoggedOut>
-          <div className="hidden items-center gap-4 md:flex">
-            <ConnectButton
-              size="lg"
-              className="group bg-gradient-to-r from-[#00ffe0] to-[#00ffe055] text-black px-4 py-2 rounded-md shadow-md hover:brightness-110 transition-all"
-            />
-          </div>
         </LoggedOut>
-
         <LoggedIn>
           <div className="flex items-center gap-4">
             <div className="hidden items-center gap-4 md:flex">
