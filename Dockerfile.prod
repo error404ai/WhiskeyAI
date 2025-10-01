@@ -23,7 +23,7 @@ FROM node:23-alpine AS runner
 
 WORKDIR /app
 
-RUN apk add --no-cache supervisor
+RUN apk add --no-cache supervisor postgresql-client
 
 COPY --from=builder /app .
 
