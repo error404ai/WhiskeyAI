@@ -1,5 +1,6 @@
 "use client";
 
+import { BackupRestorePanel } from "@/components/admin/settings/BackupRestorePanel";
 import { MaxAgentsPanel } from "@/components/admin/settings/MaxAgentsPanel";
 import { SolPaymentPanel } from "@/components/admin/settings/SolPaymentPanel";
 import { TelegramAuthenticationPanel } from "@/components/admin/settings/TelegramAuthenticationPanel";
@@ -8,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import * as SettingsController from "@/server/controllers/admin/SettingsController";
 import { useQuery } from "@tanstack/react-query";
-import { AlertCircle, Settings, Users } from "lucide-react";
+import { AlertCircle, Database, Settings, Users } from "lucide-react";
 import React from "react";
 
 export default function AdminSettingsPage() {
@@ -98,6 +99,10 @@ export default function AdminSettingsPage() {
               <Settings className="mr-2 h-4 w-4" />
               Integrations
             </TabsTrigger>
+            <TabsTrigger value="backup">
+              <Database className="mr-2 h-4 w-4" />
+              Backup & Restore
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="general" className="space-y-4">
@@ -134,6 +139,10 @@ export default function AdminSettingsPage() {
             ) : (
               <TelegramAuthenticationPanel settings={processedSettings} onUpdate={handleSettingsUpdated} />
             )}
+          </TabsContent>
+
+          <TabsContent value="backup" className="space-y-4">
+            <BackupRestorePanel />
           </TabsContent>
         </Tabs>
       )}
