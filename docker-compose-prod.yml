@@ -2,37 +2,16 @@ services:
   whiskey:
     container_name: whiskey
     image: ghcr.io/error404ai/whiskeyai/whiskey:${TAG}
-    restart: unless-stopped
     env_file:
       - .env
-    # SECURITY: No bind mounts for uploads - use S3/MinIO instead
-    # All uploads should go through the S3 disk (MinIO) to prevent container escape
+    volumes:
+      - ./public/uploads:/app/public/uploads
     ports:
       - "3000:3000"
     networks:
       - default
     depends_on:
       - db
-      - minio
-    # Security hardening
-    security_opt:
-      - no-new-privileges:true
-    # read_only: true
-    cap_drop:
-      - ALL
-    cap_add:
-      - NET_BIND_SERVICE
-    # Writable directories needed by Next.js (tmpfs = in-memory, not persisted)
-    tmpfs:
-      - /tmp:size=256M,mode=1777
-      - /app/.next/cache:size=512M,mode=1777
-    user: "1000:1000"
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/v1/auth/auth-check"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
   db:
     image: postgres:17
@@ -51,8 +30,8 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     command: server /data --console-address ":9001"
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "127.0.0.1:9000:9000" # SECURITY: Only accessible from localhost for API
+      - "127.0.0.1:9001:9001" # SECURITY: Only accessible from localhost for console
     volumes:
       - minio_data:/data
     networks:
@@ -61,7 +40,7 @@ services:
   adminer:
     image: adminer
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080" # SECURITY: Only accessible from localhost
     networks:
       - default
 
@@ -70,7 +49,7 @@ services:
     container_name: portainer
     restart: always
     ports:
-      - "9002:9000"
+      - "127.0.0.1:9002:9000" # SECURITY: Only accessible from localhost - use SSH tunnel to access
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
