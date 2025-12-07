@@ -17,18 +17,60 @@ export interface ImageUploadOptions extends UploadOptions {
   quality?: number;
 }
 
+// Security: Allowed file extensions for uploads
+const ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"];
+const ALLOWED_FILE_EXTENSIONS = [".pdf", ".doc", ".docx", ".txt", ".csv", ".json", ...ALLOWED_IMAGE_EXTENSIONS];
+
+// Security: Blocked executable extensions
+const BLOCKED_EXTENSIONS = [".exe", ".bat", ".cmd", ".sh", ".ps1", ".php", ".py", ".rb", ".pl", ".cgi", ".asp", ".aspx", ".jsp", ".jar", ".war", ".dll", ".so", ".bin", ".msi", ".scr", ".com", ".pif", ".vbs", ".js", ".wsf"];
+
 export class UploadService {
   private disks: Record<string, Disk>;
   private defaultDisk: string;
 
   constructor() {
     const appUrl = process.env.APP_URL || "http://localhost:3000";
+
+    // SECURITY: In production, only allow S3 disk to prevent container escape attacks
+    const isProduction = process.env.NODE_ENV === "production";
+
     this.disks = {
-      public: new LocalDisk("public", appUrl),
-      storage: new LocalDisk("storage", appUrl),
       s3: new S3Disk(),
+      // Only register local disks in development
+      ...(isProduction
+        ? {}
+        : {
+            public: new LocalDisk("public", appUrl),
+            storage: new LocalDisk("storage", appUrl),
+          }),
     };
-    this.defaultDisk = process.env.DISK || "s3";
+
+    // SECURITY: Force S3 in production
+    this.defaultDisk = isProduction ? "s3" : process.env.DISK || "s3";
+  }
+
+  private validateFileExtension(filename: string, isImage: boolean = false): void {
+    const ext = filename.toLowerCase().slice(filename.lastIndexOf("."));
+
+    // SECURITY: Block dangerous executable files
+    if (BLOCKED_EXTENSIONS.includes(ext)) {
+      throw new Error(`File extension ${ext} is not allowed for security reasons`);
+    }
+
+    // Validate against allowed extensions
+    const allowedExtensions = isImage ? ALLOWED_IMAGE_EXTENSIONS : ALLOWED_FILE_EXTENSIONS;
+    if (!allowedExtensions.includes(ext)) {
+      throw new Error(`File extension ${ext} is not allowed. Allowed: ${allowedExtensions.join(", ")}`);
+    }
+  }
+
+  private sanitizeFilename(filename: string): string {
+    // Remove any path traversal attempts and dangerous characters
+    return filename
+      .replace(/[/\\]/g, "") // Remove path separators
+      .replace(/\.\./g, "") // Remove parent directory references
+      .replace(/[<>:"|?*\x00-\x1f]/g, "") // Remove invalid chars
+      .trim();
   }
 
   private validateFile(file: File, options: UploadOptions = {}): void {
@@ -52,22 +94,30 @@ export class UploadService {
   }
 
   async uploadFile(file: File, options: UploadOptions = {}): Promise<UploadResult> {
+    // SECURITY: Validate and sanitize filename
+    this.validateFileExtension(file.name, false);
+    const sanitizedName = this.sanitizeFilename(file.name);
+
     this.validateFile(file, options);
     const disk = this.getDisk(options.disk);
     const directory = options.directory || "uploads/files";
     const id = uuidv4();
-    const filename = `${id}-${file.name}`;
+    const filename = `${id}-${sanitizedName}`;
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     return disk.upload(buffer, filename, directory);
   }
   async uploadImage(file: File, options: ImageUploadOptions = {}): Promise<UploadResult> {
+    // SECURITY: Validate image extension
+    this.validateFileExtension(file.name, true);
+    const sanitizedName = this.sanitizeFilename(file.name);
+
     const imageOptions = { ...options, allowedTypes: options.allowedTypes || ["image/"] };
     this.validateFile(file, imageOptions);
     const disk = this.getDisk(options.disk);
     const directory = options.directory || "uploads/images";
     const id = uuidv4();
-    const filename = `${id}-${file.name}`;
+    const filename = `${id}-${sanitizedName}`;
 
     const arrayBuffer = await file.arrayBuffer();
     let buffer = Buffer.from(arrayBuffer as ArrayBufferLike);
