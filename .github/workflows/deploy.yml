@@ -92,23 +92,29 @@ jobs:
 
       # Step 11: Deploy to VPS
       - name: Deploy to VPS
+        timeout-minutes: 15
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ssh -T -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=20 -o ConnectTimeout=30 root@62.72.26.9 << 'ENDSSH'
+          ssh -T -o StrictHostKeyChecking=no -o ServerAliveInterval=15 -o ServerAliveCountMax=40 -o ConnectTimeout=30 root@62.72.26.9 << 'ENDSSH'
             set -e
             
             # Login to GitHub Container Registry
             echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
-            # Pull the latest image
-            docker pull ghcr.io/${{ github.repository_owner }}/whiskeyai/whiskey:latest
+            # Pull the latest image with timeout
+            echo "Pulling latest image..."
+            timeout 600 docker pull ghcr.io/${{ github.repository_owner }}/whiskeyai/whiskey:latest || {
+              echo "Docker pull timed out or failed"
+              exit 1
+            }
+            echo "Image pulled successfully"
             
             # Navigate to project directory
             cd /var/www/WhiskeyAI
             
             # Pull latest code
-            git pull origin production
+            git pull origin production || true
             
             # Stop existing containers gracefully
             docker-compose -f docker-compose-prod.yml down --remove-orphans || true
@@ -116,16 +122,21 @@ jobs:
             # Start containers in detached mode
             TAG=latest docker-compose -f docker-compose-prod.yml up -d
             
-            # Wait for container to be healthy (max 60 seconds)
+            # Wait for container to be healthy
             echo "Waiting for container to start..."
-            sleep 10
+            for i in $(seq 1 30); do
+              if docker ps | grep -q whiskey; then
+                echo "Container started successfully"
+                break
+              fi
+              echo "Waiting... ($i/30)"
+              sleep 2
+            done
             
-            # Check if container is running
-            if docker ps | grep -q whiskey; then
-              echo "Container started successfully"
-            else
+            # Final check
+            if ! docker ps | grep -q whiskey; then
               echo "Container failed to start, checking logs..."
-              docker logs whiskey --tail 50 || true
+              docker logs whiskey --tail 100 || true
               exit 1
             fi
             
@@ -134,4 +145,6 @@ jobs:
             
             # Remove docker credentials
             rm -f /root/.docker/config.json
+            
+            echo "Deployment completed successfully!"
           ENDSSH
