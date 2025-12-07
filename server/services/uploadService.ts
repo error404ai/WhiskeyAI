@@ -7,6 +7,8 @@ import { S3Disk } from "../disk/S3Disk";
 export interface UploadOptions {
   disk?: string;
   directory?: string;
+  maxSize?: number; // in bytes
+  allowedTypes?: string[]; // mime types
 }
 
 export interface ImageUploadOptions extends UploadOptions {
@@ -28,6 +30,18 @@ export class UploadService {
     };
     this.defaultDisk = process.env.DISK || "s3";
   }
+
+  private validateFile(file: File, options: UploadOptions = {}): void {
+    const maxSize = options.maxSize || 10 * 1024 * 1024; // 10MB default
+    if (file.size > maxSize) {
+      throw new Error(`File size exceeds maximum allowed size of ${maxSize} bytes`);
+    }
+
+    const allowedTypes = options.allowedTypes || [];
+    if (allowedTypes.length > 0 && !allowedTypes.some((type) => file.type.startsWith(type))) {
+      throw new Error(`File type ${file.type} is not allowed. Allowed types: ${allowedTypes.join(", ")}`);
+    }
+  }
   private getDisk(diskName?: string): Disk {
     const name = diskName || this.defaultDisk;
     const disk = this.disks[name];
@@ -38,6 +52,7 @@ export class UploadService {
   }
 
   async uploadFile(file: File, options: UploadOptions = {}): Promise<UploadResult> {
+    this.validateFile(file, options);
     const disk = this.getDisk(options.disk);
     const directory = options.directory || "uploads/files";
     const id = uuidv4();
@@ -47,6 +62,8 @@ export class UploadService {
     return disk.upload(buffer, filename, directory);
   }
   async uploadImage(file: File, options: ImageUploadOptions = {}): Promise<UploadResult> {
+    const imageOptions = { ...options, allowedTypes: options.allowedTypes || ["image/"] };
+    this.validateFile(file, imageOptions);
     const disk = this.getDisk(options.disk);
     const directory = options.directory || "uploads/images";
     const id = uuidv4();
