@@ -13,10 +13,10 @@ export class LocalDisk extends Disk {
 
   async upload(buffer: Buffer, filename: string, directory: string): Promise<UploadResult> {
     const targetDir = path.join(this.root, directory);
-    await fs.mkdir(targetDir, { recursive: true });
+    await fs.mkdir(targetDir, { recursive: true, mode: 0o755 });
 
     const filePath = path.join(targetDir, filename);
-    await fs.writeFile(filePath, buffer);
+    await fs.writeFile(filePath, buffer, { mode: 0o644 });
 
     return {
       filename,
@@ -57,14 +57,14 @@ export class LocalDisk extends Disk {
     try {
       const relativePath = filePath.startsWith("/") ? filePath.slice(1) : filePath;
       const fullPath = path.join(this.root, relativePath);
-      
+
       // Check if file exists
       const exists = await this.exists(filePath);
       if (!exists) {
         console.error(`File not found at path: ${fullPath}`);
         return null;
       }
-      
+
       // Read file content
       return await fs.readFile(fullPath);
     } catch (error) {
