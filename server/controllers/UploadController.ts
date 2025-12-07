@@ -8,6 +8,8 @@ export const uploadImage = async (file: File): Promise<{ url: string }> => {
     const result = await uploadService.uploadImage(file, {
       directory: "uploads/tweet-media",
       quality: 80,
+      allowedTypes: ["image/"],
+      maxSize: 5 * 1024 * 1024, // 5MB
     });
 
     return { url: result.path };
@@ -22,6 +24,8 @@ export const uploadFile = async (file: File): Promise<{ url: string }> => {
     const uploadService = new UploadService();
     const result = await uploadService.uploadFile(file, {
       directory: "uploads/tweet-media",
+      allowedTypes: ["image/", "video/"],
+      maxSize: 50 * 1024 * 1024, // 50MB for videos
     });
 
     return { url: result.path };
