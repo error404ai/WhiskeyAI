@@ -23,9 +23,17 @@ FROM node:23-alpine AS runner
 
 WORKDIR /app
 
-RUN apk add --no-cache supervisor postgresql-client
+RUN apk add --no-cache supervisor postgresql-client wget
 
-COPY --from=builder /app .
+# Create non-root user for security
+RUN addgroup -g 1000 nodejs && \
+    adduser -u 1000 -G nodejs -s /bin/sh -D nextjs
+
+COPY --from=builder --chown=nextjs:nodejs /app .
+
+# Create directories that Next.js needs to write to
+RUN mkdir -p /app/.next/cache && \
+    chown -R nextjs:nodejs /app/.next
 
 # Make scripts executable
 RUN chmod +x /app/scripts/entrypoint.sh
@@ -33,6 +41,9 @@ RUN chmod +x /app/scripts/start-app.sh
 
 # Set production environment
 ENV NODE_ENV=production
+
+# Switch to non-root user
+USER nextjs
 
 EXPOSE 3000
 
