@@ -53,7 +53,7 @@ export async function updateSolPayment(amountStr: string) {
     return await AdminSettingsService.updateSolPayment(numAmount);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message };
+      return { success: false, error: error.issues[0].message };
     }
     return { success: false, error: error instanceof Error ? error.message : "Invalid payment amount" };
   }
@@ -77,7 +77,7 @@ export async function updateDefaultMaxAgentsPerUser(valueStr: string) {
       maxAgentsSchema.parse({ value: valueStr });
     } catch (zodError) {
       if (zodError instanceof z.ZodError) {
-        return { success: false, error: zodError.errors[0].message };
+        return { success: false, error: zodError.issues[0].message };
       }
       throw zodError;
     }
@@ -99,7 +99,7 @@ export async function updateTelegramSettings(settings: Record<string, string>) {
     return await AdminSettingsService.updateTelegramSettings(validatedSettings);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message };
+      return { success: false, error: error.issues[0].message };
     }
     return { success: false, error: error instanceof Error ? error.message : "Invalid Telegram settings" };
   }
