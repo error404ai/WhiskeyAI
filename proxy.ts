@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getIntendedRoute } from "./lib/utils";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("request_url", getIntendedRoute(request));
