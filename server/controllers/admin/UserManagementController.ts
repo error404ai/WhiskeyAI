@@ -97,7 +97,7 @@ export const updateUserMaxAgents = async (userId: number, maxAgents: string) => 
       maxAgentsSchema.parse({ value: maxAgents });
     } catch (zodError) {
       if (zodError instanceof z.ZodError) {
-        return { success: false, message: zodError.errors[0].message };
+        return { success: false, message: zodError.issues[0].message };
       }
       throw zodError;
     }
